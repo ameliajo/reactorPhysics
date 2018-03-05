@@ -3,7 +3,7 @@
 #include <fstream>
 #include <math.h>
 #include <iomanip>  
-#include<string>
+#include <string>
 
 
 /* Two slab problem, assuming isotropic scatting in center of mass, with a 
