@@ -36,7 +36,7 @@ auto intermediateResonanceFlux( double sigmaAbsU238, double sigmaDilution ){
   
 auto calcResIntegralXS(){
   bool infiniteDilution = false;
-  bool narrowResonance = false;
+  bool narrowResonance = true;
   bool wideResonance = true;
 
   int vecSize = 5000;
@@ -56,105 +56,81 @@ auto calcResIntegralXS(){
                       integral_sigma_flux_1000 { 0, 0, 0 };
   std::vector<double> resonance_integral_300   { 0, 0, 0 },
                       resonance_integral_1000  { 0, 0, 0 };
+  double eLeft, eRight, sigmaAbsU238_300, sigmaAbsU238_1000, intPieceXS300,
+         intPieceXS1000,resIntPiece300,resIntPiece1000, sigmaTotU238_300,
+         sigmaTotU238_1000, sigmaDilution;
+  sigmaDilution = 2000;
   for ( int i = 1; i < vecSize; ++i ){
     if ( infiniteDilution ){
       // THIS IS FOR INFINITE DILUTION
       // now we're going to integrate from eLeft --> eRight
-      double eLeft  = energy[i-1], 
-             eRight = energy[i],
-             xs300  = ( capture300[i-1]  + capture300[i]  ) / 2.0,
-             xs1000 = ( capture1000[i-1] + capture1000[i] ) / 2.0,
-             intPieceXS300  = xs300  * log( eRight / eLeft ),
-             intPieceXS1000 = xs1000 * log( eRight / eLeft ),
-             resIntPiece300  = log( eRight / eLeft ),
-             resIntPiece1000 = log( eRight / eLeft );
-      int index;
-      if      ( eLeft <= 10 ){ index = 0; } 
-      else if ( eLeft <= 25 ){ index = 1; }
-      else                   { index = 2; }
-      integral_sigma_flux_300[index]  += intPieceXS300; 
-      integral_sigma_flux_1000[index] += intPieceXS1000; 
-      resonance_integral_300[index]   += resIntPiece300; 
-      resonance_integral_1000[index]  += resIntPiece1000; 
-
+      eLeft  = energy[i-1], 
+      eRight = energy[i],
+      sigmaAbsU238_300  = ( capture300[i-1]  + capture300[i]  ) / 2.0,
+      sigmaAbsU238_1000 = ( capture1000[i-1] + capture1000[i] ) / 2.0,
+      intPieceXS300  = sigmaAbsU238_300  * log( eRight / eLeft ),
+      intPieceXS1000 = sigmaAbsU238_1000 * log( eRight / eLeft ),
+      resIntPiece300  = log( eRight / eLeft ),
+      resIntPiece1000 = log( eRight / eLeft );
 
     } 
     else if ( narrowResonance ){
       // THIS IS FOR NARROW RESONANCE APPROXIMATION
       // now we're going to integrate from eLeft --> eRight
-      double eLeft  = energy[i-1], 
-             eRight = energy[i],
-             sigmaTotU238_300  = ( total300[i-1]    + total300[i]   ) / 2.0,
-             sigmaTotU238_1000 = ( total1000[i-1]   + total1000[i]   ) / 2.0,
-             sigmaAbsU238_300  = ( capture300[i-1]  + capture300[i] ) / 2.0,
-             sigmaAbsU238_1000 = ( capture1000[i-1] + capture1000[i] ) / 2.0,
-             sigmaDilution = 2000;
+      eLeft  = energy[i-1], 
+      eRight = energy[i],
+      sigmaTotU238_300  = ( total300[i-1]    + total300[i]   ) / 2.0,
+      sigmaTotU238_1000 = ( total1000[i-1]   + total1000[i]   ) / 2.0,
+      sigmaAbsU238_300  = ( capture300[i-1]  + capture300[i] ) / 2.0,
+      sigmaAbsU238_1000 = ( capture1000[i-1] + capture1000[i] ) / 2.0;
 
       double flux300  = narrowResonanceFlux( sigmaTotU238_300,  sigmaDilution ); 
       double flux1000 = narrowResonanceFlux( sigmaTotU238_1000, sigmaDilution ); 
 
-      double intPieceXS300   = flux300  * sigmaAbsU238_300  * log( eRight / eLeft ),
-             intPieceXS1000  = flux1000 * sigmaAbsU238_1000 * log( eRight / eLeft ),
-             resIntPiece300  = flux300  * log( eRight / eLeft ),
-             resIntPiece1000 = flux1000 * log( eRight / eLeft );
-      int index;
-      if      ( eLeft <= 10 ){ index = 0; } 
-      else if ( eLeft <= 25 ){ index = 1; }
-      else                   { index = 2; }
-      integral_sigma_flux_300[index]  += intPieceXS300; 
-      integral_sigma_flux_1000[index] += intPieceXS1000; 
-      resonance_integral_300[index]   += resIntPiece300; 
-      resonance_integral_1000[index]  += resIntPiece1000; 
-
+      intPieceXS300   = flux300  * sigmaAbsU238_300  * log( eRight / eLeft ),
+      intPieceXS1000  = flux1000 * sigmaAbsU238_1000 * log( eRight / eLeft ),
+      resIntPiece300  = flux300  * log( eRight / eLeft ),
+      resIntPiece1000 = flux1000 * log( eRight / eLeft );
 
     }
     else if ( wideResonance ){
       // THIS IS FOR WIDE RESONANCE APPROXIMATION
       // now we're going to integrate from eLeft --> eRight
-      double eLeft  = energy[i-1], 
-             eRight = energy[i],
-             sigmaTotU238_300  = ( total300[i-1]    + total300[i]   ) / 2.0,
-             sigmaTotU238_1000 = ( total1000[i-1]   + total1000[i]   ) / 2.0,
-             sigmaAbsU238_300  = ( capture300[i-1]  + capture300[i] ) / 2.0,
-             sigmaAbsU238_1000 = ( capture1000[i-1] + capture1000[i] ) / 2.0,
-             sigmaDilution = 2000;
+      eLeft  = energy[i-1], 
+      eRight = energy[i],
+      sigmaTotU238_300  = ( total300[i-1]    + total300[i]   ) / 2.0,
+      sigmaTotU238_1000 = ( total1000[i-1]   + total1000[i]   ) / 2.0,
+      sigmaAbsU238_300  = ( capture300[i-1]  + capture300[i] ) / 2.0,
+      sigmaAbsU238_1000 = ( capture1000[i-1] + capture1000[i] ) / 2.0;
 
       double flux300  = wideResonanceFlux( sigmaAbsU238_300,  sigmaDilution ); 
       double flux1000 = wideResonanceFlux( sigmaAbsU238_1000, sigmaDilution ); 
 
-      double intPieceXS300   = flux300  * sigmaAbsU238_300  * log( eRight / eLeft ),
-             intPieceXS1000  = flux1000 * sigmaAbsU238_1000 * log( eRight / eLeft ),
-             resIntPiece300  = flux300  * log( eRight / eLeft ),
-             resIntPiece1000 = flux1000 * log( eRight / eLeft );
-      int index;
-      if      ( eLeft <= 10 ){ index = 0; } 
-      else if ( eLeft <= 25 ){ index = 1; }
-      else                   { index = 2; }
-      integral_sigma_flux_300[index]  += intPieceXS300; 
-      integral_sigma_flux_1000[index] += intPieceXS1000; 
-      resonance_integral_300[index]   += resIntPiece300; 
-      resonance_integral_1000[index]  += resIntPiece1000; 
-
+      intPieceXS300   = flux300  * sigmaAbsU238_300  * log( eRight / eLeft ),
+      intPieceXS1000  = flux1000 * sigmaAbsU238_1000 * log( eRight / eLeft ),
+      resIntPiece300  = flux300  * log( eRight / eLeft ),
+      resIntPiece1000 = flux1000 * log( eRight / eLeft );
 
     }
     else {
       // THIS IS FOR INTERMEDIATE RESONANCE APPROXIMATION
       // now we're going to integrate from eLeft --> eRight
-      double eLeft  = energy[i-1], 
-             eRight = energy[i],
-             sigmaTotU238_300  = ( total300[i-1]    + total300[i]   ) / 2.0,
-             sigmaTotU238_1000 = ( total1000[i-1]   + total1000[i]   ) / 2.0,
-             sigmaAbsU238_300  = ( capture300[i-1]  + capture300[i] ) / 2.0,
-             sigmaAbsU238_1000 = ( capture1000[i-1] + capture1000[i] ) / 2.0,
-             sigmaDilution = 2000;
+      eLeft  = energy[i-1], 
+      eRight = energy[i],
+      sigmaTotU238_300  = ( total300[i-1]    + total300[i]   ) / 2.0,
+      sigmaTotU238_1000 = ( total1000[i-1]   + total1000[i]   ) / 2.0,
+      sigmaAbsU238_300  = ( capture300[i-1]  + capture300[i] ) / 2.0,
+      sigmaAbsU238_1000 = ( capture1000[i-1] + capture1000[i] ) / 2.0;
 
       double flux300  = intermediateResonanceFlux( sigmaAbsU238_300,  sigmaDilution ); 
       double flux1000 = intermediateResonanceFlux( sigmaAbsU238_1000, sigmaDilution ); 
 
-      double intPieceXS300   = flux300  * sigmaAbsU238_300  * log( eRight / eLeft ),
-             intPieceXS1000  = flux1000 * sigmaAbsU238_1000 * log( eRight / eLeft ),
-             resIntPiece300  = flux300  * log( eRight / eLeft ),
-             resIntPiece1000 = flux1000 * log( eRight / eLeft );
+      intPieceXS300   = flux300  * sigmaAbsU238_300  * log( eRight / eLeft ),
+      intPieceXS1000  = flux1000 * sigmaAbsU238_1000 * log( eRight / eLeft ),
+      resIntPiece300  = flux300  * log( eRight / eLeft ),
+      resIntPiece1000 = flux1000 * log( eRight / eLeft );
+
+    }
       int index;
       if      ( eLeft <= 10 ){ index = 0; } 
       else if ( eLeft <= 25 ){ index = 1; }
@@ -165,7 +141,6 @@ auto calcResIntegralXS(){
       resonance_integral_1000[index]  += resIntPiece1000; 
 
 
-    }
 
 
 
