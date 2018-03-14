@@ -35,9 +35,9 @@ auto intermediateResonanceFlux( double sigmaAbsU238, double sigmaDilution ){
 
   
 auto calcResIntegralXS(){
-  bool infiniteDilution = false;
-  bool narrowResonance = true;
-  bool wideResonance = true;
+  bool infiniteDilution = true;
+  bool narrowResonance = false;
+  bool wideResonance = false;
 
   int vecSize = 5000;
   std::vector<double> energy(vecSize), capture300(vecSize), capture1000(vecSize), total300(vecSize), total1000(vecSize);
@@ -52,14 +52,14 @@ auto calcResIntegralXS(){
     ++i;
   }
 
-  std::vector<double> integral_sigma_flux_300  { 0, 0, 0 }, 
-                      integral_sigma_flux_1000 { 0, 0, 0 };
-  std::vector<double> resonance_integral_300   { 0, 0, 0 },
-                      resonance_integral_1000  { 0, 0, 0 };
-  double eLeft, eRight, sigmaAbsU238_300, sigmaAbsU238_1000, intPieceXS300,
-         intPieceXS1000,resIntPiece300,resIntPiece1000, sigmaTotU238_300,
+  std::vector<double> numerator_300  { 0, 0, 0 }, 
+                      numerator_1000 { 0, 0, 0 };
+  std::vector<double> denominator_300   { 0, 0, 0 },
+                      denominator_1000  { 0, 0, 0 };
+  double eLeft, eRight, sigmaAbsU238_300, sigmaAbsU238_1000, numeratorPiece300,
+         numeratorPiece1000,denominatorPiece300,denominatorPiece1000, sigmaTotU238_300,
          sigmaTotU238_1000, sigmaDilution;
-  sigmaDilution = 2000;
+  sigmaDilution = 20;
   for ( int i = 1; i < vecSize; ++i ){
     if ( infiniteDilution ){
       // THIS IS FOR INFINITE DILUTION
@@ -68,10 +68,10 @@ auto calcResIntegralXS(){
       eRight = energy[i],
       sigmaAbsU238_300  = ( capture300[i-1]  + capture300[i]  ) / 2.0,
       sigmaAbsU238_1000 = ( capture1000[i-1] + capture1000[i] ) / 2.0,
-      intPieceXS300  = sigmaAbsU238_300  * log( eRight / eLeft ),
-      intPieceXS1000 = sigmaAbsU238_1000 * log( eRight / eLeft ),
-      resIntPiece300  = log( eRight / eLeft ),
-      resIntPiece1000 = log( eRight / eLeft );
+      numeratorPiece300  = sigmaAbsU238_300  * log( eRight / eLeft ),
+      numeratorPiece1000 = sigmaAbsU238_1000 * log( eRight / eLeft ),
+      denominatorPiece300  = log( eRight / eLeft ),
+      denominatorPiece1000 = log( eRight / eLeft );
 
     } 
     else if ( narrowResonance ){
@@ -87,10 +87,10 @@ auto calcResIntegralXS(){
       double flux300  = narrowResonanceFlux( sigmaTotU238_300,  sigmaDilution ); 
       double flux1000 = narrowResonanceFlux( sigmaTotU238_1000, sigmaDilution ); 
 
-      intPieceXS300   = flux300  * sigmaAbsU238_300  * log( eRight / eLeft ),
-      intPieceXS1000  = flux1000 * sigmaAbsU238_1000 * log( eRight / eLeft ),
-      resIntPiece300  = flux300  * log( eRight / eLeft ),
-      resIntPiece1000 = flux1000 * log( eRight / eLeft );
+      numeratorPiece300   = flux300  * sigmaAbsU238_300  * log( eRight / eLeft ),
+      numeratorPiece1000  = flux1000 * sigmaAbsU238_1000 * log( eRight / eLeft ),
+      denominatorPiece300  = flux300  * log( eRight / eLeft ),
+      denominatorPiece1000 = flux1000 * log( eRight / eLeft );
 
     }
     else if ( wideResonance ){
@@ -106,10 +106,10 @@ auto calcResIntegralXS(){
       double flux300  = wideResonanceFlux( sigmaAbsU238_300,  sigmaDilution ); 
       double flux1000 = wideResonanceFlux( sigmaAbsU238_1000, sigmaDilution ); 
 
-      intPieceXS300   = flux300  * sigmaAbsU238_300  * log( eRight / eLeft ),
-      intPieceXS1000  = flux1000 * sigmaAbsU238_1000 * log( eRight / eLeft ),
-      resIntPiece300  = flux300  * log( eRight / eLeft ),
-      resIntPiece1000 = flux1000 * log( eRight / eLeft );
+      numeratorPiece300   = flux300  * sigmaAbsU238_300  * log( eRight / eLeft ),
+      numeratorPiece1000  = flux1000 * sigmaAbsU238_1000 * log( eRight / eLeft ),
+      denominatorPiece300  = flux300  * log( eRight / eLeft ),
+      denominatorPiece1000 = flux1000 * log( eRight / eLeft );
 
     }
     else {
@@ -125,20 +125,20 @@ auto calcResIntegralXS(){
       double flux300  = intermediateResonanceFlux( sigmaAbsU238_300,  sigmaDilution ); 
       double flux1000 = intermediateResonanceFlux( sigmaAbsU238_1000, sigmaDilution ); 
 
-      intPieceXS300   = flux300  * sigmaAbsU238_300  * log( eRight / eLeft ),
-      intPieceXS1000  = flux1000 * sigmaAbsU238_1000 * log( eRight / eLeft ),
-      resIntPiece300  = flux300  * log( eRight / eLeft ),
-      resIntPiece1000 = flux1000 * log( eRight / eLeft );
+      numeratorPiece300   = flux300  * sigmaAbsU238_300  * log( eRight / eLeft ),
+      numeratorPiece1000  = flux1000 * sigmaAbsU238_1000 * log( eRight / eLeft ),
+      denominatorPiece300  = flux300  * log( eRight / eLeft ),
+      denominatorPiece1000 = flux1000 * log( eRight / eLeft );
 
     }
       int index;
       if      ( eLeft <= 10 ){ index = 0; } 
       else if ( eLeft <= 25 ){ index = 1; }
       else                   { index = 2; }
-      integral_sigma_flux_300[index]  += intPieceXS300; 
-      integral_sigma_flux_1000[index] += intPieceXS1000; 
-      resonance_integral_300[index]   += resIntPiece300; 
-      resonance_integral_1000[index]  += resIntPiece1000; 
+      numerator_300[index]  += numeratorPiece300; 
+      numerator_1000[index] += numeratorPiece1000; 
+      denominator_300[index]   += denominatorPiece300; 
+      denominator_1000[index]  += denominatorPiece1000; 
 
 
 
@@ -146,9 +146,18 @@ auto calcResIntegralXS(){
 
 
   } 
-  std::cout << "---------  " << resonance_integral_300[0] << "     " << resonance_integral_300[0] / integral_sigma_flux_300[0]<< std::endl;
-  std::cout << "---------  " << resonance_integral_300[1] << "     " << resonance_integral_300[0] / integral_sigma_flux_300[1]<< std::endl;
-  std::cout << "---------  " << resonance_integral_300[2] << "     " << resonance_integral_300[0] / integral_sigma_flux_300[2]<< std::endl;
+  std::cout << "--------- 6-10  at 300 " << numerator_300[0] << "     " << 1.0/ ( denominator_300[0] / numerator_300[0] ) << std::endl;
+  std::cout << "--------- 10-25 at 300 " << numerator_300[1] << "     " << 1.0/ (denominator_300[1] / numerator_300[1] ) << std::endl;
+  std::cout << "--------- 25-50 at 300 " << numerator_300[2] << "     " << 1.0/ (denominator_300[2] / numerator_300[2] ) << std::endl;
+  std::cout << std::endl;
+  std::cout << std::endl;
+  std::cout << "--------- 6-10  at 1000 " << numerator_1000[0] << "     " << 1.0/ ( denominator_1000[0] / numerator_1000[0] ) << std::endl;
+  std::cout << "--------- 10-25 at 1000 " << numerator_1000[1] << "     " << 1.0/ (denominator_1000[1] / numerator_1000[1] ) << std::endl;
+  std::cout << "--------- 25-50 at 1000 " << numerator_1000[2] << "     " << 1.0/ (denominator_1000[2] / numerator_1000[2] ) << std::endl;
+  std::cout << std::endl;
+
+
+
 
 }
 
@@ -158,7 +167,5 @@ auto calcResIntegralXS(){
 
 int main() {
   calcResIntegralXS();
-
   return 0;
-
 }

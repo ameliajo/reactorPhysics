@@ -22,7 +22,8 @@ int main(){
 
   double sigma_g = (n1+n2+n3+n4+n5+n6+n7+n8) / den;
   // Narrow Resonance  
-  double a = 5000.0, b = -4998500.0, c = 50.0, d = 5000.0;
+  double a = 5000.0, b = -4998500.0, c = 50.0, d = 50.0;
+
   n1 = ( (c+d)*log(a*e[1]+b+c+d) + b*log(e[1]) ) * ( (c+d) / (b+c+d) ) -
        ( (c+d)*log(a*e[0]+b+c+d) + b*log(e[0]) ) * ( (c+d) / (b+c+d) );
   a = 20000.0, b = -19996000.0;
@@ -49,7 +50,8 @@ int main(){
 
   double numerator = n1+n2+n3+n4+n5+n6+n7+n8;
 
-  a = 5000.0, b = -4998500.0, c = 50.0, d = 5000.0;
+  a = 5000.0, b = -4998500.0, c = 50.0;
+
   n1 = ( (c+d)*( log(e[1]) - log(a*e[1]+b+c+d) ) ) / ( b + c + d ) -
        ( (c+d)*( log(e[0]) - log(a*e[0]+b+c+d) ) ) / ( b + c + d );
   a = 20000.0, b = -19996000.0;
@@ -80,7 +82,8 @@ int main(){
   std::cout << "NR, ratio 10 gives us a group xs of " << numerator/denominator << std::endl;
 
   // Wide Resonance  
-  a = 5000.0, b = -4998500.0, c = 0.0, d = 5000.0;
+  a = 5000.0, b = -4998500.0, c = 0.0;
+
   n1 = ( (c+d)*log(a*e[1]+b+c+d) + b*log(e[1]) ) * ( (c+d) / (b+c+d) ) -
        ( (c+d)*log(a*e[0]+b+c+d) + b*log(e[0]) ) * ( (c+d) / (b+c+d) );
   a = 20000.0, b = -19996000.0;
@@ -108,7 +111,7 @@ int main(){
   numerator = n1+n2+n3+n4+n5+n6+n7+n8;
 
 
-  a = 5000.0, b = -4998500.0, c = 0.0, d = 5000.0;
+  a = 5000.0, b = -4998500.0, c = 0.0;
   n1 = ( (c+d)*( log(e[1]) - log(a*e[1]+b+c+d) ) ) / ( b + c + d ) -
        ( (c+d)*( log(e[0]) - log(a*e[0]+b+c+d) ) ) / ( b + c + d );
   a = 20000.0, b = -19996000.0;
