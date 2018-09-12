@@ -1,5 +1,8 @@
 import openmc
 import matplotlib
+import numpy as np
+import matplotlib.pyplot as plt
+import openmc.mgxs as mgxs
 
 
 class material:
@@ -85,8 +88,6 @@ settings.export_to_xml()
 # Geometry 
 # ---------------------------------------------------------------------------
 
-#Define boundaries
-
 fuel_or = openmc.ZCylinder(R=0.39218)
 
 L = openmc.XPlane(x0=0.0,      name="left" )
@@ -101,17 +102,13 @@ outer_box_cell  = openmc.Cell(name="OuterBox")
 outer_box_cell.region = +L & -R & +D & -U
  
 
-fuel_region  = [0]*9
-water_region = [0]*9
 fuel         = [0]*9
 moderator    = [0]*9
-univ         = [-1]*9
+univ         = [0]*9
 
 for i in range(9):
-    fuel_region[i]  = -fuel_or
-    water_region[i] = +fuel_or
-    fuel[i]      = makeFuelCell(uo2[i],fuel_region[i],m[i])
-    moderator[i] = makeWaterCell(water,water_region[i],m[i])
+    fuel[i]      = makeFuelCell(uo2[i],-fuel_or,m[i])
+    moderator[i] = makeWaterCell(water,+fuel_or,m[i])
     univ[i]      = openmc.Universe(cells=[fuel[i], moderator[i]])
 
 
@@ -127,17 +124,42 @@ geom = openmc.Geometry(root)
 geom.export_to_xml()
 
 
-plotGeom()
+# ---------------------------------------------------------------------------
+# Geometry 
+# ---------------------------------------------------------------------------
 
-cell_filter = openmc.CellFilter([fuel[0], moderator[0]])
 
-energy_filter = openmc.EnergyFilter([0., 4.0, 20.0e6])
-t = openmc.Tally(1)
-t.filters = [cell_filter, energy_filter]
-# these are the main reaction rates you should need
-t.scores = ['absorption','nu-fission','fission']
-tallies = openmc.Tallies([t])
-tallies.export_to_xml()
+# Instantiate a 2-group EnergyGroups object
+groups = mgxs.EnergyGroups()
+#groups.group_edges = np.array([0., 0.625, 20.0e6])
+groups.group_edges = np.array([0.0, 0.058, 0.14, 0.28, 0.625, 4.0, 10.0, 40.0, 6640.0, 821e3, 20e6])
+# Instantiate a few different sections
+total = mgxs.TotalXS(domain=outer_box_cell, groups=groups)
+absorption = mgxs.AbsorptionXS(domain=outer_box_cell, groups=groups)
+scattering = mgxs.ScatterXS(domain=outer_box_cell, groups=groups)
+
+# Note that if we wanted to incorporate neutron multiplication in the
+# scattering cross section we would write the previous line as:
+# scattering = mgxs.ScatterXS(domain=cell, groups=groups, nu=True)
+
+tallies_file = openmc.Tallies()
+tallies_file += total.tallies.values()
+tallies_file += absorption.tallies.values()
+tallies_file += scattering.tallies.values()
+tallies_file.export_to_xml()
+
+
+#plotGeom()
+
 openmc.run()
 
 
+# Load the last statepoint file
+sp = openmc.StatePoint('statepoint.50.h5')
+# Load the tallies from the statepoint into each MGXS object
+total.load_from_statepoint(sp)
+absorption.load_from_statepoint(sp)
+scattering.load_from_statepoint(sp)
+total.print_xs()
+absorption.print_xs()
+scattering.print_xs()
