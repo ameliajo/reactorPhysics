@@ -76,12 +76,11 @@ settings = openmc.Settings()
 bounds = [0,0,0,3.0*pitch,3.0*pitch,3.0*pitch]
 uniform_dist = openmc.stats.Box(bounds[:3],bounds[3:],only_fissionable=True)
 settings.source = openmc.source.Source(space=uniform_dist)
-settings.batches   = 50
+#settings.batches   = 50; settings.inactive  = 10; settings.particles = 1000
+settings.batches   = 100
 settings.inactive  = 10
-settings.particles = 1000
+settings.particles = 10000
 settings.export_to_xml()
-
-
 
 
 # ---------------------------------------------------------------------------
@@ -125,32 +124,21 @@ geom.export_to_xml()
 
 
 # ---------------------------------------------------------------------------
-# Geometry 
+# Tallies
 # ---------------------------------------------------------------------------
 
 
 # Instantiate a 2-group EnergyGroups object
 groups = mgxs.EnergyGroups()
-#groups.group_edges = np.array([0., 0.625, 20.0e6])
-groups.group_edges = np.array([0.0, 0.058, 0.14, 0.28, 0.625, 4.0, 10.0, 40.0, 6640.0, 821e3, 20e6])
+groups.group_edges = np.array([0.0, 0.058, 0.14, 0.28, 0.625, 4.0, 10.0, 40.0, 5530.0, 821e3, 20e6])
 # Instantiate a few different sections
+
 total = mgxs.TotalXS(domain=outer_box_cell, groups=groups)
 absorption = mgxs.AbsorptionXS(domain=outer_box_cell, groups=groups)
 scattering = mgxs.ScatterXS(domain=outer_box_cell, groups=groups)
 
-# Note that if we wanted to incorporate neutron multiplication in the
-# scattering cross section we would write the previous line as:
-# scattering = mgxs.ScatterXS(domain=cell, groups=groups, nu=True)
-
-tallies_file = openmc.Tallies()
-tallies_file += total.tallies.values()
-tallies_file += absorption.tallies.values()
-tallies_file += scattering.tallies.values()
-tallies_file.export_to_xml()
-
 
 #plotGeom()
-
 openmc.run()
 
 
@@ -163,3 +151,17 @@ scattering.load_from_statepoint(sp)
 total.print_xs()
 absorption.print_xs()
 scattering.print_xs()
+
+
+
+
+
+
+
+
+
+
+
+
+
+
