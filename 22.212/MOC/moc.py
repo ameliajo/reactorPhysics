@@ -2,14 +2,9 @@ import matplotlib.pyplot as plt
 import random
 from geom import *
 from plotting import *
+from materials import *
 
-#random.seed(1)
-#random.seed(2)
 random.seed(3)
-#random.seed(4)
-#random.seed(5)
-#random.seed(6)
-#random.seed(7)
 fig, ax = plt.subplots() 
 
 class ray:
@@ -22,6 +17,7 @@ class ray:
 
 def findAllIntersections(xPlanes,yPlanes,circles,r):
     intersections = []
+
     for xPlane in xPlanes:
         t = (xPlane.x - r.x0)/r.cos
         if ( t > 0 ):
@@ -37,9 +33,9 @@ def findAllIntersections(xPlanes,yPlanes,circles,r):
             intersections.append({"x-int":x_int,"y-int":y_int,"t":t,"bc":yPlane.bc,"dir":"y"})
 
     for circle in circles:
-        circ_x0 = box1.C.x
-        circ_y0 = box1.C.y
-        R = box1.C.r
+        circ_x0 = circle.x
+        circ_y0 = circle.y
+        R = circle.r
         A = r.sin*r.sin+r.cos*r.cos
         B = 2.0*r.x0*r.cos - 2.0*circ_x0*r.cos + 2.0*r.y0*r.sin - 2.0*circ_y0*r.sin
         C = r.x0*r.x0 + circ_x0*circ_x0 + r.y0*r.y0 + circ_y0*circ_y0 - R*R
@@ -71,52 +67,58 @@ def findFirstIntersection(intersections,r):
     first_intersection["t"] = t_min
     return first_intersection
 
-def updateRay(r,firstIntersection,counter):
+def updateRay(r,intersection,counter):
     continue_forward = True
     # do we bounce off ?
-    if firstIntersection["bc"] == "ref":
+    if intersection["bc"] == "ref":
         continue_forward = False
-        if   firstIntersection["dir"] == "x":
-            r.cos = -r.cos
-        elif firstIntersection["dir"] == "y":
-            r.sin = -r.sin
-        else:
-            raise ValueError('Dont know where to reflect to')
+        if   intersection["dir"] == "x": r.cos = -r.cos
+        elif intersection["dir"] == "y": r.sin = -r.sin
    
-    dist_traveled = firstIntersection["dist to get to x1y1"]
+    dist_traveled = intersection["dist to get to x1y1"]
+
     # Update position and distance to travel
     r.x0 = r.x1
     r.y0 = r.y1
     r.l = r.l - dist_traveled
 
-    if (r.sin > 0.0): r.y0 += 1e-8
-    if (r.cos > 0.0): r.x0 += 1e-8
-    if (r.sin <= 0.0): r.y0 -= 1e-8
-    if (r.cos <= 0.0): r.x0 -= 1e-8
-
     return continue_forward
 
 
+def whichCircleIsRayIn(r,circles):
+    potential_circles = []
+    for circle in circles:
+        if (isRayInCircle(r,circle)):
+            potential_circles.append(circle)
+    if (len(potential_circles)==0):
+        return None
+    currentCircle = potential_circles[0]
+    for circle in potential_circles:
+        if (circle.r < currentCircle.r):
+            currentCircle = circle
+    return currentCircle
 
-# Initialize Geometry
-circle1 = circle(0,0,0.1,'U')
-box1 = box(xPlane(-0.5,'ref'),xPlane( 0.5,'ref'),
-           yPlane( 0.5,'ref'),yPlane(-0.5,'ref'),'H',circle1)
+
+def isRayInCircle(r,circle):
+    smudged_x = r.x0 + 0.001*r.cos
+    smudged_y = r.y0 + 0.001*r.sin
+    #return (r.x0-circle.x)**2+(r.y0-circle.y)**2 <= (circle.r)**2
+    return (smudged_x-circle.x)**2+(smudged_y-circle.y)**2 <= (circle.r)**2
 
 
 def runRays():
     # Initialize Ray 
-    x0 = (box1.R.x-box1.L.x)*(random.random()-0.5)
-    y0 = (box1.U.y-box1.D.y)*(random.random()-0.5)
+    x0 = (cell.R.x-cell.L.x)*(random.random()-0.5)
+    y0 = (cell.U.y-cell.D.y)*(random.random()-0.5)
     cos = 2.0*random.random()-1.0
     sin = 2.0*random.random()-1.0
+
     r = ray(x0,y0,sin,cos,4) # should be 4 length
     
-    plt.plot(x0,y0,'ro')
-    
-    xPlanes = [box1.L,box1.R]
-    yPlanes = [box1.U,box1.D]
-    circles = [box1.C]
+    xPlanes = [cell.L,cell.R]
+    yPlanes = [cell.U,cell.D]
+    circles = cell.C
+
     
     counter = 0
     
@@ -129,27 +131,34 @@ def runRays():
         if (len(intersections)==0): break
         firstIntersection = findFirstIntersection(intersections,r)
         f = firstIntersection
-        plotRaySegment(r,colors[counter%len(colors)],firstIntersection)
+        #plotRaySegment(r,colors[counter%len(colors)],firstIntersection)
+        currentCircle = whichCircleIsRayIn(r,circles)
+        if (currentCircle):
+            plotRaySegment(r,currentCircle.color,firstIntersection)
+        else:
+            plotRaySegment(r,'#1e4877',firstIntersection)
         if (firstIntersection["t"] > r.l): 
             r.x = r.xMax
             r.y = r.yMax
             break
         updateRay(r,firstIntersection,counter)
-        #plt.plot(r.x0,r.y0,"bo")
        
         counter += 1
     
-for i in range(6):
-    print(i)
+
+# Initialize Geometry
+radii = [0.2,0.3,0.4,0.5]
+color = ['#ee3e32','#f68838','#fbb021','#1b8a5a']
+# box(box_x,box_y,sideLength,radii vec, mod mat, fuel mat, color vec)
+cell = box(0.0,0.0,1.0,radii,1,2,color)
+
+
+
+for i in range(20):
     runRays()
-temp=random.random()
-for i in range(8):
-    print(i)
-    runRays()
-box1.plot(ax)
 
 
-
+plotBox(ax,cell)
 
 plt.xlim(-1,1)
 plt.ylim(-1,1)
