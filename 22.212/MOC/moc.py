@@ -1,10 +1,14 @@
 import matplotlib.pyplot as plt
 import random
 from geom import *
-import matplotlib.cm as cm
-import numpy as np
 
-random.seed(3)
+random.seed(1)
+#random.seed(2)
+#random.seed(3)
+#random.seed(4)
+#random.seed(5)
+#random.seed(6)
+#random.seed(7)
 fig, ax = plt.subplots() 
 
 class ray:
@@ -14,12 +18,6 @@ class ray:
         self.sin = sin
         self.cos = cos
         self.l = length
-
-def plotIntersection(r,t):
-    x_int = r.x0 + t * r.cos
-    y_int = r.y0 + t * r.sin
-    #plt.plot(x_int,y_int,'bo')
-    return (x_int,y_int)
 
 def plotRay(r,color):
     x = [r.x0,r.xMax]
@@ -39,19 +37,46 @@ def plotRaySegment(r,color,firstIntersection):
 
 
 
-def findAllIntersections(xPlanes,yPlanes,r):
+def findAllIntersections(xPlanes,yPlanes,circles,r):
     intersections = []
     for xPlane in xPlanes:
         t = (xPlane.x - r.x0)/r.cos
         if ( t > 0 ):
-            x_int,y_int = plotIntersection(r,t)
+            x_int = round(r.x0 + t * r.cos,10)
+            y_int = round(r.y0 + t * r.sin,10)
             intersections.append({"x-int":x_int,"y-int":y_int,"t":t,"bc":xPlane.bc,"dir":"x"})
 
     for yPlane in yPlanes:
         t = (yPlane.y - r.y0)/r.sin
         if ( t > 0 ):
-            x_int,y_int = plotIntersection(r,t)
+            x_int = round(r.x0 + t * r.cos,10)
+            y_int = round(r.y0 + t * r.sin,10)
             intersections.append({"x-int":x_int,"y-int":y_int,"t":t,"bc":yPlane.bc,"dir":"y"})
+
+    for circle in circles:
+        circ_x0 = box1.C.x
+        circ_y0 = box1.C.y
+        R = box1.C.r
+        A = r.sin*r.sin+r.cos*r.cos
+        B = 2.0*r.x0*r.cos - 2.0*circ_x0*r.cos + 2.0*r.y0*r.sin - 2.0*circ_y0*r.sin
+        C = r.x0*r.x0 + circ_x0*circ_x0 + r.y0*r.y0 + circ_y0*circ_y0 - R*R
+
+        t = ( -B + (B*B-4*A*C)**0.5 )/(2.0*A)
+        if (abs(t.imag) < 1.0e-20 and t.real > 0.0):
+            t = t.real
+            x_int = r.x0 + t*r.cos
+            y_int = r.y0 + t*r.sin
+            intersections.append({"x-int":x_int,"y-int":y_int,"t":t,"bc":"None","dir":"None"})
+            #plt.plot(x_int,y_int,"yo")
+
+        t = ( -B - (B*B-4*A*C)**0.5 )/(2.0*A)
+        if (abs(t.imag) < 1.0e-20 and t.real > 0.0):
+            t = t.real
+            x_int = r.x0 + t*r.cos
+            y_int = r.y0 + t*r.sin
+            intersections.append({"x-int":x_int,"y-int":y_int,"t":t,"bc":"None","dir":"None"})
+            #plt.plot(x_int,y_int,"go")
+
     return intersections
 
 def findFirstIntersection(intersections,r):
@@ -70,7 +95,7 @@ def findFirstIntersection(intersections,r):
     first_intersection["t"] = t_min
     return first_intersection
 
-def updateRay(r,firstIntersection):
+def updateRay(r,firstIntersection,counter):
     # do we bounce off ?
     if firstIntersection["bc"] == "ref":
         if   firstIntersection["dir"] == "x":
@@ -86,6 +111,11 @@ def updateRay(r,firstIntersection):
     r.y0 = r.y1
     r.l = r.l - dist_traveled
 
+    if (r.sin > 0.0): r.y0 += 1e-8
+    if (r.cos > 0.0): r.x0 += 1e-8
+    if (r.sin <= 0.0): r.y0 -= 1e-8
+    if (r.cos <= 0.0): r.x0 -= 1e-8
+
 
 
 
@@ -98,40 +128,35 @@ x0 = (box1.R.x-box1.L.x)*(random.random()-0.5)
 y0 = (box1.U.y-box1.D.y)*(random.random()-0.5)
 cos = 2.0*random.random()-1.0
 sin = 2.0*random.random()-1.0
-r = ray(x0,y0,sin,cos,50) # should be 4 length
+r = ray(x0,y0,sin,cos,20) # should be 4 length
 
-
-#plotRay(r,"r")
+plt.plot(x0,y0,'ro')
 
 xPlanes = [box1.L,box1.R]
 yPlanes = [box1.U,box1.D]
+circles = [box1.C]
 
 
 counter = 0
-colors = ["crimson","deeppink","fuchsia","violet","darkviolet","rebeccapurple","slateblue","slategrey","dodgerblue","skyblue","cadetblue","c","darkslategray","mediumturquoise","mediumaquamarine","mediumseagreen","g","lightgreen","lawngreen", "yellowgreen", "olive", "lemonchiffon", "darkgoldenrod", "orange", "navajowhite", "darkorange", "peachpuff", "coral", "mistyrose", "maroon", "lightcoral", "lightgray", "grey", "k"]
+
 while(r.l > 0):
     r.xMax = r.x0+r.cos*r.l
     r.yMax = r.y0+r.sin*r.l
 
     #plotRay(r,colors[counter])
-    intersections = findAllIntersections(xPlanes,yPlanes,r)
+    intersections = findAllIntersections(xPlanes,yPlanes,circles,r)
     if (len(intersections)==0): break
     firstIntersection = findFirstIntersection(intersections,r)
+    f = firstIntersection
     plotRaySegment(r,colors[counter],firstIntersection)
     if (firstIntersection["t"] > r.l): 
         r.x = r.xMax
         r.y = r.yMax
         break
-    updateRay(r,firstIntersection)
-    
+    updateRay(r,firstIntersection,counter)
+    plt.plot(r.x0,r.y0,"bo")
+   
     counter += 1
-
-
-#intersections = findAllIntersections(xPlanes,yPlanes,r)
-#firstIntersection = findFirstIntersection(intersections)
-#plt.plot(firstIntersection["x-int"],firstIntersection["y-int"],'go')
-#updateRay(r,firstIntersection)
-#plotRay(r,"g")
 
 
 box1.plot(ax)
@@ -139,10 +164,7 @@ box1.plot(ax)
 
 
 
-
-plt.xlim(-4,4)
-plt.ylim(-4,4)
+plt.xlim(-2,2)
+plt.ylim(-2,2)
 plt.show()
-
-
 

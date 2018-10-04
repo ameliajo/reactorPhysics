@@ -25,3 +25,4 @@ class box:
         ax.add_artist(c)
 
 
+colors = ["crimson","deeppink","fuchsia","violet","darkviolet","rebeccapurple","slateblue","slategrey","dodgerblue","skyblue","cadetblue","c","darkslategray","mediumturquoise","mediumaquamarine","mediumseagreen","g","lightgreen","lawngreen", "yellowgreen", "olive", "lemonchiffon", "darkgoldenrod", "orange", "navajowhite", "darkorange", "peachpuff", "coral", "mistyrose", "maroon", "lightcoral", "lightgray", "grey", "k"]
