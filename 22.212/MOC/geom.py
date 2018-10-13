@@ -18,6 +18,7 @@ class circle:
 class box:
     def __init__(self,x,y,L,radii,modMat,fuelMat,circleColor,color):
         self.id = 0
+        self.sideLength = L
         self.L = xPlane(x-L/2.0,'ref')
         self.R = xPlane(x+L/2.0,'ref')
         self.U = yPlane(y+L/2.0,'ref')
