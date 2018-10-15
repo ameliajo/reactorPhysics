@@ -16,13 +16,13 @@ class circle:
         self.id = idVal
 
 class box:
-    def __init__(self,x,y,L,radii,modMat,fuelMat,circleColor,color):
-        self.id = 0
-        self.sideLength = L
-        self.L = xPlane(x-L/2.0,'ref')
-        self.R = xPlane(x+L/2.0,'ref')
-        self.U = yPlane(y+L/2.0,'ref')
-        self.D = yPlane(y-L/2.0,'ref')
+    def __init__(self,x,y,Length,radii,modMat,fuelMat,circleColor,color,idNum,L,R,D,U):
+        self.id = idNum 
+        self.sideLength = Length
+        self.L = L 
+        self.R = R 
+        self.U = U
+        self.D = D
         self.color = color
         circles = []
         for i,r in enumerate(radii):
