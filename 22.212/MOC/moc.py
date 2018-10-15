@@ -117,69 +117,84 @@ def weAreStuck(recentDist,firstIntersection):
 
 
 
-def runRays(sim,numRaysPerRun):
+def runRays(sim,numRaysPerRun,firstIteration):
     for ray in range(numRaysPerRun):
-        runRay(sim,ray)
+        if firstIteration:
+            rayTracks.append([["RayNumber"+str(ray)]])
+        runRay(sim,ray,firstIteration)
 
 
-def runRay(sim,rayNum):
-    # Initialize Ray 
-    x0 = (cell.R.x-cell.L.x)*(random.random()-0.5)
-    y0 = (cell.U.y-cell.D.y)*(random.random()-0.5)
-    cos, sin = 2.0*random.random()-1.0, 2.0*random.random()-1.0
+def runRay(sim,rayNum,firstIteration):
+
+    if firstIteration:
+        # Initialize Ray 
+        x0 = (cell.R.x-cell.L.x)*(random.random()-0.5)
+        y0 = (cell.U.y-cell.D.y)*(random.random()-0.5)
+        cos, sin = 2.0*random.random()-1.0, 2.0*random.random()-1.0
     
-    #x0 = 0.01-(0.5*1.26)
-    #y0 = 0.1-(0.5*1.26)
-    #cos = (2.0**0.5)/2
-    #sin = (2.0**0.5)/2
-    #plt.plot(x0,y0,'ro')
-
-
-    r = ray(x0,y0,sin,cos,300.0) # should be 3m length
-    
-    xPlanes, yPlanes = [cell.L,cell.R], [cell.U,cell.D]
-    circles = cell.C
-
-    # figure out where x0 y0 is, then make psi = q[that]/sigmaT
-    whereRayIs = whichCircleIsRayIn(r,circles)
-    if not whereRayIs: r.psi = sim.q[0]/(4.0*pi*cell.mat.SigmaT)
-    else             : r.psi = sim.q[1]/(4.0*pi*cell.C[0].mat.SigmaT)
-    #print(whereRayIs)
-    #print(sim.q[0],cell.mat.SigmaT)
-    #print("Initial Psi",r.psi)
-    recentDist = [] 
-    counter = 0
-    while(r.l > 0):
-        r.xMax, r.yMax = r.x0+r.cos*r.l, r.y0+r.sin*r.l
-        intersections = findAllIntersections(xPlanes,yPlanes,circles,r)
-        if intersections == []: print("NO MORE INTERSECTIONS"); return
-        firstIntersection = findFirstIntersection(intersections,r)
-
-        whereRayIs = whichCircleIsRayIn(r,circles)
-        if not whereRayIs: whereRayIs = cell
-        #if (whereRayIs): plotRaySegment(r,whereRayIs.color,firstIntersection)
-         
-        if (firstIntersection["t"] > r.l): r.x = r.xMax; r.y = r.yMax; break
-        if weAreStuck(recentDist,firstIntersection): print("GOT STUCK"); return
-
-        currentCircle = whichCircleIsRayIn(r,circles)
-
-        if(rayNum == 0 ):
-            if (currentCircle): plotRaySegment(r,currentCircle.color,firstIntersection)
-            else: plotRaySegment(r,'#1e4877',firstIntersection)
-        updateRay(r,firstIntersection)
-       
-        length = firstIntersection["dist to get to x1y1"]/np.cos(r.azimuthal)
+        r = ray(x0,y0,sin,cos,300.0) # should be 3m length
+        r = ray(x0,y0,sin,cos,3.0) # should be 3m length
         
-        mat = whereRayIs.mat; idVal = whereRayIs.id
+        xPlanes, yPlanes = [cell.L,cell.R], [cell.U,cell.D]
+        circles = cell.C
 
-        deltaPsi = (r.psi - (sim.q[idVal]/(4.0*pi*mat.SigmaT)))*(1.0-exp(-mat.SigmaT*length))
-        r.psi -= deltaPsi
-        if ( r.l < 250.0 ):
+        # figure out where x0 y0 is, then make psi = q[that]/sigmaT
+        whereRayIs = whichCircleIsRayIn(r,circles)
+        if not whereRayIs: r.psi = sim.q[0]/(4.0*pi*cell.mat.SigmaT)
+        else             : r.psi = sim.q[1]/(4.0*pi*cell.C[0].mat.SigmaT)
+        rayTracks[rayNum][0].append(["initial whereRayIs",whereRayIs])
+        recentDist = [] 
+        counter = 0
+        while(r.l > 0):
+            r.xMax, r.yMax = r.x0+r.cos*r.l, r.y0+r.sin*r.l
+            intersections = findAllIntersections(xPlanes,yPlanes,circles,r)
+            if intersections == []: print("NO MORE INTERSECTIONS"); return
+            firstIntersection = findFirstIntersection(intersections,r)
+
+            whereRayIs = whichCircleIsRayIn(r,circles)
+            if not whereRayIs: whereRayIs = cell
+             
+            if (firstIntersection["t"] > r.l): r.x = r.xMax; r.y = r.yMax; break
+            if (firstIntersection["t"] > r.l): r.x = r.xMax; r.y = r.yMax; break
+            if weAreStuck(recentDist,firstIntersection): print("GOT STUCK"); return
+    
+            currentCircle = whichCircleIsRayIn(r,circles)
+    
+            #if (whereRayIs): plotRaySegment(r,whereRayIs.color,firstIntersection)
+            #if (currentCircle): plotRaySegment(r,currentCircle.color,firstIntersection)
+            #else: plotRaySegment(r,'#1e4877',firstIntersection)
+            updateRay(r,firstIntersection)
+               
+            length = firstIntersection["dist to get to x1y1"]/np.cos(r.azimuthal)
+                
+            mat = whereRayIs.mat; idVal = whereRayIs.id
+    
+            rayTracks[rayNum].append({"length":length,"mat":mat,"idVal":idVal})
+    
+        
+            deltaPsi = (r.psi - (sim.q[idVal]/(4.0*pi*mat.SigmaT)))*(1.0-exp(-mat.SigmaT*length))
+            r.psi -= deltaPsi
+            #if ( r.l < 250.0 ):
             sim.phi[idVal] += 4.0*pi*deltaPsi
             #print("Delta Psi",deltaPsi)
             #print('%0.03f'%deltaPsi,'%0.03f'%sim.phi[idVal],'%0.03f'%length)
-        counter += 1
+            counter += 1
+
+    else:
+        tracksForThisRun = rayTracks[rayNum]
+        whereRayIs = tracksForThisRun[0][1]
+        psi = 0.0;
+        if not whereRayIs: psi = sim.q[0]/(4.0*pi*cell.mat.SigmaT)
+        else             : psi = sim.q[1]/(4.0*pi*cell.C[0].mat.SigmaT)
+        for i in range(len(tracksForThisRun)-1):
+            mat    = tracksForThisRun[i+1]["mat"]
+            idVal  = tracksForThisRun[i+1]["idVal"]
+            length = tracksForThisRun[i+1]["length"]
+            deltaPsi = (psi - (sim.q[idVal]/(4.0*pi*mat.SigmaT)))*(1.0-exp(-mat.SigmaT*length))
+            psi  -= deltaPsi
+            #if ( r.l < 250.0 ):
+            sim.phi[idVal] += 4.0*pi*deltaPsi
+ 
     
 
 # Initialize Geometry
@@ -194,9 +209,10 @@ color = ['#cc5980']
 # Initialize Materials
 #        Sigma T, nuSigma F, Sigma S
 mod  = material(3.60, 0.00, 2.10)
-fuel = material(0.93, 0.98, 0.30)
+fuel = material(0.93, 1.98, 0.30)
 
 
+rayTracks = []
 
 
 
@@ -233,13 +249,15 @@ for i in range(len(q_guess)):
     oldFissionSource[i] = mat.SigmaF
 
 converged = False
-numRaysPerRun = 5
+numRaysPerRun = 1
 
 counter = 0
+kVals = []
+firstIteration = True
 while not converged:
     random.seed(5)
     sim = simulation(phi_guess,q_guess,k_guess) 
-    runRays(sim,numRaysPerRun)
+    runRays(sim,numRaysPerRun,firstIteration)
 
     inv_trackLength = 1.0/(300.0*numRaysPerRun)
     sim.phi = [inv_trackLength * x for x in sim.phi]
@@ -262,18 +280,24 @@ while not converged:
 
     print()
     print(sim.k)
-    print(" ".join('%0.5f' % item for item in sim.phi))
-    print(" ".join('%0.5f' % item for item in q_guess))
+    print(" ".join('%0.5f' % item for item in newFissionSource))
+    #print(" ".join('%0.5f' % item for item in sim.phi))
+    #print(" ".join('%0.5f' % item for item in q_guess))
 
     k_guess = sim.k
+    kVals.append(sim.k)
     phi_guess = [0.0]*len(allRegions)
     q_guess = sim.q[:]
     # Check if converged
     counter += 1
-    if counter > 20: converged = True
+    if counter > 1: converged = True
+    firstIteration = False
 
-plotBox(ax,cell)
+#print(rayTracks)
+#plotBox(ax,cell)
 
-plt.xlim(-1,1)
-plt.ylim(-1,1)
-plt.show()
+#plt.xlim(-1,1)
+#plt.ylim(-1,1)
+#plt.show()
+#plt.plot(kVals)
+#plt.show()
