@@ -13,10 +13,10 @@ import numpy as np
 fig, ax = plt.subplots() 
 
 class simulation():
-    def __init__(self,q,k):
+    def __init__(self,k,q):
         self.k = k; 
         self.phi = [[0.0]*len(q[0]) for temp in q]
-        self.q   = [qRow[:]         for qRow in q]
+        self.q= [qRow[:]         for qRow in q]
 
 class ray:
     def __init__(self,x,y,polar,cos_azi,length):
@@ -199,7 +199,7 @@ def runRay(sim,rayNum,firstIteration):
             else:          idVal = 0; whereRayIs = cell; 
             mat = whereRayIs.mat
             if not r.psi: 
-                r.psi = sim.q[cell.id][idVal]/(4.0*pi*mat.SigT)
+                r.psi = sim.q[cell.id][idVal]/(mat.SigT)
                 rayTracks[rayNum][0].append(["initial whereRayIs",whereRayIs])
 
              
@@ -212,7 +212,7 @@ def runRay(sim,rayNum,firstIteration):
             rayTracks[rayNum].append({"length":firstIntersect["dist"],"mat":mat,
                                       "idVal":idVal,"l":r.l,"cellID":cell.id})
         
-            deltaPsi = (r.psi - (sim.q[cell.id][idVal]/(4.0*pi*mat.SigT))) *  \
+            deltaPsi = (r.psi - (sim.q[cell.id][idVal]/(mat.SigT))) *  \
                        (1.0 - exp(-mat.SigT*firstIntersect["dist"]))
 
             r.psi -= deltaPsi
@@ -230,15 +230,18 @@ def runRay(sim,rayNum,firstIteration):
         tracks = rayTracks[rayNum]
         mat, cellId = rayTracks[0][2]["mat"], rayTracks[0][2]["cellID"]
         whereRayIs = tracks[0][1]
-        psi = sim.q[cellId][1]/(4.0*pi*mat.SigT) if whereRayIs else         \
-              sim.q[cellId][0]/(4.0*pi*mat.SigT)
+        psi = sim.q[cellId][1]/(mat.SigT) if whereRayIs else         \
+              sim.q[cellId][0]/(mat.SigT)
+
+
 
         for i in range(len(tracks)-1):
             mat    = tracks[i+1]["mat"   ]; idVal  = tracks[i+1]["idVal"]
             length = tracks[i+1]["length"]; l      = tracks[i+1]["l"    ]
             cellID = tracks[i+1]["cellID"]; 
-            deltaPsi = (psi - (sim.q[cellID][idVal]/(4.0*pi*mat.SigT)))*    \
+            deltaPsi = (psi - (sim.q[cellID][idVal]/(mat.SigT)))*    \
                        (1.0 - exp(-mat.SigT*length))
+
             psi  -= deltaPsi
             if ( l < 250.0 ):
                 sim.phi[cellID][idVal] += 4.0*pi*deltaPsi
@@ -290,6 +293,7 @@ volumes = getVolumes(numRegionsPerCell,cells[0].C,sideLength)
 
 k_guess = 1.0
 
+#q_guess = []
 q_guess = []
 oldFissionSource = []
 newFissionSource = []
@@ -301,7 +305,7 @@ for i in range(len(cells)):
 for c in range(len(cells)):
     for i in range(numRegionsPerCell):
         mat = allRegInCell[i].mat
-        q_guess[c][i] = ( mat.SigS + mat.SigF )
+        q_guess[c][i] = ( mat.SigS + mat.SigF )/(4.0*pi)
         oldFissionSource[c][i] = mat.SigF
 
 
@@ -314,7 +318,7 @@ random.seed(1)
 counter = 0
 inv_trackLength = 0.0
 kVals = []
-sim = simulation(q_guess,k_guess) 
+sim = simulation(k_guess,q_guess) 
 while not converged:
 
     if counter == 0: 
@@ -329,9 +333,8 @@ while not converged:
     for cell in cells:
         for i in range(numRegionsPerCell):
             mat, V = allRegInCell[i].mat, volumes[allRegInCell[i].id]
-            thisPhi, thisQ = sim.phi[cell.id][i], sim.q[cell.id][i]
-            sim.phi[cell.id][i] = sim.phi[cell.id][i]/(mat.SigT*V) + sim.q[cell.id][i]/mat.SigT
-            sim.q[cell.id][i] = mat.SigS*sim.phi[cell.id][i] + mat.SigF*sim.phi[cell.id][i]
+            sim.phi[cell.id][i] = sim.phi[cell.id][i]/(mat.SigT*V) + sim.q[cell.id][i]*4.0*pi/mat.SigT
+            sim.q[cell.id][i] = (mat.SigS*sim.phi[cell.id][i] + mat.SigF*sim.phi[cell.id][i])/(4.0*pi)
             newFissionSource[cell.id][i] = mat.SigF*sim.phi[cell.id][i]
 
     kNumer, kDenom = 0.0, 0.0
@@ -345,7 +348,7 @@ while not converged:
             oldFissionSource[cell.id][i] = newFissionSource[cell.id][i]/sim.k
             sim.q[cell.id][i] /= sim.k 
 
-    print("Iteration #: ",counter,"   k",sim.k)
+    #print("Iteration #: ",counter,"   k",sim.k)
 
     kVals.append(sim.k)
     for i in range(len(cells)):
@@ -353,8 +356,23 @@ while not converged:
 
     # Check if converged
     counter += 1
-    if counter > 4: converged = True
+    if counter > 10: converged = True
     firstIteration = False
+
+correctK = [1.0393502572032347, 1.0356661397728641, 1.0325926732412258, 1.0301681484434255, 1.0282467337804195, 1.026718950054905, 1.0255013959039376, 1.0245297679016676, 1.0237539963860283, 1.0231347788746885, 1.0226410604093656]
+wrong = False
+for i in range(len(kVals)):
+    if abs(kVals[i]-correctK[i]) > 1e-10:
+        print("\nOH NO NOT GOOD\n")
+        wrong = True
+if not wrong: print("\nWhew! That was a close one\n")
+
+
+
+
+
+
+
 
 #print(rayTracks)
 #for cell in cells:
