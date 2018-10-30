@@ -15,7 +15,15 @@ fig, ax = plt.subplots()
 class simulation():
     def __init__(self,k,q):
         self.k = k; 
-        self.phi = [[0.0]*len(q[0]) for temp in q]
+        #self.phi = [[0.0]*len(q[0]) for temp in q]
+
+        self.phiNEW = []
+        for cell_i in q:
+            cellEntry = []
+            for location_j in range(len(cell_i)):
+                cellEntry.append([0.0])
+            self.phiNEW.append(cellEntry)
+
         self.q= [qRow[:]         for qRow in q]
 
 class ray:
@@ -201,7 +209,6 @@ def runRay(sim,rayNum,firstIteration):
             if not r.psi: 
                 r.psi = sim.q[cell.id][idVal]/(mat.SigT)
                 rayTracks[rayNum][0].append(["initial whereRayIs",whereRayIs])
-
              
             if (firstIntersect["t"] > r.l): r.x = r.xMax; r.y = r.yMax; break
     
@@ -217,7 +224,8 @@ def runRay(sim,rayNum,firstIteration):
 
             r.psi -= deltaPsi
             if ( r.l < 250.0 ):
-                sim.phi[cell.id][idVal] += 4.0*pi*deltaPsi
+                #sim.phi[cell.id][idVal] += 4.0*pi*deltaPsi
+                sim.phiNEW[cell.id][idVal][0] += 4.0*pi*deltaPsi
                 if whereRayIs.id == 1: distInFuel += firstIntersect["dist"]
                 else:                  distInMod  += firstIntersect["dist"]
 
@@ -244,7 +252,8 @@ def runRay(sim,rayNum,firstIteration):
 
             psi  -= deltaPsi
             if ( l < 250.0 ):
-                sim.phi[cellID][idVal] += 4.0*pi*deltaPsi
+                #sim.phi[cellID][idVal] += 4.0*pi*deltaPsi
+                sim.phiNEW[cellID][idVal][0] += 4.0*pi*deltaPsi
 
         distInFuel, distInMod = tracks[0][2][1], tracks[0][3][1]
         return distInFuel,distInMod
@@ -293,7 +302,6 @@ volumes = getVolumes(numRegionsPerCell,cells[0].C,sideLength)
 
 k_guess = 1.0
 
-#q_guess = []
 q_guess = []
 oldFissionSource = []
 newFissionSource = []
@@ -319,6 +327,9 @@ counter = 0
 inv_trackLength = 0.0
 kVals = []
 sim = simulation(k_guess,q_guess) 
+nGroups = 1
+
+
 while not converged:
 
     if counter == 0: 
@@ -326,16 +337,32 @@ while not converged:
         inv_trackLength = 1.0/(distInMod+distInFuel)
     else:                      runRays(sim,numRaysPerRun)
 
-    sim.phi = [[inv_trackLength*x for x in sim_phi_cell] for sim_phi_cell in sim.phi]
+    #sim.phi = [[inv_trackLength*x for x in sim_phi_cell] for sim_phi_cell in sim.phi]
+    #for i,sim_phi_cell in enumerate(sim.phi):
+    #    for j,x in enumerate(sim_phi_cell):
+    #        sim.phi[i][j] = inv_trackLength*x
+
+    for i,sim_phi_cell in enumerate(sim.phiNEW):
+        for j,x in enumerate(sim_phi_cell):
+            sim.phiNEW[i][j][0] = inv_trackLength*x[0]
 
 
     # Update phi
     for cell in cells:
         for i in range(numRegionsPerCell):
             mat, V = allRegInCell[i].mat, volumes[allRegInCell[i].id]
-            sim.phi[cell.id][i] = sim.phi[cell.id][i]/(mat.SigT*V) + sim.q[cell.id][i]*4.0*pi/mat.SigT
-            sim.q[cell.id][i] = (mat.SigS*sim.phi[cell.id][i] + mat.SigF*sim.phi[cell.id][i])/(4.0*pi)
-            newFissionSource[cell.id][i] = mat.SigF*sim.phi[cell.id][i]
+            #print(sim.phiNEW[cell.id][i][0],sim.phi[cell.id][i])
+            #sim.phi[cell.id][i] = sim.phi[cell.id][i]/(mat.SigT*V) + sim.q[cell.id][i]*4.0*pi/mat.SigT
+            sim.phiNEW[cell.id][i][0] = sim.phiNEW[cell.id][i][0]/(mat.SigT*V) + sim.q[cell.id][i]*4.0*pi/mat.SigT
+            #print(sim.phiNEW[cell.id][i][0],sim.phi[cell.id][i])
+            #break
+            #sim.q[cell.id][i] = (mat.SigS*sim.phi[cell.id][i] + mat.SigF*sim.phi[cell.id][i])/(4.0*pi)
+            #newFissionSource[cell.id][i] = mat.SigF*sim.phi[cell.id][i]
+
+            sim.q[cell.id][i] = (mat.SigS*sim.phiNEW[cell.id][i][0] + mat.SigF*sim.phiNEW[cell.id][i][0])/(4.0*pi)
+            newFissionSource[cell.id][i] = mat.SigF*sim.phiNEW[cell.id][i][0]
+    #print()
+
 
     kNumer, kDenom = 0.0, 0.0
     for i in range(len(newFissionSource)):
@@ -351,8 +378,16 @@ while not converged:
     #print("Iteration #: ",counter,"   k",sim.k)
 
     kVals.append(sim.k)
-    for i in range(len(cells)):
-        sim.phi[i] = [0.0]*numRegionsPerCell
+    #for i in range(len(cells)):
+    #    sim.phi[i] = [0.0]*numRegionsPerCell
+
+    sim.phiNEW = []
+    for cell_i in sim.q:
+        cellEntry = []
+        for location_j in range(len(cell_i)):
+            cellEntry.append([0.0])
+        sim.phiNEW.append(cellEntry)
+
 
     # Check if converged
     counter += 1
