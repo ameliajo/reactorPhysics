@@ -7,8 +7,8 @@ def plotRay(r,color):
     plt.plot(x,y,color)
 
 def plotRaySegment(r,color,firstIntersection):
-    x = [r.x0,firstIntersection["xInt"]]
-    y = [r.y0,firstIntersection["yInt"]]
+    x = [r.x0,firstIntersection["x"]]
+    y = [r.y0,firstIntersection["y"]]
     #plt.plot(r.x0,r.y0,color,marker='o')
     plt.plot(x,y,color)
 

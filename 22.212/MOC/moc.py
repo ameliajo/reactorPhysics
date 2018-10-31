@@ -15,16 +15,29 @@ fig, ax = plt.subplots()
 class simulation():
     def __init__(self,k,q):
         self.k = k; 
-        #self.phi = [[0.0]*len(q[0]) for temp in q]
 
-        self.phiNEW = []
+        self.phi = []
         for cell_i in q:
             cellEntry = []
             for location_j in range(len(cell_i)):
-                cellEntry.append([0.0])
-            self.phiNEW.append(cellEntry)
+                locationEntry = []
+                for g in range(nGroups):
+                    locationEntry.append(0.0)
+                cellEntry.append(locationEntry)
+            self.phi.append(cellEntry)
 
-        self.q= [qRow[:]         for qRow in q]
+
+        self.q = []
+        for cell_i in q:
+            cellEntry = []
+            for location_j in range(len(cell_i)):
+                locationEntry = []
+                for g in range(nGroups):
+                    locationEntry.append(q[i][j][g])
+                cellEntry.append(locationEntry)
+            self.q.append(cellEntry)
+
+
 
 class ray:
     def __init__(self,x,y,polar,cos_azi,length):
@@ -32,6 +45,7 @@ class ray:
         self.cos_azi = cos_azi
         sin_azi = np.sin(np.arccos(cos_azi))
         self.sin, self.cos = sin_azi*np.sin(polar), sin_azi*np.cos(polar)
+
 
 def getCell(cells,r):
     """
@@ -186,13 +200,14 @@ def runRay(sim,rayNum,firstIteration):
         polar = 2.0*pi*random.random()
         cos_azimuthal = random.random()
         
-        r = ray(x0,y0,polar,cos_azimuthal,10.0) # should be 3m length
+        r = ray(x0,y0,polar,cos_azimuthal,30.0) # should be 3m length
 
         cell,xPlanes,yPlanes,circles = getCell(cells,r)
 
 
         recentDist = [] 
         distInFuel,distInMod = 0.0, 0.0
+        psi = []
         while(r.l > 0):
 
             cell,xPlanes,yPlanes,circles = getCell(cells,r)
@@ -206,9 +221,11 @@ def runRay(sim,rayNum,firstIteration):
             if whereRayIs: idVal = whereRayIs.id
             else:          idVal = 0; whereRayIs = cell; 
             mat = whereRayIs.mat
-            if not r.psi: 
-                r.psi = sim.q[cell.id][idVal]/(mat.SigT)
+            if not psi: 
                 rayTracks[rayNum][0].append(["initial whereRayIs",whereRayIs])
+                psi = []
+                for g in range(nGroups):
+                    psi.append(sim.q[cell.id][idVal][g]/(mat.SigT[g]))
              
             if (firstIntersect["t"] > r.l): r.x = r.xMax; r.y = r.yMax; break
     
@@ -219,14 +236,17 @@ def runRay(sim,rayNum,firstIteration):
             rayTracks[rayNum].append({"length":firstIntersect["dist"],"mat":mat,
                                       "idVal":idVal,"l":r.l,"cellID":cell.id})
         
-            deltaPsi = (r.psi - (sim.q[cell.id][idVal]/(mat.SigT))) *  \
-                       (1.0 - exp(-mat.SigT*firstIntersect["dist"]))
+            deltaPsiVec = []
+            for g in range(nGroups):
+                deltaPsi_g = (psi[g] - (sim.q[cell.id][idVal][g]/(mat.SigT[g]))) *  \
+                             (1.0 - exp(-mat.SigT[g]*firstIntersect["dist"]))
+                psi[g] = psi[g] - deltaPsi_g
+                deltaPsiVec.append(deltaPsi_g)
 
-            r.psi -= deltaPsi
             if ( r.l < 250.0 ):
-                #sim.phi[cell.id][idVal] += 4.0*pi*deltaPsi
-                sim.phiNEW[cell.id][idVal][0] += 4.0*pi*deltaPsi
-                if whereRayIs.id == 1: distInFuel += firstIntersect["dist"]
+                for g in range(nGroups):
+                    sim.phi[cell.id][idVal][g] += 4.0*pi*deltaPsiVec[g]
+                if whereRayIs.id != 0: distInFuel += firstIntersect["dist"]
                 else:                  distInMod  += firstIntersect["dist"]
 
 
@@ -238,8 +258,11 @@ def runRay(sim,rayNum,firstIteration):
         tracks = rayTracks[rayNum]
         mat, cellId = rayTracks[0][2]["mat"], rayTracks[0][2]["cellID"]
         whereRayIs = tracks[0][1]
-        psi = sim.q[cellId][1]/(mat.SigT) if whereRayIs else         \
-              sim.q[cellId][0]/(mat.SigT)
+
+        psi = []
+        for g in range(nGroups):
+            psi.append( sim.q[cellId][1][g]/(mat.SigT[g]) if whereRayIs else   \
+                        sim.q[cellId][0][g]/(mat.SigT[g]) )
 
 
 
@@ -247,13 +270,15 @@ def runRay(sim,rayNum,firstIteration):
             mat    = tracks[i+1]["mat"   ]; idVal  = tracks[i+1]["idVal"]
             length = tracks[i+1]["length"]; l      = tracks[i+1]["l"    ]
             cellID = tracks[i+1]["cellID"]; 
-            deltaPsi = (psi - (sim.q[cellID][idVal]/(mat.SigT)))*    \
-                       (1.0 - exp(-mat.SigT*length))
+            deltaPsiVec = []
+            for g in range(nGroups):
+                deltaPsiVec.append( (psi[g] - (sim.q[cellID][idVal][g]/(mat.SigT[g])))*    \
+                           (1.0 - exp(-mat.SigT[g]*length)) )
+                psi[g] -= deltaPsiVec[g]
 
-            psi  -= deltaPsi
             if ( l < 250.0 ):
-                #sim.phi[cellID][idVal] += 4.0*pi*deltaPsi
-                sim.phiNEW[cellID][idVal][0] += 4.0*pi*deltaPsi
+                for g in range(nGroups):
+                    sim.phi[cellID][idVal][g] += 4.0*pi*deltaPsiVec[g]
 
         distInFuel, distInMod = tracks[0][2][1], tracks[0][3][1]
         return distInFuel,distInMod
@@ -265,6 +290,7 @@ def runRay(sim,rayNum,firstIteration):
 #radii = [0.5,0.4,0.3,0.2,0.1]
 #radii = [0.4,0.3,0.2,0.1]
 radii = [0.39128,0.3]
+#radii = [0.39128,0.3]
 #radii = [0.39128]
 
 cellColors, circleColors = findColors(radii)
@@ -272,11 +298,30 @@ cellColors, circleColors = findColors(radii)
 
 # Initialize Materials
 #        Sigma T, nuSigma F, Sigma S
-mod  = material(3.60, 0.00, 2.10)
-fuel = material(0.93, 1.98, 0.30)
 
-mod  = material(2.50, 0.00, 2.10)
-fuel = material(1.12, 0.98, 0.19)
+#mod  = material([3.60], [0.00], [2.10])
+#fuel = material([0.93], [1.98], [0.30])
+
+#mod  = material([2.50], [0.00], [2.10])
+#fuel = material([1.12], [0.98], [0.19])
+
+#mod  = material([2.50,2.50,2.50], [0.00,0.00,0.00], [2.10,2.10,2.10])
+#fuel = material([1.12,1.12,1.12], [0.98,0.98,0.98], [0.19,0.19,0.19])
+
+
+S_matrix_M = [ [ 0.6, 0.5 ], [ 0.4, 0.3 ] ]
+S_matrix_F = [ [ 0.1, 0.2 ], [ 0.3, 0.4 ] ]
+
+S_matrix_M = [ [ 0.21, 0.02, 0.23 ], [ 0.06, 0.95, 0.94 ], [ 0.13, 0.12, 0.11 ] ]
+S_matrix_F = [ [ 0.19, 0.18, 0.17 ], [ 0.16, 0.15, 0.14 ], [ 0.13, 0.12, 0.11 ] ]
+
+chi_M = [ 0.00, 0.00, 0.00 ]
+chi_F = [ 0.05, 0.05, 0.90 ]
+
+mod  = material([2.50,2.50,2.50], [0.00,0.00,0.00], [2.10,2.10,2.10],S_matrix_M,chi_M)
+fuel = material([1.12,1.12,1.12], [0.98,0.98,0.98], [0.19,0.19,0.19],S_matrix_F,chi_F)
+
+nGroups = len(mod.SigT)
 
 
 
@@ -305,16 +350,43 @@ k_guess = 1.0
 q_guess = []
 oldFissionSource = []
 newFissionSource = []
+
 for i in range(len(cells)):
-    q_guess.append([0.0]*numRegionsPerCell)
-    oldFissionSource.append([0.0]*numRegionsPerCell)
-    newFissionSource.append([0.0]*numRegionsPerCell)
+    cellEntry = []
+    for j in range(numRegionsPerCell):
+        regionEntry = []
+        for k in range(nGroups):
+            regionEntry.append(0.0)
+        cellEntry.append(regionEntry)
+    q_guess.append(cellEntry[:])
+
+for i in range(len(cells)):
+    cellEntry = []
+    for j in range(numRegionsPerCell):
+        regionEntry = []
+        for k in range(nGroups):
+            regionEntry.append(0.0)
+        cellEntry.append(regionEntry)
+    oldFissionSource.append(cellEntry[:])
+
+for i in range(len(cells)):
+    cellEntry = []
+    for j in range(numRegionsPerCell):
+        regionEntry = []
+        for k in range(nGroups):
+            regionEntry.append(0.0)
+        cellEntry.append(regionEntry)
+    newFissionSource.append(cellEntry[:])
 
 for c in range(len(cells)):
     for i in range(numRegionsPerCell):
         mat = allRegInCell[i].mat
-        q_guess[c][i] = ( mat.SigS + mat.SigF )/(4.0*pi)
-        oldFissionSource[c][i] = mat.SigF
+        for g in range(nGroups):
+            fakeFlux = [1.0]*nGroups
+            sigS = getScatteringIntoG(g,mat.SigS_matrix,fakeFlux)
+            sigF = getFissionIntoG(g,mat.chi,mat.SigF,fakeFlux)
+            q_guess[c][i][g] = ( sigS + sigF )/(4.0*pi)
+            oldFissionSource[c][i][g] = sigF
 
 
 
@@ -326,8 +398,14 @@ random.seed(1)
 counter = 0
 inv_trackLength = 0.0
 kVals = []
+print()
+#print("Q GUESS")
+#print(q_guess)
 sim = simulation(k_guess,q_guess) 
-nGroups = 1
+#print()
+#print("Q")
+#print(sim.q)
+#print()
 
 
 while not converged:
@@ -337,84 +415,86 @@ while not converged:
         inv_trackLength = 1.0/(distInMod+distInFuel)
     else:                      runRays(sim,numRaysPerRun)
 
-    #sim.phi = [[inv_trackLength*x for x in sim_phi_cell] for sim_phi_cell in sim.phi]
-    #for i,sim_phi_cell in enumerate(sim.phi):
-    #    for j,x in enumerate(sim_phi_cell):
-    #        sim.phi[i][j] = inv_trackLength*x
-
-    for i,sim_phi_cell in enumerate(sim.phiNEW):
+    for i,sim_phi_cell in enumerate(sim.phi):
         for j,x in enumerate(sim_phi_cell):
-            sim.phiNEW[i][j][0] = inv_trackLength*x[0]
-
+            for g in range(nGroups):
+                sim.phi[i][j][g] = inv_trackLength*x[g]
 
     # Update phi
     for cell in cells:
         for i in range(numRegionsPerCell):
-            mat, V = allRegInCell[i].mat, volumes[allRegInCell[i].id]
-            #print(sim.phiNEW[cell.id][i][0],sim.phi[cell.id][i])
-            #sim.phi[cell.id][i] = sim.phi[cell.id][i]/(mat.SigT*V) + sim.q[cell.id][i]*4.0*pi/mat.SigT
-            sim.phiNEW[cell.id][i][0] = sim.phiNEW[cell.id][i][0]/(mat.SigT*V) + sim.q[cell.id][i]*4.0*pi/mat.SigT
-            #print(sim.phiNEW[cell.id][i][0],sim.phi[cell.id][i])
-            #break
-            #sim.q[cell.id][i] = (mat.SigS*sim.phi[cell.id][i] + mat.SigF*sim.phi[cell.id][i])/(4.0*pi)
-            #newFissionSource[cell.id][i] = mat.SigF*sim.phi[cell.id][i]
-
-            sim.q[cell.id][i] = (mat.SigS*sim.phiNEW[cell.id][i][0] + mat.SigF*sim.phiNEW[cell.id][i][0])/(4.0*pi)
-            newFissionSource[cell.id][i] = mat.SigF*sim.phiNEW[cell.id][i][0]
-    #print()
+            for g in range(nGroups):
+                mat, V = allRegInCell[i].mat, volumes[allRegInCell[i].id]
+                sim.phi[cell.id][i][g] = sim.phi[cell.id][i][g]/(mat.SigT[g]*V) + sim.q[cell.id][i][g]*4.0*pi/mat.SigT[g]
+                sigS = getScatteringIntoG(g,mat.SigS_matrix,sim.phi[cell.id][i])
+                sim.q[cell.id][i][g] = (sigS + mat.SigF[g]*sim.phi[cell.id][i][g])/(4.0*pi)
+                #sim.q[cell.id][i][g] = (mat.SigS[g]*sim.phi[cell.id][i][g] + mat.SigF[g]*sim.phi[cell.id][i][g])/(4.0*pi)
+                newFissionSource[cell.id][i][g] = mat.SigF[g]*sim.phi[cell.id][i][g]
 
 
     kNumer, kDenom = 0.0, 0.0
     for i in range(len(newFissionSource)):
-        kNumer += sum(newFissionSource[i])
-        kDenom += sum(oldFissionSource[i])
+        for j in range(len(newFissionSource[0])):
+            for g in range(nGroups):
+                kNumer += newFissionSource[i][j][g]
+                kDenom += oldFissionSource[i][j][g]
     sim.k = kNumer / kDenom
 
     for cell in cells:
         for i in range(numRegionsPerCell):
-            oldFissionSource[cell.id][i] = newFissionSource[cell.id][i]/sim.k
-            sim.q[cell.id][i] /= sim.k 
+            for g in range(nGroups):
+                oldFissionSource[cell.id][i][g] = newFissionSource[cell.id][i][g]/sim.k
+                sim.q[cell.id][i][g] /= sim.k 
 
     #print("Iteration #: ",counter,"   k",sim.k)
 
     kVals.append(sim.k)
-    #for i in range(len(cells)):
-    #    sim.phi[i] = [0.0]*numRegionsPerCell
 
-    sim.phiNEW = []
+    sim.phi = []
     for cell_i in sim.q:
         cellEntry = []
         for location_j in range(len(cell_i)):
-            cellEntry.append([0.0])
-        sim.phiNEW.append(cellEntry)
+            locationEntry = []
+            for g in range(nGroups):
+                locationEntry.append(0.0)
+            cellEntry.append(locationEntry)
+        sim.phi.append(cellEntry)
+
+
 
 
     # Check if converged
     counter += 1
-    if counter > 10: converged = True
+    if counter > 20: converged = True
     firstIteration = False
 
-correctK = [1.0393502572032347, 1.0356661397728641, 1.0325926732412258, 1.0301681484434255, 1.0282467337804195, 1.026718950054905, 1.0255013959039376, 1.0245297679016676, 1.0237539963860283, 1.0231347788746885, 1.0226410604093656]
-wrong = False
-for i in range(len(kVals)):
-    if abs(kVals[i]-correctK[i]) > 1e-10:
-        print("\nOH NO NOT GOOD\n")
-        wrong = True
-if not wrong: print("\nWhew! That was a close one\n")
+#correctK = [1.0393502572032347, 1.0356661397728641, 1.0325926732412258, 1.0301681484434255, 1.0282467337804195, 1.026718950054905, 1.0255013959039376, 1.0245297679016676, 1.0237539963860283, 1.0231347788746885, 1.0226410604093656]
+#wrong = False
+#for i in range(len(kVals)):
+#    if abs(kVals[i]-correctK[i]) > 1e-10:
+#        print("\nOH NO NOT GOOD\n")
+#        wrong = True
+#if not wrong: print("\nWhew! That was a close one\n")
+#
 
 
 
 
-
-
-
-
+#print(kVals)
 #print(rayTracks)
 #for cell in cells:
 #    plotBox(ax,cell)
-
-#plt.xlim(-1,3.5)
-#plt.ylim(-1,3.5)
 #plt.show()
 #plt.plot(kVals)
 #plt.show()
+
+f1 = plt.figure(1)
+plt.plot(kVals,'ro')
+f1.show()
+input()
+"""
+"""
+
+
+
+
