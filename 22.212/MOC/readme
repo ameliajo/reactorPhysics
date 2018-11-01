@@ -1,0 +1,16 @@
+
+To run my code, 
+>>> python moc.py keff 
+will run MOC and show the k values plotted over the different iterations.
+
+>>> python moc.py diagram
+will plot the rays in the diagram with the nice rays included. 
+
+
+We're currently set at 300 cm dist for the rays, and using 100 rays per 
+iteration. If you want to change that, the variables to do so are living around 
+line 15
+
+Here's a bit of a layout of your code.
+
+

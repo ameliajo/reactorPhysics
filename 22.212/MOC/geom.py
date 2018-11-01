@@ -1,5 +1,6 @@
 import matplotlib.pyplot as plt
 from math import pi
+from colors import *
 
 
 
@@ -17,40 +18,27 @@ class circle:
         self.id = idVal
 
 class box:
-    def __init__(self,x,y,radii,modMat,fuelMat,circleColor,color,idNum,L,R,D,U):
+    def __init__(self,xL,yL,radii,modMat,fuelMat,idNum,xi,yi,xPlanes,yPlanes):
+        cellColors, circleColors = findColors(radii)
         self.id = idNum 
-        self.L = L 
-        self.R = R 
-        self.U = U
-        self.D = D
-        self.color = color
+        self.L = xPlanes[xi]
+        self.R = xPlanes[xi+1]
+        self.D = yPlanes[yi]
+        self.U = yPlanes[yi+1]
+        self.color = cellColors
         circles = []
         for i,r in enumerate(radii):
-            circles.append(circle(x,y,r,fuelMat,circleColor[i],i+1))
+            circles.append(circle(xL,yL,r,fuelMat,circleColors[i],i+1))
         self.mat = modMat; self.C = circles;
 
 def getVolumes(numRegionsPerCell,cellCircles,sideLength):
     volumes = [0.0]*numRegionsPerCell
-    if numRegionsPerCell == 6:
-        volumes[0] = sideLength - pi*cellCircles[0].r**2
-        volumes[1] = pi*cellCircles[0].r**2 - pi*cellCircles[1].r**2
-        volumes[2] = pi*cellCircles[1].r**2 - pi*cellCircles[2].r**2
-        volumes[3] = pi*cellCircles[2].r**2 - pi*cellCircles[3].r**2
-        volumes[4] = pi*cellCircles[3].r**2 - pi*cellCircles[4].r**2
-        volumes[5] = pi*cellCircles[4].r**2
-    if numRegionsPerCell == 5:
-        volumes[0] = sideLength - pi*cellCircles[0].r**2
-        volumes[1] = pi*cellCircles[0].r**2 - pi*cellCircles[1].r**2
-        volumes[2] = pi*cellCircles[1].r**2 - pi*cellCircles[2].r**2
-        volumes[3] = pi*cellCircles[2].r**2 - pi*cellCircles[3].r**2
-        volumes[4] = pi*cellCircles[3].r**2
-    if numRegionsPerCell == 3:
-        volumes[0] = sideLength - pi*cellCircles[0].r**2
-        volumes[1] = pi*cellCircles[0].r**2 - pi*cellCircles[1].r**2
-        volumes[2] = pi*cellCircles[1].r**2
-    if numRegionsPerCell == 2:
-        volumes[0] = sideLength - pi*cellCircles[0].r**2
-        volumes[1] = pi*cellCircles[0].r**2 
+    
+    volumes[0] = sideLength - pi*cellCircles[0].r**2
+    for i in range(1,numRegionsPerCell-1):
+        volumes[i] = pi*cellCircles[i-1].r**2 - pi*cellCircles[i].r**2
+    volumes[numRegionsPerCell-1] = pi*cellCircles[numRegionsPerCell-2].r**2
+
     return volumes
 
 
