@@ -11,6 +11,12 @@ We're currently set at 300 cm dist for the rays, and using 100 rays per
 iteration. If you want to change that, the variables to do so are living around 
 line 15
 
-Here's a bit of a layout of your code.
+
+
+Here's a bit of a layout of the code.
+
+
+
+
 
 

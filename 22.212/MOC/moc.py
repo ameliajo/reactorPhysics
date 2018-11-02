@@ -10,6 +10,7 @@ from colors import *
 import time
 import numpy as np
 import sys
+from dancoff import *
 
 
 numRaysPerRun = 100
@@ -163,18 +164,18 @@ def weAreStuck(recentDist,firstIntersect):
     return True if (sum(recentDist) < 1e-8) else False
 
 
-def runRays(sim,numRaysPerRun,firstIteration=False):
+def runRays(sim,numRaysPerRun,rayTracks,firstIteration=False):
     distInFuel, distInMod = 0.0, 0.0
     for ray in range(numRaysPerRun):
         if firstIteration: rayTracks.append([["RayNumber"+str(ray)]])
-        dFuel,dMod = runRay(sim,ray,firstIteration)
+        dFuel,dMod = runRay(sim,ray,firstIteration,rayTracks)
         if firstIteration:
             distInFuel += dFuel; distInMod  += dMod; 
 
     return distInMod,distInFuel     
 
 
-def runRay(sim,rayNum,firstIteration):
+def runRay(sim,rayNum,firstIteration,rayTracks):
 
     if firstIteration:
         # Initialize Ray 
@@ -264,12 +265,63 @@ def runRay(sim,rayNum,firstIteration):
         distInFuel, distInMod = tracks[0][2][1], tracks[0][3][1]
         return distInFuel,distInMod
  
+
+def runMOC(sim,k_guess,q_guess,oldFissSrc,newFissSrc,cells,volumes):
+
+    converged = False; firstIteration = True
+    rayTracks = []; kVals = []; counter = 0; invDist = 0.0
+
+    while not converged:
+
+        random.seed(1)
+        distInMod,distInFuel = runRays(sim,numRaysPerRun,rayTracks,firstIteration)
+        if firstIteration: invDist = 1.0/(distInMod+distInFuel)
+
+        sim.phi = [[[invDist*sim.phi[i][j][g] for g in range(nGroups)] for j in range(nCellRegs)] for i in range(nCells) ]
+
+        # Update phi
+        for cell in cells:
+            for j in range(nCellRegs):
+                for g in range(nGroups):
+                    mat, V = allRegInCell[j].mat, volumes[allRegInCell[j].id]
+                    sim.phi[cell.id][j][g] = sim.phi[cell.id][j][g]/(mat.SigT[g]*V) + sim.q[cell.id][j][g]*4.0*pi/mat.SigT[g]
+                    sigS = getScatteringIntoG(g,mat.SigS_matrix,sim.phi[cell.id][j])
+                    sim.q[cell.id][j][g] = (sigS + mat.SigF[g]*sim.phi[cell.id][j][g])/(4.0*pi)
+                    newFissSrc[cell.id][j][g] = mat.SigF[g]*sim.phi[cell.id][j][g]
+
+        kNumer, kDenom = 0.0, 0.0
+        for i in range(nCells):
+            for j in range(nCellRegs):
+                for g in range(nGroups):
+                    kNumer += newFissSrc[i][j][g]
+                    kDenom += oldFissSrc[i][j][g]
     
+        sim.k = kNumer / kDenom
+    
+        
+        totalDiff = 0.0
+        for cell in cells:
+            for i in range(nCellRegs):
+                for g in range(nGroups):
+                    totalDiff += abs(oldFissSrc[cell.id][i][g] - newFissSrc[cell.id][i][g]/sim.k)
+                    oldFissSrc[cell.id][i][g] = newFissSrc[cell.id][i][g]/sim.k
+                    sim.q[cell.id][i][g] /= sim.k 
+    
+        print("------  Run # ",counter,"       k-eff",sim.k,totalDiff)
+        kVals.append(sim.k)
+    
+        # Check if converged
+        if totalDiff < 0.15: converged = True
+        else: sim.phi = [[[0.0 for g in range(nGroups)] for j in range(nCellRegs)] for i in range(nCells)]
 
-##############################################################################
-# Actually running MOC
-##############################################################################
 
+        counter += 1
+        # This tells me to not actually trace the rays again, but rather rely on my
+        # existing / stored information
+        firstIteration = False
+
+
+    
 
 ##############################################################################
 # Initialize Geometry and Materials
@@ -279,27 +331,22 @@ radii = [0.39128,0.3,0.2,0.1]
 sideLen = 1.26
 cellColors, circleColors = findColors(radii)
 
-S_matrix_M = [[ 2.1, 0.0], [0.4, 1.0]]   #  | slow->slow  slow->fast |
-S_matrix_F = [[ 0.3, 0.0], [0.2, 0.4]]   #  | fast->slow  fast->fast |
-
 chi_M = [0.00, 0.00]
 chi_F = [0.05, 0.95]
 
-#                Sigma T,     nuSigma F,   Sigma S
-mod  = material([4.60,1.27], [0.000,0.00], S_matrix_M,chi_M)
-fuel = material([1.93,1.27], [0.127,1.98], S_matrix_F,chi_F)
-# SigmaT --> [ SigT Slow, SigT Fast ]
 
 S_matrix_M = [[ 1.2, 0.0], [0.8, 0.4]]   #  | slow->slow  slow->fast |
 S_matrix_F = [[ 0.1, 0.1], [0.1, 0.1]]   #  | fast->slow  fast->fast |
+
+#                Sigma T,     nuSigma F,   Sigma S
 mod  = material([1.60,1.00], [0.00,0.00], S_matrix_M,chi_M)
 fuel = material([0.93,1.93], [0.90,1.98], S_matrix_F,chi_F)
+# SigmaT --> [ SigT Slow, SigT Fast ]
 
 
 xPlanes = [xPlane(-0.63,'ref'),xPlane(0.63,'vac'),xPlane(1.89,'vac'),xPlane(3.15,'ref')]
 yPlanes = [yPlane(-0.63,'ref'),yPlane(0.63,'vac'),yPlane(1.89,'vac'),yPlane(3.15,'ref')]
 
-rayTracks = []
 
 i = 0
 cells = []
@@ -330,72 +377,20 @@ for c in range(nCells):
             q_guess[c][i][g] = ( sigS + sigF )/(4.0*pi)
             oldFissSrc[c][i][g] = sigF
 
-converged = False
-firstIteration = True
-k_guess = 1.0
-counter = 0
-invDist = 0.0
-kVals = []
 
+
+
+
+##############################################################################
+# Actually running MOC
+##############################################################################
+
+k_guess = 1.0
 sim = simulation(k_guess,q_guess) 
 
-while not converged:
-
-    random.seed(1)
-    if counter == 0: 
-        distInMod,distInFuel = runRays(sim,numRaysPerRun,True)
-        invDist = 1.0/(distInMod+distInFuel)
-    else: 
-        runRays(sim,numRaysPerRun)
-
-    sim.phi = [[[invDist*sim.phi[i][j][g] for g in range(nGroups)] for j in range(nCellRegs)] for i in range(nCells) ]
-
-    # Update phi
-    for cell in cells:
-        for j in range(nCellRegs):
-            for g in range(nGroups):
-                mat, V = allRegInCell[j].mat, volumes[allRegInCell[j].id]
-                sim.phi[cell.id][j][g] = sim.phi[cell.id][j][g]/(mat.SigT[g]*V) + sim.q[cell.id][j][g]*4.0*pi/mat.SigT[g]
-                sigS = getScatteringIntoG(g,mat.SigS_matrix,sim.phi[cell.id][j])
-                sim.q[cell.id][j][g] = (sigS + mat.SigF[g]*sim.phi[cell.id][j][g])/(4.0*pi)
-                newFissSrc[cell.id][j][g] = mat.SigF[g]*sim.phi[cell.id][j][g]
-
-    kNumer, kDenom = 0.0, 0.0
-    for i in range(nCells):
-        for j in range(nCellRegs):
-            for g in range(nGroups):
-                kNumer += newFissSrc[i][j][g]
-                kDenom += oldFissSrc[i][j][g]
-
-    sim.k = kNumer / kDenom
-
-    totalDiff = 0.0
-    for cell in cells:
-        for i in range(nCellRegs):
-            for g in range(nGroups):
-                totalDiff += abs(oldFissSrc[cell.id][i][g] - newFissSrc[cell.id][i][g]/sim.k)
-
-    if totalDiff < 0.15: converged = True
-    #print(totalDiff)
-    print("------  Run # ",counter,"       k-eff",sim.k,totalDiff)
-    
-    for cell in cells:
-        for i in range(nCellRegs):
-            for g in range(nGroups):
-                oldFissSrc[cell.id][i][g] = newFissSrc[cell.id][i][g]/sim.k
-                sim.q[cell.id][i][g] /= sim.k 
-
-    kVals.append(sim.k)
-
-    if not converged:
-        sim.phi = [[[0.0 for g in range(nGroups)] for j in range(nCellRegs)] for i in range(nCells)]
+runMOC(sim,k_guess,q_guess,oldFissSrc,newFissSrc,cells,volumes)
 
 
-    # Check if converged
-    counter += 1
-    #if counter > 20: converged = True
-
-    firstIteration = False
 
 
 if len(sys.argv) > 1:
@@ -410,7 +405,6 @@ if len(sys.argv) > 1:
         plt.show()
 
 print()
-print()
 #print("Final Slow Phi",sim.phi)
 for i in sim.phi:
     for j in i:
@@ -418,7 +412,6 @@ for i in sim.phi:
             if k <= 0.0:
                 print(k)
 
-print()
 print()
 #print(kVals)
 
