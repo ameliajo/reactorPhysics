@@ -12,9 +12,10 @@ import numpy as np
 import sys
 
 
-numRaysPerRun = 1000
+numRaysPerRun = 100
 rayDist = 500.0
-deadZone = 50.0
+deadZone = 10.0
+
 print("Running",numRaysPerRun,"rays for a distance of",rayDist,"with a deadzone of",deadZone)
 
 fig, ax = plt.subplots() 
@@ -180,9 +181,16 @@ def runRay(sim,rayNum,firstIteration,rayTracks):
     if firstIteration:
         # Initialize Ray 
         
-        x0 = (cells[2].R.x-cells[0].L.x)*(random.random()) + cells[0].L.x
-        y0 = (cells[8].U.y-cells[0].D.y)*(random.random()) + cells[0].D.y
+        x0 = -100.0
+        y0 = -100.0
+        while x0 < cells[4].L.x or x0 > cells[4].R.x or y0 < cells[4].D.y or y0 > cells[4].U.y or \
+              ((x0 - 1.26)**2 + (y0-1.26)**2)**0.5 < radii[0]:
+            x0 = (cells[8].R.x-cells[0].L.x)*(random.random()) + cells[0].L.x
+            y0 = (cells[8].U.y-cells[0].D.y)*(random.random()) + cells[0].D.y
+
+        plt.plot(x0,y0,'ro')
        
+
         r = ray(x0,y0,rayDist) # should be 3m length
 
         cell,xPlanes,yPlanes,circles = getCell(cells,r)
@@ -212,13 +220,18 @@ def runRay(sim,rayNum,firstIteration,rayTracks):
     
             if len(sys.argv) > 1:
                 if sys.argv[1] == "diagram" and whereRayIs:
-                    plotRaySegment(r,whereRayIs.color,firstIntersect)
+                    if not(r.x0 < cells[4].L.x or r.x0 > cells[4].R.x or r.y0 < cells[4].D.y or r.y0 > cells[4].U.y):
+                        plotRaySegment(r,whereRayIs.color,firstIntersect)
 
             updateRay(r,firstIntersect)
-
             rayTracks[rayNum].append({"length":firstIntersect["dist"],"mat":mat,
                                       "idVal":idVal,"l":r.l,"cellID":cell.id})
-        
+
+            if r.x0 < cells[4].L.x or r.x0 > cells[4].R.x or r.y0 < cells[4].D.y or r.y0 > cells[4].U.y:
+                continue 
+
+           
+       
             deltaPsiVec = []
             for g in range(nGroups):
                 deltaPsi_g = (r.psi[g] - (sim.q[cell.id][idVal][g]/(mat.SigT[g]))) *  \
@@ -237,7 +250,9 @@ def runRay(sim,rayNum,firstIteration,rayTracks):
 
         return distInFuel,distInMod
 
+    """
     else:
+        return 1,2
         tracks = rayTracks[rayNum]
         mat, cellId = rayTracks[0][2]["mat"], rayTracks[0][2]["cellID"]
         whereRayIs = tracks[0][1]
@@ -263,6 +278,7 @@ def runRay(sim,rayNum,firstIteration,rayTracks):
 
         distInFuel, distInMod = tracks[0][2][1], tracks[0][3][1]
         return distInFuel,distInMod
+    """
  
 
 def runMOC(sim,k_guess,q_guess,oldFissSrc,newFissSrc,cells,volumes):
@@ -273,7 +289,7 @@ def runMOC(sim,k_guess,q_guess,oldFissSrc,newFissSrc,cells,volumes):
     while not converged:
 
         random.seed(1)
-        distInMod,distInFuel = runRays(sim,numRaysPerRun,rayTracks,firstIteration)
+        distInMod,distInFuel = runRays(sim,numRaysPerRun,rayTracks,True)
         if firstIteration: invDist = 1.0/(distInMod+distInFuel)
 
         sim.phi = [[[invDist*sim.phi[i][j][g] for g in range(nGroups)]  \
@@ -308,6 +324,7 @@ def runMOC(sim,k_guess,q_guess,oldFissSrc,newFissSrc,cells,volumes):
                     sim.q[c.id][i][g] /= sim.k 
     
         print("------  Run # ",counter,"       k-eff",sim.k,"        Error in Fission Source",totalDiff)
+        print(sim.phi)
         kVals.append(sim.k)
     
         # Check if converged
@@ -334,9 +351,12 @@ mod  = material(modTotal, modNuFission, modScatter, modChi )
 fuel = material(fuelTotal,fuelNuFission,fuelScatter,fuelChi)
 # SigmaT --> [ SigT Slow, SigT Fast ]
 
-
+# Treat as an isolated pin
 xPlanes = [xPlane(-0.63,'ref'),xPlane(0.63,'vac'),xPlane(1.89,'vac'),xPlane(3.15,'ref')]
 yPlanes = [yPlane(-0.63,'ref'),yPlane(0.63,'vac'),yPlane(1.89,'vac'),yPlane(3.15,'ref')]
+
+# Treat as an a pin in a lattice
+#xPlanes = [xPlane(-0.63,'ref'),xPlane(0.63,'ref'),xPlane(1.89,'ref'),xPlane(3.15,'ref')]#yPlanes = [yPlane(-0.63,'ref'),yPlane(0.63,'ref'),yPlane(1.89,'ref'),yPlane(3.15,'ref')]
 
 # Store all pincell objects in vector
 i = 0
@@ -396,14 +416,16 @@ if len(sys.argv) > 1:
             plotBox(ax,cell)
         plt.show()
 
+"""
 print()
 for i in sim.phi:
     for j in i:
         for k in j:
-            if k <= 0.0:
+            if k < 0.0:
                 print("Got a negative flux value! :( ",k)
 
 print()
+"""
 print(kVals[-1])
 
 
