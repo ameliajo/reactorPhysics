@@ -1,0 +1,11 @@
+To run my code, 
+
+>>> python MC_paper.py
+
+This will plot 3 plots. One of flux plotted against energy. It plots the 
+dilution methods along with ultrafine for comparison. 
+
+It'll also plot the same thing, but with another slab width alongside it. 
+
+We'll print out the computed subgroup result, along with Carlvik against 
+Dancoff
