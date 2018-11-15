@@ -105,12 +105,11 @@ numRays_1000_rayDist_200_deadzone_40 = [0.742256815917, 1.08433474184, 1.1183722
 
 
 
-"""
 plt.title("Varying # Rays, Ray Dist = 500 cm, Deadzone Length = 50 cm")
 plt.plot(numRays_1000_rayDist_500_deadzone_50,label="1000 Rays")
 plt.plot(numRays_500_rayDist_500_deadzone_50,label="500 Rays")
 plt.plot(numRays_100_rayDist_500_deadzone_50,label="100 Rays")
-"""
+plt.ylim([1.210,1.218])
 
 """
 plt.title("1000 Rays, Varying Ray Dist, Deadzone Length = 50 cm")
@@ -119,6 +118,7 @@ plt.plot(numRays_1000_rayDist_500_deadzone_50,label="500 cm Rays")
 plt.plot(numRays_1000_rayDist_300_deadzone_50,label="300 cm Rays")
 plt.plot(numRays_1000_rayDist_200_deadzone_50,label="200 cm Rays")
 plt.plot(numRays_1000_rayDist_100_deadzone_50,label="100 cm Rays")
+plt.ylim([1.210,1.218])
 """
 
 """
@@ -127,18 +127,20 @@ plt.plot(numRays_1000_rayDist_500_deadzone_100,label="100 cm Deadzone")
 plt.plot(numRays_1000_rayDist_500_deadzone_60,label="60 cm Deadzone")
 plt.plot(numRays_1000_rayDist_500_deadzone_50,label="50 cm Deadzone")
 plt.plot(numRays_1000_rayDist_500_deadzone_30,label="30 cm Deadzone")
+plt.ylim([1.210,1.2175])
 """
 
+"""
 plt.title("1000 Rays, 200 cm Ray Dist, Varying Deadzone Length")
 plt.plot(numRays_1000_rayDist_200_deadzone_100,label="100 cm Deadzone")
 plt.plot(numRays_1000_rayDist_200_deadzone_80,label="80 cm Deadzone")
 plt.plot(numRays_1000_rayDist_200_deadzone_60,label="60 cm Deadzone")
 plt.plot(numRays_1000_rayDist_200_deadzone_50,label="50 cm Deadzone")
 plt.plot(numRays_1000_rayDist_200_deadzone_40,label="40 cm Deadzone")
-
+plt.ylim([1.210,1.2175])
+"""
 
 plt.legend(loc="lower right")
-plt.ylim([1.210,1.2175])
 plt.xlabel("Iteration #")
 plt.ylabel("k")
 plt.show()

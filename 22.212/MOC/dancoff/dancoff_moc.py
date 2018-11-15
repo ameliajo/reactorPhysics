@@ -356,7 +356,8 @@ xPlanes = [xPlane(-0.63,'ref'),xPlane(0.63,'vac'),xPlane(1.89,'vac'),xPlane(3.15
 yPlanes = [yPlane(-0.63,'ref'),yPlane(0.63,'vac'),yPlane(1.89,'vac'),yPlane(3.15,'ref')]
 
 # Treat as an a pin in a lattice
-#xPlanes = [xPlane(-0.63,'ref'),xPlane(0.63,'ref'),xPlane(1.89,'ref'),xPlane(3.15,'ref')]#yPlanes = [yPlane(-0.63,'ref'),yPlane(0.63,'ref'),yPlane(1.89,'ref'),yPlane(3.15,'ref')]
+#xPlanes = [xPlane(-0.63,'ref'),xPlane(0.63,'ref'),xPlane(1.89,'ref'),xPlane(3.15,'ref')]
+#yPlanes = [yPlane(-0.63,'ref'),yPlane(0.63,'ref'),yPlane(1.89,'ref'),yPlane(3.15,'ref')]
 
 # Store all pincell objects in vector
 i = 0
