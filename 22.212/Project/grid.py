@@ -4,6 +4,7 @@
 import openmc
 import openmc.mgxs as mgxs
 import numpy as np
+import pandas as pd
 
 
 uo2 = openmc.Material(1,"uo2")
@@ -11,12 +12,24 @@ uo2.add_element('U', 1.0, enrichment=3.0)
 uo2.add_element('O', 2.0)
 uo2.set_density('g/cc', 10.0)
 
+uo2_b = openmc.Material(2,"uo2")
+uo2_b.add_element('U', 1.0, enrichment=3.0)
+uo2_b.add_element('O', 2.0)
+uo2_b.set_density('g/cc', 10.0)
+
+
 water = openmc.Material(3, "h2o")
 water.add_element('H', 2.0)
 water.add_element('O', 1.0)
 water.set_density('g/cm3', 1.0)
 
-mats = openmc.Materials([uo2, water])
+water_b = openmc.Material(4, "h2o")
+water_b.add_element('H', 2.0)
+water_b.add_element('O', 1.0)
+water_b.set_density('g/cm3', 1.0)
+
+
+mats = openmc.Materials([uo2, uo2_b, water, water_b])
 
 mats.export_to_xml()
 
@@ -27,45 +40,47 @@ mats.export_to_xml()
 L = 1.26
 pitch = L*3
 
-fuel_or_vec = [ openmc.ZCylinder(R=0.39, x0=(1+2*i)*L/2, y0=(1+2*j)*L/2) \
-                for i in range(3) for j in range(3) ]
+fuel_or_vec = [ openmc.ZCylinder(R=0.39, x0=0.5*L+i*L, y0=0.5*L+j*L) for j in range(3) for i in range(3) ]
 
 
-"""
-fuel_vec = []
-for i in range(9):
-    fuel = openmc.Cell(i,'fuel'+str(i))
-    fuel.fill = uo2
-    fuel.region = -fuel_or_vec[i]
-    fuel_vec.append(fuel)
-"""
-    
-fuel_vec = [ openmc.Cell(i,'fuel'+str(i),fill=uo2,region=-fuel_or_vec[i]) for i in range(9)]
+F_cells = [ openmc.Cell(i,'fuel'+str(i),fill=uo2,region=-fuel_or_vec[i]) for i in range(9)]
+
+x1 = openmc.XPlane(x0=0.0, boundary_type='reflective')
+x2 = openmc.XPlane(x0=1*L)
+x3 = openmc.XPlane(x0=2*L)
+x4 = openmc.XPlane(x0=3*L, boundary_type='reflective')
+
+y1 = openmc.YPlane(y0=0.0, boundary_type='reflective')
+y2 = openmc.YPlane(y0=1*L)
+y3 = openmc.YPlane(y0=2*L)
+y4 = openmc.YPlane(y0=3*L, boundary_type='reflective')
+
+waterRegion = +x1 & -x4 & +y1 & -y4 &                                 \
+              +fuel_or_vec[0] &  +fuel_or_vec[1] &  +fuel_or_vec[2] & \
+              +fuel_or_vec[3] &  +fuel_or_vec[4] &  +fuel_or_vec[5] & \
+              +fuel_or_vec[6] &  +fuel_or_vec[7] &  +fuel_or_vec[8] 
+
+xP = [x1,x2,x3,x4]
+yP = [y1,y2,y3,y4]
+
+M_cells = []
+count = 0
+for j in range(3):
+    for i in range(3):
+        mRegion = waterRegion & +xP[i] & -xP[i+1] & +yP[j] & -yP[j+1]
+        M_cells.append(openmc.Cell(70+count,'mod'+str(i),fill=water,region=mRegion))
+        count += 1
+
+#special = 7
+#F_cells[special].fill=uo2_b
+#M_cells[special].fill=water_b
 
 
-left   = openmc.XPlane(x0=0.0,   boundary_type='reflective')
-right  = openmc.XPlane(x0=pitch, boundary_type='reflective')
-bottom = openmc.YPlane(y0=0.0,   boundary_type='reflective')
-top    = openmc.YPlane(y0=pitch, boundary_type='reflective')
 
-
-
-
-water_region = +left & -right & +bottom & -top &                       \
-               +fuel_or_vec[0] &  +fuel_or_vec[1] &  +fuel_or_vec[2] & \
-               +fuel_or_vec[3] &  +fuel_or_vec[4] &  +fuel_or_vec[5] & \
-               +fuel_or_vec[6] &  +fuel_or_vec[7] &  +fuel_or_vec[8] 
-
-
-
-moderator = openmc.Cell(50, 'moderator')
-moderator.fill = water
-moderator.region = water_region
-
-
-root = openmc.Universe(cells=(moderator,fuel_vec[0], fuel_vec[1], fuel_vec[2],\
-                             fuel_vec[3], fuel_vec[4], fuel_vec[5],           \
-                             fuel_vec[6], fuel_vec[7], fuel_vec[8] ))
+root = openmc.Universe(cells=(                                              \
+    M_cells[0], M_cells[1], M_cells[2], M_cells[3], M_cells[4], M_cells[5], \
+    M_cells[6], M_cells[7], M_cells[8], F_cells[0], F_cells[1], F_cells[2], \
+    F_cells[3], F_cells[4], F_cells[5], F_cells[6], F_cells[7], F_cells[8] ))
 
 
 geom = openmc.Geometry(root)
@@ -78,8 +93,8 @@ geom.export_to_xml()
 
 settings = openmc.Settings()
 settings.batches = 100
-settings.inactive = 10
-settings.particles = 10000
+settings.inactive = 50
+settings.particles = 100
 settings.output = {'tallies': True}
 
 bounds = [0.0, 0.0, 0.0, pitch, pitch, pitch]
@@ -92,78 +107,114 @@ settings.export_to_xml()
 
 # Instantiate a 2-group EnergyGroups object
 groups = mgxs.EnergyGroups()
-groups.group_edges = np.array([0., 0.625, 20.0e6])
+#groups.group_edges = np.array([0., 0.625, 20.0e6])
+groups.group_edges = np.array([0.0, 0.058, 0.14, 0.28, 0.625, 4, 10, 40, 5.53e3, 821e3, 20e6])
 
+totalFuel = [mgxs.TotalXS(        domain=F_cell, groups=groups) for F_cell in F_cells]
+absorFuel = [mgxs.AbsorptionXS(   domain=F_cell, groups=groups) for F_cell in F_cells]
+scattFuel = [mgxs.ScatterMatrixXS(domain=F_cell, groups=groups) for F_cell in F_cells]
+fizzzFuel = [mgxs.FissionXS(      domain=F_cell, groups=groups, nu=True) for F_cell in F_cells]
 
-
-total_F = mgxs.TotalXS(domain=fuel_vec[0], groups=groups)
-absorption_F = mgxs.AbsorptionXS(domain=fuel_vec[0], groups=groups)
-scattering_F = mgxs.ScatterXS(domain=fuel_vec[0], groups=groups)
-
-total_M = mgxs.TotalXS(domain=moderator, groups=groups)
-absorption_M = mgxs.AbsorptionXS(domain=moderator, groups=groups)
-scattering_M = mgxs.ScatterXS(domain=moderator, groups=groups)
-
+totalMod  = [mgxs.TotalXS(        domain=M_cell, groups=groups) for M_cell in M_cells]
+absorMod  = [mgxs.AbsorptionXS(   domain=M_cell, groups=groups) for M_cell in M_cells]
+scattMod  = [mgxs.ScatterMatrixXS(domain=M_cell, groups=groups) for M_cell in M_cells]
 
 
 tallies_file = openmc.Tallies()
-tallies_file += total_F.tallies.values()
-tallies_file += absorption_F.tallies.values()
-tallies_file += scattering_F.tallies.values()
 
-tallies_file += total_M.tallies.values()
-tallies_file += absorption_M.tallies.values()
-tallies_file += scattering_M.tallies.values()
+for totalF in totalFuel: tallies_file += totalF.tallies.values()
+for absorF in absorFuel: tallies_file += absorF.tallies.values()
+for scattF in scattFuel: tallies_file += scattF.tallies.values()
+for fizzzF in fizzzFuel: tallies_file += fizzzF.tallies.values()
+
+for totalM in totalMod: tallies_file += totalM.tallies.values()
+for absorM in absorMod: tallies_file += absorM.tallies.values()
+for scattM in scattMod: tallies_file += scattM.tallies.values()
 
 tallies_file.export_to_xml()
 
-
-
 openmc.run()
-
-
 
 sp = openmc.StatePoint('statepoint.100.h5')
 
+for i in range(len(totalFuel)): totalFuel[i].load_from_statepoint(sp)
+for i in range(len(absorFuel)): absorFuel[i].load_from_statepoint(sp)
+for i in range(len(scattFuel)): scattFuel[i].load_from_statepoint(sp)
+for i in range(len(scattFuel)): fizzzFuel[i].load_from_statepoint(sp)
 
 
-total_F.load_from_statepoint(sp)
-absorption_F.load_from_statepoint(sp)
-scattering_F.load_from_statepoint(sp)
+#df = totalFuel[0].get_pandas_dataframe()
+#coeff = F_cells[0].region.surface.coefficients
+#print("TOTAL FUEL CELL 1, with center at (",coeff['x0'],",",coeff['y0'],")")
+#print(df)
 
-total_M.load_from_statepoint(sp)
-absorption_M.load_from_statepoint(sp)
-scattering_M.load_from_statepoint(sp)
+f= open("xs.txt","w+")
+
+for i in range(9):
+    df = totalFuel[i].get_pandas_dataframe()
+    coeff = F_cells[i].region.surface.coefficients
+    #print("TOTAL FUEL CELL ",i+1,", with center at (",coeff['x0'],",",coeff['y0'],")")
+    #print(df)
+    f.write("TOTAL FUEL CELL "+str(i+1)+", with center at ("+str(coeff['x0'])+","+str(coeff['y0'])+")\n")
+    f.write(str(df))
+    f.write("\n\n")
+
+    df = absorFuel[i].get_pandas_dataframe()
+    coeff = F_cells[i].region.surface.coefficients
+    #print("ABSOR FUEL CELL ",i+1,", with center at (",coeff['x0'],",",coeff['y0'],")")
+    #print(df)
+    f.write("ABSOR FUEL CELL "+str(i+1)+", with center at ("+str(coeff['x0'])+","+str(coeff['y0'])+")\n")
+    f.write(str(df))
+    f.write("\n\n")
+
+    df = scattFuel[i].get_pandas_dataframe()
+    coeff = F_cells[i].region.surface.coefficients
+    #print("SCATT MATRIX FUEL CELL ",i+1,", with center at (",coeff['x0'],",",coeff['y0'],")")
+    #print(df)
+
+    f.write("SCATTER FUEL CELL "+str(i+1)+", with center at ("+str(coeff['x0'])+","+str(coeff['y0'])+")\n")
+    with pd.option_context('display.max_rows', None, 'display.max_columns', None):
+        f.write(str(df))
+    f.write("\n\n")
+
+
+    df = fizzzFuel[i].get_pandas_dataframe()
+    coeff = F_cells[i].region.surface.coefficients
+    #print("NU-FISSION FUEL CELL ",i+1,", with center at (",coeff['x0'],",",coeff['y0'],")")
+    #print(df)
+    f.write("NU-FISSION FUEL CELL "+str(i+1)+", with center at ("+str(coeff['x0'])+","+str(coeff['y0'])+")\n")
+    f.write(str(df))
+    f.write("\n\n")
 
 
 
-df = total_F.get_pandas_dataframe()
-print(df)
-df
+
+
+f.close()
 
 
 
 ##################################################################
 # PLOT
 ##################################################################
-"""
-p = openmc.Plot()
-p.filename = 'pinplot'
-p.width = (pitch, pitch)
-p.pixels = (200, 200)
-p.color_by = 'material'
-p.colors = {uo2: 'yellow', water: 'blue'}
-p.origin = (pitch/2,pitch/2,0.0)
+import sys
+if (len(sys.argv) > 1):
+    if (sys.argv[1] == 'plot'):
+
+        p = openmc.Plot()
+        p.filename = 'pinplot'
+        p.width = (pitch, pitch)
+        p.pixels = (200, 200)
+        p.color_by = 'material'
+        p.colors = {uo2: 'yellow', water: 'blue'}
+        p.origin = (pitch/2,pitch/2,0.0)
 
 
+        plots = openmc.Plots([p])
+        plots.export_to_xml()
+        #get_ipython().system('cat plots.xml')
+        openmc.plot_geometry()
+        #get_ipython().system('convert pinplot.ppm pinplot.png')
+        #from IPython.display import Image
+        #Image("pinplot.png")
 
-
-plots = openmc.Plots([p])
-plots.export_to_xml()
-#get_ipython().system('cat plots.xml')
-openmc.plot_geometry()
-#get_ipython().system('convert pinplot.ppm pinplot.png')
-#from IPython.display import Image
-#Image("pinplot.png")
-
-"""
