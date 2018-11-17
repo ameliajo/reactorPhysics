@@ -75,8 +75,6 @@ for j in range(3):
 #F_cells[special].fill=uo2_b
 #M_cells[special].fill=water_b
 
-
-
 root = openmc.Universe(cells=(                                              \
     M_cells[0], M_cells[1], M_cells[2], M_cells[3], M_cells[4], M_cells[5], \
     M_cells[6], M_cells[7], M_cells[8], F_cells[0], F_cells[1], F_cells[2], \
@@ -92,9 +90,13 @@ geom.export_to_xml()
 ##################################################################
 
 settings = openmc.Settings()
-settings.batches = 100
+settings.batches = 500
 settings.inactive = 50
-settings.particles = 100
+settings.particles = 10000
+#settings.batches = 100
+#settings.inactive = 10
+#settings.particles = 100
+
 settings.output = {'tallies': True}
 
 bounds = [0.0, 0.0, 0.0, pitch, pitch, pitch]
@@ -114,6 +116,7 @@ totalFuel = [mgxs.TotalXS(        domain=F_cell, groups=groups) for F_cell in F_
 absorFuel = [mgxs.AbsorptionXS(   domain=F_cell, groups=groups) for F_cell in F_cells]
 scattFuel = [mgxs.ScatterMatrixXS(domain=F_cell, groups=groups) for F_cell in F_cells]
 fizzzFuel = [mgxs.FissionXS(      domain=F_cell, groups=groups, nu=True) for F_cell in F_cells]
+chiiiFuel = [mgxs.Chi(            domain=F_cell, groups=groups) for F_cell in F_cells]
 
 totalMod  = [mgxs.TotalXS(        domain=M_cell, groups=groups) for M_cell in M_cells]
 absorMod  = [mgxs.AbsorptionXS(   domain=M_cell, groups=groups) for M_cell in M_cells]
@@ -126,6 +129,7 @@ for totalF in totalFuel: tallies_file += totalF.tallies.values()
 for absorF in absorFuel: tallies_file += absorF.tallies.values()
 for scattF in scattFuel: tallies_file += scattF.tallies.values()
 for fizzzF in fizzzFuel: tallies_file += fizzzF.tallies.values()
+for chiiiF in chiiiFuel: tallies_file += chiiiF.tallies.values()
 
 for totalM in totalMod: tallies_file += totalM.tallies.values()
 for absorM in absorMod: tallies_file += absorM.tallies.values()
@@ -140,57 +144,118 @@ sp = openmc.StatePoint('statepoint.100.h5')
 for i in range(len(totalFuel)): totalFuel[i].load_from_statepoint(sp)
 for i in range(len(absorFuel)): absorFuel[i].load_from_statepoint(sp)
 for i in range(len(scattFuel)): scattFuel[i].load_from_statepoint(sp)
-for i in range(len(scattFuel)): fizzzFuel[i].load_from_statepoint(sp)
+for i in range(len(fizzzFuel)): fizzzFuel[i].load_from_statepoint(sp)
+for i in range(len(chiiiFuel)): chiiiFuel[i].load_from_statepoint(sp)
+
+for i in range(len(totalMod)): totalMod[i].load_from_statepoint(sp)
+for i in range(len(absorMod)): absorMod[i].load_from_statepoint(sp)
+for i in range(len(scattMod)): scattMod[i].load_from_statepoint(sp)
 
 
-#df = totalFuel[0].get_pandas_dataframe()
-#coeff = F_cells[0].region.surface.coefficients
-#print("TOTAL FUEL CELL 1, with center at (",coeff['x0'],",",coeff['y0'],")")
-#print(df)
 
-f= open("xs.txt","w+")
+f= open("fuelXS.txt","w+")
+f_py= open("fuelXS.py","w+")
 
 for i in range(9):
     df = totalFuel[i].get_pandas_dataframe()
     coeff = F_cells[i].region.surface.coefficients
-    #print("TOTAL FUEL CELL ",i+1,", with center at (",coeff['x0'],",",coeff['y0'],")")
-    #print(df)
-    f.write("TOTAL FUEL CELL "+str(i+1)+", with center at ("+str(coeff['x0'])+","+str(coeff['y0'])+")\n")
+    f.write("FUEL CELL "+str(i+1)+", with center at ("+str(coeff['x0'])+","+\
+            str(coeff['y0'])+")\n")
+    f.write("-------------------------------------------------------------------------------\n\n\n")
+    f.write("TOTAL FUEL CELL "+str(i+1)+", with center at ("+ \
+            str(coeff['x0'])+","+str(coeff['y0'])+")\n")
     f.write(str(df))
     f.write("\n\n")
+    f_py.write("totalFuel"+str(i)+" = "+str([float("%.5f" % df) for df in df['mean'].values.tolist()])+"\n")
 
     df = absorFuel[i].get_pandas_dataframe()
     coeff = F_cells[i].region.surface.coefficients
-    #print("ABSOR FUEL CELL ",i+1,", with center at (",coeff['x0'],",",coeff['y0'],")")
-    #print(df)
-    f.write("ABSOR FUEL CELL "+str(i+1)+", with center at ("+str(coeff['x0'])+","+str(coeff['y0'])+")\n")
+    f.write("ABSOR FUEL CELL "+str(i+1)+", with center at ("+ \
+            str(coeff['x0'])+","+str(coeff['y0'])+")\n")
     f.write(str(df))
     f.write("\n\n")
+    f_py.write("absorFuel"+str(i)+" = "+str([float("%.5f" % df) for df in df['mean'].values.tolist()])+"\n")
 
     df = scattFuel[i].get_pandas_dataframe()
     coeff = F_cells[i].region.surface.coefficients
-    #print("SCATT MATRIX FUEL CELL ",i+1,", with center at (",coeff['x0'],",",coeff['y0'],")")
-    #print(df)
 
-    f.write("SCATTER FUEL CELL "+str(i+1)+", with center at ("+str(coeff['x0'])+","+str(coeff['y0'])+")\n")
+    f.write("SCATTER FUEL CELL "+str(i+1)+", with center at ("+ \
+            str(coeff['x0'])+","+str(coeff['y0'])+")\n")
     with pd.option_context('display.max_rows', None, 'display.max_columns', None):
         f.write(str(df))
     f.write("\n\n")
+    f_py.write("scattFuel"+str(i)+" = "+str([float("%.5f" % df) for df in df['mean'].values.tolist()])+"\n")
 
 
     df = fizzzFuel[i].get_pandas_dataframe()
     coeff = F_cells[i].region.surface.coefficients
-    #print("NU-FISSION FUEL CELL ",i+1,", with center at (",coeff['x0'],",",coeff['y0'],")")
-    #print(df)
-    f.write("NU-FISSION FUEL CELL "+str(i+1)+", with center at ("+str(coeff['x0'])+","+str(coeff['y0'])+")\n")
+    f.write("NU-FISSION FUEL CELL "+str(i+1)+", with center at ("+ \
+            str(coeff['x0'])+","+str(coeff['y0'])+")\n")
     f.write(str(df))
-    f.write("\n\n")
+    f_py.write("fizzzFuel"+str(i)+" = "+str([float("%.5f" % df) for df in df['mean'].values.tolist()])+"\n")
+    f.write("\n\n\n\n\n")
+
+    df = chiiiFuel[i].get_pandas_dataframe()
+    coeff = F_cells[i].region.surface.coefficients
+    f.write("CHI FUEL CELL "+str(i+1)+", with center at ("+ \
+            str(coeff['x0'])+","+str(coeff['y0'])+")\n")
+    f.write(str(df))
+    f_py.write("chiiiFuel"+str(i)+" = "+str([float("%.5f" % df) for df in df['mean'].values.tolist()])+"\n")
+    f.write("\n\n\n\n\n")
+
 
 
 
 
 
 f.close()
+f_py.close()
+
+
+
+f= open("modXS.txt","w+")
+f_py= open("modXS.py","w+")
+
+for i in range(9):
+    df = totalMod[i].get_pandas_dataframe()
+    coeff = F_cells[i].region.surface.coefficients
+    f.write("FUEL CELL "+str(i+1)+", with center at ("+str(coeff['x0'])+","+\
+            str(coeff['y0'])+")\n")
+    f.write("-------------------------------------------------------------------------------\n\n\n")
+    f.write("TOTAL FUEL CELL "+str(i+1)+", with center at ("+ \
+            str(coeff['x0'])+","+str(coeff['y0'])+")\n")
+    f.write(str(df))
+    f.write("\n\n")
+    f_py.write("totalMod"+str(i)+" = "+str([float("%.5f" % df) for df in df['mean'].values.tolist()])+"\n")
+
+    df = absorMod[i].get_pandas_dataframe()
+    coeff = F_cells[i].region.surface.coefficients
+    f.write("ABSOR FUEL CELL "+str(i+1)+", with center at ("+ \
+            str(coeff['x0'])+","+str(coeff['y0'])+")\n")
+    f.write(str(df))
+    f.write("\n\n")
+    f_py.write("absorMod"+str(i)+" = "+str([float("%.5f" % df) for df in df['mean'].values.tolist()])+"\n")
+
+    df = scattMod[i].get_pandas_dataframe()
+    coeff = F_cells[i].region.surface.coefficients
+
+    f.write("SCATTER FUEL CELL "+str(i+1)+", with center at ("+ \
+            str(coeff['x0'])+","+str(coeff['y0'])+")\n")
+    with pd.option_context('display.max_rows', None, 'display.max_columns', None):
+        f.write(str(df))
+    f.write("\n\n")
+    f_py.write("scattMod"+str(i)+" = "+str([float("%.5f" % df) for df in df['mean'].values.tolist()])+"\n")
+
+
+    f.write("\n\n")
+    f.write("\n\n")
+    f.write("\n\n")
+
+
+
+
+f.close()
+f_py.close()
 
 
 
