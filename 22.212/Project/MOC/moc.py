@@ -336,27 +336,7 @@ sideLen = 1.26
 #mod   = material(modTotal, modNuFission, modScatter, modChi )
 #fuel  = material(fuelTotal,fuelNuFission,fuelScatter,fuelChi)
 
-modV = [material(modTotal1,modNuFission1,modScatter1,modChi1),
-        material(modTotal2,modNuFission2,modScatter2,modChi2),
-        material(modTotal3,modNuFission3,modScatter3,modChi3),
-        material(modTotal4,modNuFission4,modScatter4,modChi4),
-        material(modTotal5,modNuFission5,modScatter5,modChi5),
-        material(modTotal6,modNuFission6,modScatter6,modChi6),
-        material(modTotal7,modNuFission7,modScatter7,modChi7),
-        material(modTotal8,modNuFission8,modScatter8,modChi8),
-        material(modTotal9,modNuFission9,modScatter9,modChi9)]
 
-
-fuelV = [material(fuelTotal1,fuelNuFission1,fuelScatter1,fuelChi1),
-         material(fuelTotal2,fuelNuFission2,fuelScatter2,fuelChi2),
-         material(fuelTotal3,fuelNuFission3,fuelScatter3,fuelChi3),
-         material(fuelTotal4,fuelNuFission4,fuelScatter4,fuelChi4),
-         material(fuelTotal5,fuelNuFission5,fuelScatter5,fuelChi5),
-         material(fuelTotal6,fuelNuFission6,fuelScatter6,fuelChi6),
-         material(fuelTotal7,fuelNuFission7,fuelScatter7,fuelChi7),
-         material(fuelTotal8,fuelNuFission8,fuelScatter8,fuelChi8),
-         material(fuelTotal9,fuelNuFission9,fuelScatter9,fuelChi9)]
-# SigmaT --> [ SigT Slow, SigT Fast ]
 
 
 xPlanes = [xPlane(-0.63,'ref'),xPlane(0.63,'vac'),xPlane(1.89,'vac'),xPlane(3.15,'ref')]
