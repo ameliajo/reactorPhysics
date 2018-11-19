@@ -12,8 +12,8 @@ import numpy as np
 import sys
 
 
-numRaysPerRun = 500
-rayDist = 400.0
+numRaysPerRun = 400
+rayDist = 300.0
 deadZone = 10.0
 print("Running",numRaysPerRun,"rays for a distance of",rayDist,"with a deadzone of",deadZone)
 
@@ -313,7 +313,9 @@ def runMOC(sim,k_guess,q_guess,oldFissSrc,newFissSrc,cells,volumes):
         kVals.append(sim.k)
     
         # Check if converged
-        if totalDiff < 0.01: converged = True
+        if totalDiff < 0.01: 
+            converged = True
+            print(sim.phi)
         else: sim.phi = [[[0.0 for g in range(nGroups)] for j in range(nCellRegs)] \
                                                         for i in range(nCells)]
 
@@ -321,6 +323,7 @@ def runMOC(sim,k_guess,q_guess,oldFissSrc,newFissSrc,cells,volumes):
         # This tells me to not actually trace the rays again, but rather rely on my
         # existing / stored information
         firstIteration = False
+        
 
     return kVals
     

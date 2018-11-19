@@ -5,6 +5,7 @@ import openmc
 import openmc.mgxs as mgxs
 import numpy as np
 import pandas as pd
+import matplotlib.pyplot as plt
 
 
 uo2 = openmc.Material(1,"uo2")
@@ -135,6 +136,7 @@ for totalM in totalMod: tallies_file += totalM.tallies.values()
 for absorM in absorMod: tallies_file += absorM.tallies.values()
 for scattM in scattMod: tallies_file += scattM.tallies.values()
 
+
 tallies_file.export_to_xml()
 
 openmc.run()
@@ -152,9 +154,14 @@ for i in range(len(absorMod)): absorMod[i].load_from_statepoint(sp)
 for i in range(len(scattMod)): scattMod[i].load_from_statepoint(sp)
 
 
+flux = [[float(str("%0.6f"%y[0][0])) for y in totalFuel[i].tallies['flux'].get_slice(scores=['flux']).mean] for i in range(9)]
+mod  = [[float(str("%0.6f"%y[0][0])) for y in totalMod[i].tallies['flux'].get_slice(scores=['flux']).mean] for i in range(9)]
 
-f= open("fuelXS.txt","w+")
-f_py= open("fuelXS.py","w+")
+print(flux)
+print(mod)
+
+f = open("fuelXS.txt","w+")
+f_py = open("fuelXS.py","w+")
 
 for i in range(9):
     df = totalFuel[i].get_pandas_dataframe()
