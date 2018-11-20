@@ -12,9 +12,10 @@ import numpy as np
 import sys
 
 
-numRaysPerRun = 400
-rayDist = 300.0
-deadZone = 10.0
+numRaysPerRun = 500
+rayDist = 500.0
+deadZone = 50.0
+fissionSourceError = 0.01
 print("Running",numRaysPerRun,"rays for a distance of",rayDist,"with a deadzone of",deadZone)
 
 fig, ax = plt.subplots() 
@@ -281,23 +282,36 @@ def runMOC(sim,k_guess,q_guess,oldFissSrc,newFissSrc,cells,volumes):
         sim.phi = [[[invDist*sim.phi[i][j][g] for g in range(nGroups)]  \
                    for j in range(nCellRegs)] for i in range(nCells) ]
 
+        
         # Update phi
+        norm = 0.0
         for cell in cells:
             for j in range(nCellRegs):
                 for g in range(nGroups):
                     mat, V = allRegInCell[j].mat, volumes[allRegInCell[j].id]
                     sim.phi[cell.id][j][g] = sim.phi[cell.id][j][g]/(mat.SigT[g]*V) \
                                            + sim.q[cell.id][j][g]*4.0*pi/mat.SigT[g]
+                    # Normalize phi
+                    norm += sim.phi[cell.id][j][g]
+
+        for cell in cells:
+            for j in range(nCellRegs):
+                for g in range(nGroups):
+                    sim.phi[cell.id][j][g] /= norm
                     sigS = getScatteringIntoG(g,mat.SigS_matrix,sim.phi[cell.id][j])
-                    sim.q[cell.id][j][g] = (sigS + mat.SigF[g]*sim.phi[cell.id][j][g])/(4.0*pi)
+                    sim.q[cell.id][j][g] = (sigS + mat.SigF[g]*sim.phi[cell.id][j][g]) \
+                                         / (4.0*pi)
                     newFissSrc[cell.id][j][g] = mat.SigF[g]*sim.phi[cell.id][j][g]
 
         kNumer, kDenom = 0.0, 0.0
         for i in range(nCells):
             for j in range(nCellRegs):
                 for g in range(nGroups):
-                    kNumer += newFissSrc[i][j][g]
-                    kDenom += oldFissSrc[i][j][g]
+                    mat, V = allRegInCell[j].mat, volumes[allRegInCell[j].id]
+                    kNumer += (V*mat.SigF[g]*sim.phi[i][j][g])
+                    kDenom += (V*mat.SigA[g]*sim.phi[i][j][g])
+                    #kNumer += newFissSrc[i][j][g]
+                    #kDenom += oldFissSrc[i][j][g]
     
         sim.k = kNumer / kDenom
         
@@ -307,15 +321,23 @@ def runMOC(sim,k_guess,q_guess,oldFissSrc,newFissSrc,cells,volumes):
                 for g in range(nGroups):
                     totalDiff += abs(oldFissSrc[c.id][i][g] - newFissSrc[c.id][i][g]/sim.k)
                     oldFissSrc[c.id][i][g] = newFissSrc[c.id][i][g]/sim.k
-                    sim.q[c.id][i][g] /= sim.k 
+                    #sim.q[c.id][i][g] /= sim.k 
+                    sim.q[cell.id][j][g] = (sigS + (1.0/sim.k)*mat.SigF[g]*sim.phi[cell.id][j][g]) \
+                                         / (4.0*pi)
+
     
         print("------  Run # ",counter,"       k-eff",sim.k,"        Error in Fission Source",totalDiff)
         kVals.append(sim.k)
     
         # Check if converged
-        if totalDiff < 0.01: 
+        if totalDiff < fissionSourceError: 
             converged = True
-            print(sim.phi)
+            #print(sim.phi)
+            for i in sim.phi:
+                print("MOD  ",[float("%0.2E"%k) for k in i[0]])
+            print()
+            for i in sim.phi:
+                print("FUEL ",[float("%0.2E"%k) for k in i[1]])
         else: sim.phi = [[[0.0 for g in range(nGroups)] for j in range(nCellRegs)] \
                                                         for i in range(nCells)]
 
@@ -334,13 +356,6 @@ def runMOC(sim,k_guess,q_guess,oldFissSrc,newFissSrc,cells,volumes):
 radii = [0.39128]
 # Side length of cell
 sideLen = 1.26
-
-#                Sigma T,     nuSigma F,   Sigma S
-#mod   = material(modTotal, modNuFission, modScatter, modChi )
-#fuel  = material(fuelTotal,fuelNuFission,fuelScatter,fuelChi)
-
-
-
 
 xPlanes = [xPlane(-0.63,'ref'),xPlane(0.63,'vac'),xPlane(1.89,'vac'),xPlane(3.15,'ref')]
 yPlanes = [yPlane(-0.63,'ref'),yPlane(0.63,'vac'),yPlane(1.89,'vac'),yPlane(3.15,'ref')]
@@ -363,9 +378,12 @@ volumes = getVolumes(nCellRegs,cells[0].C,sideLen)
 nGroups = len(modV[0].SigT)
 nCells  = 9
 
-q_guess    = [[[0.0 for k in range(nGroups)] for j in range(nCellRegs)] for i in range(nCells)]
-oldFissSrc = [[[0.0 for k in range(nGroups)] for j in range(nCellRegs)] for i in range(nCells)]
-newFissSrc = [[[0.0 for k in range(nGroups)] for j in range(nCellRegs)] for i in range(nCells)]
+q_guess    = [[[0.0 for k in range(nGroups)] for j in range(nCellRegs)]  \
+                    for i in range(nCells)]
+oldFissSrc = [[[0.0 for k in range(nGroups)] for j in range(nCellRegs)]  \
+                    for i in range(nCells)]
+newFissSrc = [[[0.0 for k in range(nGroups)] for j in range(nCellRegs)]  \
+                    for i in range(nCells)]
 
 for c in range(nCells):
     for i in range(nCellRegs):

@@ -91,12 +91,12 @@ geom.export_to_xml()
 ##################################################################
 
 settings = openmc.Settings()
-settings.batches = 500
-settings.inactive = 50
-settings.particles = 10000
-#settings.batches = 100
-#settings.inactive = 10
-#settings.particles = 100
+#settings.batches = 500
+#ettings.inactive = 50
+#ettings.particles = 10000
+settings.batches = 200
+settings.inactive = 10
+settings.particles = 1000
 
 settings.output = {'tallies': True}
 
@@ -110,8 +110,8 @@ settings.export_to_xml()
 
 # Instantiate a 2-group EnergyGroups object
 groups = mgxs.EnergyGroups()
-#groups.group_edges = np.array([0., 0.625, 20.0e6])
-groups.group_edges = np.array([0.0, 0.058, 0.14, 0.28, 0.625, 4, 10, 40, 5.53e3, 821e3, 20e6])
+groups.group_edges = np.array([0., 0.625, 20.0e6])
+#groups.group_edges = np.array([0.0, 0.058, 0.14, 0.28, 0.625, 4, 10, 40, 5.53e3, 821e3, 20e6])
 
 totalFuel = [mgxs.TotalXS(        domain=F_cell, groups=groups) for F_cell in F_cells]
 absorFuel = [mgxs.AbsorptionXS(   domain=F_cell, groups=groups) for F_cell in F_cells]
@@ -141,7 +141,7 @@ tallies_file.export_to_xml()
 
 openmc.run()
 
-sp = openmc.StatePoint('statepoint.100.h5')
+sp = openmc.StatePoint('statepoint.200.h5')
 
 for i in range(len(totalFuel)): totalFuel[i].load_from_statepoint(sp)
 for i in range(len(absorFuel)): absorFuel[i].load_from_statepoint(sp)
