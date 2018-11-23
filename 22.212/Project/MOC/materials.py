@@ -1,5 +1,3 @@
-#from fuelXS import *
-#from modXS  import *
 from XS import *
 
 class material:
@@ -16,11 +14,6 @@ def getScatteringIntoG(gNow,SMatrix,phi):
 
 def getFissionIntoG(gNow,chi,SigF,phi):
     return sum([chi[gNow]*SigF[g_from]*phi[g_from] for g_from in range(len(SigF))])
-
-
-
-
-
 
 
 
