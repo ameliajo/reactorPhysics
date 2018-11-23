@@ -31,17 +31,6 @@ class box:
             circles.append(circle(xL,yL,r,fuelMat,circleColors[i],i+1))
         self.mat = modMat; self.C = circles;
 
-def getVolumes(numRegionsPerCell,cellCircles,sideLength):
-    volumes = [0.0]*numRegionsPerCell
-    
-    volumes[0] = sideLength - pi*cellCircles[0].r**2
-    for i in range(1,numRegionsPerCell-1):
-        volumes[i] = pi*cellCircles[i-1].r**2 - pi*cellCircles[i].r**2
-    volumes[numRegionsPerCell-1] = pi*cellCircles[numRegionsPerCell-2].r**2
-
-    return volumes
-
-
 
 
 
