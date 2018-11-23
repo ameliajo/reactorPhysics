@@ -13,9 +13,10 @@ import sys
 
 
 numRaysPerRun = 100
-rayDist = 500.0
-deadZone = 50.0
+rayDist = 200.0
+deadZone = 20.0
 fissionSourceError = 0.01
+kError = 0.1
 print("Running",numRaysPerRun,"rays for a distance of",rayDist,"with a deadzone of",deadZone)
 
 fig, ax = plt.subplots() 
@@ -24,7 +25,7 @@ class ray:
     def __init__(self,x,y,length):
         self.x0 = x; self.y0 = y; self.l = length; self.psi = None
         polar = 2.0*pi*random.random()
-        self.cos_azi = 2.0*random.random()-1.0
+        self.cos_azi = random.random()
         self.sin_azi = np.sin(np.arccos(self.cos_azi))
         self.sin, self.cos = self.sin_azi*np.sin(polar), self.sin_azi*np.cos(polar)
 
@@ -34,8 +35,7 @@ def initToZero(nGroups,nCellRegs,nCells):
 
 def getCell(cells,r):
     """
-    Since we're working with a 3x3 lattice, we need to find which of these 9 we
-    are in. 
+    Since we're working with a 3x3 lattice, we need to find which of the 9 we're in. 
     Input:  Vector filled with cell objects, and our ray object
     Output: Correct cell object, List of X-Planes, List of Y-Planes, and list 
             of circles in the cell 
@@ -46,6 +46,7 @@ def getCell(cells,r):
             if r.x0 >= cell.L.x and r.x0 <= cell.R.x and r.y0 >= cell.D.y and r.y0 <= cell.U.y:
                 return cell, [cell.L,cell.R], [cell.U,cell.D], cell.C
 
+        # smudge factor bc corners were out to get me
         smudge = 1.0e-5 * (-1)**counter * (1+counter)
         r.x0, r.y0 = r.x0+smudge*r.cos, r.y0+smudge*r.sin
         counter += 1
@@ -238,8 +239,6 @@ def runMOC(oldFissSrc,newFissSrc,cells,k,phi,Q):
     invDist = 0.0
 
     while not converged:
-
-
         random.seed(1)
         distInMod,distInFuel = runRays(numRaysPerRun,k,phi,Q)
         invDist = 1.0/(distInMod+distInFuel)
@@ -248,64 +247,45 @@ def runMOC(oldFissSrc,newFissSrc,cells,k,phi,Q):
         phi = [[[invDist*phi[i][j][g] for g in range(nGroups)]  \
                    for j in range(nCellRegs)] for i in range(nCells) ]
 
-
         
         # Update phi and normalize phi
-        for cell in cells:
-            for j in range(nCellRegs):
-                for g in range(nGroups):
-                    mat = allRegInCell[j].mat
-                    V = (distInMod)*invDist if j == 0 else (distInFuel)*invDist
-                    phi[cell.id][j][g] = phi[cell.id][j][g]/(mat.SigT[g]*V) \
-                                           + Q[cell.id][j][g]*4.0*pi
-
-
-
-
-
-
-
         kNumer, kDenom = 0.0, 0.0
         for i in range(nCells):
             for j in range(nCellRegs):
                 for g in range(nGroups):
-                    mat = allRegInCell[j].mat
+                    mat = allReg[i][j].mat
+                    V = (distInMod)*invDist if j == 0 else (distInFuel)*invDist
+                    phi[i][j][g] = phi[i][j][g]/(mat.SigT[g]*V) + Q[i][j][g]*4.0*pi
+
                     newFissSrc[i][j][g] = mat.SigF[g]*phi[i][j][g]
                     kNumer += newFissSrc[i][j][g]
                     kDenom += oldFissSrc[i][j][g]
-        
+ 
+
         diff_k = abs(k - kNumer/kDenom)
         k = kNumer / kDenom
  
         phiSum = sum([sum([sum(i) for i in j]) for j in phi])
-        for cell in cells:
-            for j in range(nCellRegs):
-                for g in range(nGroups):
-                    phi[cell.id][j][g] /= phiSum
+        phi = [[[groupTerm/phiSum for groupTerm in regTerm] for regTerm in cellTerm] for cellTerm in phi]
 
-
+        totalDiff = 0.0
         for i in range(nCells):
             for j in range(nCellRegs):
                 for g in range(nGroups):
-                    mat = allRegInCell[j].mat
+                    mat = allReg[i][j].mat
                     newFissSrc[i][j][g] = mat.SigF[g]*phi[i][j][g]/k
                     sigS = getScatteringIntoG(g,mat.SigS_matrix,phi[i][j])
                     Q[i][j][g] = (sigS+newFissSrc[i][j][g]) / (mat.SigT[g]*4*pi)
 
-      
-        totalDiff = 0.0
-        for c in cells:
-            for i in range(nCellRegs):
-                for g in range(nGroups):
-                    totalDiff += abs(oldFissSrc[c.id][i][g] - newFissSrc[c.id][i][g])
-                    oldFissSrc[c.id][i][g] = newFissSrc[c.id][i][g]
+                    totalDiff += abs(oldFissSrc[i][j][g] - newFissSrc[i][j][g])
+                    oldFissSrc[i][j][g] = newFissSrc[i][j][g]
 
     
         print("------  Run # ",counter,"       k-eff",k,"        Error in Fission Source",totalDiff)
         kVals.append(k)
     
         # Check if converged
-        if totalDiff < fissionSourceError and diff_k <0.005: 
+        if totalDiff < fissionSourceError and diff_k < kError: 
             for i in phi: print("MOD  ",[float("%0.2E"%k) for k in i[0]])
             for i in phi: print("FUEL ",[float("%0.2E"%k) for k in i[1]])
             return kVals,phi
@@ -315,9 +295,15 @@ def runMOC(oldFissSrc,newFissSrc,cells,k,phi,Q):
 
     
 
+
+
+
+
+
 ##############################################################################
 # Initialize Geometry and Materials
 ##############################################################################
+#radii = [0.39128,0.3]
 radii = [0.39128]
 sideLen = 1.26
 
@@ -335,10 +321,11 @@ for y in range(3):
                          fuelV[i],i,x,y,xPlanes,yPlanes))
         i += 1
 
-# Since I'm assuming that my cells are all the same, I just use the material
-# info for my first cell to represent the rest. 
-allRegInCell = [cells[0]]+cells[0].C
 nCellRegs = 1 + len(radii)
+
+allReg = []
+for cell in cells:
+    allReg.append([cell]+cell.C)
 
 
 nGroups = len(modV[0].SigT)
@@ -352,7 +339,7 @@ phi        = initToZero(nGroups,nCellRegs,nCells)
 
 for c in range(nCells):
     for i in range(nCellRegs):
-        mat = allRegInCell[i].mat
+        mat = allReg[c][i].mat
         for g in range(nGroups):
             sigS = getScatteringIntoG(g,mat.SigS_matrix,[1.0]*nGroups)
             sigF = getFissionIntoG(g,mat.chi,mat.SigF,[1.0]*nGroups)
@@ -364,16 +351,19 @@ Q = [[[groupTerm/Qsum for groupTerm in regTerm] for regTerm in cellTerm] for cel
 
 k = 1.0
 
+
 ##############################################################################
 # Actually running MOC
 ##############################################################################
-
-
 
 kVals, phi = runMOC(oldFissSrc,newFissSrc,cells,k,phi,Q)
 
 
 
+
+##############################################################################
+# Plotting and Alerting of Negative Flux
+##############################################################################
 
 if len(sys.argv) > 1:
     if sys.argv[1] == "keff":
