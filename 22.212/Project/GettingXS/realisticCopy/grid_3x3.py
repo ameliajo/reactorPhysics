@@ -21,31 +21,6 @@ water.add_element('H', 2.0)
 water.add_element('O', 1.0)
 water.set_density('g/cm3', 1.0)
 
-"""
-waters = []
-for i in range(9):
-    thiswater = openmc.Material(30+i, "h2o")
-    thiswater.add_element('H', 2.0)
-    thiswater.add_element('O', 1.0)
-    thiswater.set_density('g/cm3', 1.0)
-    waters.append(thiswater)
-
-uo2s = []
-for i in range(9):
-    thisuo2 = openmc.Material(name='fuel')
-    thisuo2.add_element('U', 1, enrichment=3.2)
-    thisuo2.add_element('O', 2)
-    #thisuo2.add_element('Gd', 0.0007)
-    thisuo2.set_density('g/cc', 10.341)
-    uo2s.append(thisuo2)
-
-materials = openmc.Materials(uo2s+waters)
-"""
-
-
-
-
-
 
 materials = openmc.Materials([uo2, water])
 materials.export_to_xml()
@@ -76,17 +51,14 @@ waterReg = +x1 & -x4 & +y1 & -y4 &                              \
            +fCylinders[6] &  +fCylinders[7] &  +fCylinders[8] 
 
 fCells = [openmc.Cell(name='fuel'+str(i), fill=uo2, region=-fCylinders[i]) for i in range(9)]
-#fCells = [openmc.Cell(name='fuel'+str(i), fill=uo2s[i], region=-fCylinders[i]) for i in range(9)]
 
 mCells = []
 count = 0
 for j in range(3):
     for i in range(3):
-        mRegion = waterReg & +xP[i] & -xP[i+1] & +yP[j] & -yP[j+1]
-        mCells.append(openmc.Cell(70+count,'mod'+str(count),fill=water,region=mRegion))
-        #mCells.append(openmc.Cell(70+count,'mod'+str(count),fill=waters[count],region=mRegion))
+        mReg = waterReg & +xP[i] & -xP[i+1] & +yP[j] & -yP[j+1]
+        mCells.append(openmc.Cell(70+count,'mod'+str(count),fill=water,region=mReg))
         count += 1
-
 
 
 root = openmc.Universe(cells=(                                              \
@@ -103,22 +75,27 @@ geometry.export_to_xml()
 settings = openmc.Settings()
 settings.batches = 100
 settings.inactive = 25
-settings.particles = 5000
+settings.particles = 500
+
 
 
 space = openmc.stats.Box((0.0, 0.0, 0.0),(3.0*pitch, 3.0*pitch, 0))
 settings.source = openmc.Source(space=space)
 settings.export_to_xml()
 
-groups = openmc.mgxs.EnergyGroups([0.0,0.625,20e6])
+#groups = [0.0,0.625,20e6]
+
+#groups = [0.0,0.058,0.14,0.625, 10.0,5.53e3, 20e6]
+#groups = [0.0,0.14,4.0,10.0,20e6]
+
+groups = [0.0, 0.058, 0.14, 0.28, 0.625, 4, 10, 40, 5.53e3, 821e3, 20e6]
+nGroups = len(groups)-1
 
 mgxs_lib = openmc.mgxs.Library(geometry)
-mgxs_lib.energy_groups = groups
-
-mgxs_lib.correction = 'P0'
-
-mgxs_lib.mgxs_types = ('total','nu-transport','absorption','nu-fission', 'fission','consistent nu-scatter matrix','chi')
-
+mgxs_lib.energy_groups = openmc.mgxs.EnergyGroups(groups)
+mgxs_lib.correction = None
+mgxs_lib.mgxs_types = ('total','absorption','nu-fission',\
+                       'fission','consistent nu-scatter matrix','chi')
 mgxs_lib.domain_type = 'cell'
 mgxs_lib.domains = geometry.get_all_material_cells().values()
 mgxs_lib.build_library()
@@ -139,39 +116,31 @@ mgxs_lib.load_from_statepoint(sp)
 for i in range(9): mgxs_lib.domains[i].name   = 'fuel' + str(i)
 for i in range(9): mgxs_lib.domains[9+i].name = 'mod'  + str(i)
 
-mgxs_file = mgxs_lib.create_mg_library(xs_type='macro',xsdata_names=['fuel0','fuel1','fuel2','fuel3','fuel4','fuel5','fuel6','fuel7','fuel8','mod0','mod1','mod2','mod3','mod4','mod5','mod6','mod7','mod8'])
-
+mgxs_file = mgxs_lib.create_mg_library(xs_type='macro',xsdata_names=[       \
+    'mod0', 'mod1', 'mod2', 'mod3', 'mod4', 'mod5', 'mod6', 'mod7', 'mod8', \
+    'fuel0','fuel1','fuel2','fuel3','fuel4','fuel5','fuel6','fuel7','fuel8'])
 
 mgxs_file.export_to_hdf5()
 
 fDatas = [ mgxs_file.get_by_name('fuel'+str(i)) for i in range(9) ]
 mDatas = [ mgxs_file.get_by_name('mod' +str(i)) for i in range(9) ]
 
-"""
-print(fData.total)
-print(fData.nu_fission)
-print(fData.absorption)
-print(fData.fission)
-print(fData.chi)
-print(fData.scatter_matrix)
-print(fData.nu_fission)
-"""
 
+
+
+
+# Make sure that total = scatter + absorption for both fuel and mod
 for fData in fDatas:
-    assert(abs(fData.total[0][0]-                \
-              (fData.absorption[0][0]+           \
-               fData.scatter_matrix[0][0][0][0]+ \
-               fData.scatter_matrix[0][0][1][0])) < 1e-12 )
+    totalScatt = sum([fData.scatter_matrix[0][0][g][0] for g in range(nGroups)])
+    assert(abs(fData.total[0][0]-(fData.absorption[0][0] + totalScatt)) < 1e-12)
 for mData in mDatas:
-    assert(abs(mData.total[0][0]-                \
-              (mData.absorption[0][0]+           \
-               mData.scatter_matrix[0][0][0][0]+ \
-               mData.scatter_matrix[0][0][1][0])) < 1e-12 )
+    totalScatt = sum([mData.scatter_matrix[0][0][g][0] for g in range(nGroups)])
+    assert(abs(mData.total[0][0]-(mData.absorption[0][0] + totalScatt)) < 1e-12)
 
 
 
 
-print(mDatas[0].scatter_matrix)
+#print(mDatas[0].scatter_matrix)
 
 ##################################################################
 # PLOT
@@ -187,13 +156,79 @@ if (len(sys.argv) > 1):
         p.color_by = 'material'
         p.colors = {uo2: 'yellow', water: 'blue'}
         p.origin = (3*pitch/2,3*pitch/2,0.0)
-
-
         plots = openmc.Plots([p])
         plots.export_to_xml()
-        #get_ipython().system('cat plots.xml')
         openmc.plot_geometry()
-        #get_ipython().system('convert pinplot.ppm pinplot.png')
-        #from IPython.display import Image
-        #Image("pinplot.png")
+
+
+
+
+
+f = open("XS.py","w+")
+
+for i in range(9):
+    fData = fDatas[i]
+    mData = mDatas[i]
+    coeff = fCells[i].region.surface.coefficients
+    x0 = str("%.5f" % coeff['x0'])
+    y0 = str("%.5f" % coeff['y0'])
+
+    f.write("# CELL "+str(i+1)+", with center at ("+x0+","+y0+")\n")
+    f.write("# -----------------------------------------------------------------------------\n\n")
+
+    #f.write("SigT_M"+str(i)+" = "+str(mData.total[0])+"\n")
+    #f.write("SigA_M"+str(i)+" = "+str(mData.absorption[0])+"\n")
+    #f.write("SigS_M"+str(i)+" = "+str(mData.scatter_matrix[0])+"\n")
+
+
+    f.write("fuelTotal"+str(i)+" = "+str([float("%.8f"%f) for f in fData.total[0]])+"\n")
+    f.write("fuelAbsorption"+str(i)+" = "+str([float("%.8f"%f) for f in fData.absorption[0]])+"\n")
+    f.write("fuelNuFission"+str(i)+" = "+str([float("%.8f"%f) for f in fData.nu_fission[0]])+"\n")
+    f.write("fuelChi"+str(i)+" = "+str([float("%.8f"%f) for f in fData.chi[0]])+"\n")
+    f.write("fuelScatter"+str(i)+" = "+str([[float("%.8f"%fData.scatter_matrix[0][g][gp][0]) for gp in range(nGroups)] for g in range(nGroups)])+"\n")
+    f.write("# SigS[g][g'] = Scattering g->g'. So "+str(float("%.8f"%fData.scatter_matrix[0][1-1][2-1][0]))+" is scattering from 1->2"+"\n")
+
+    f.write("\n")
+
+    f.write("modTotal"+str(i)+" = "+str([float("%.8f"%m) for m in mData.total[0]])+"\n")
+    f.write("modAbsorption"+str(i)+" = "+str([float("%.8f"%m) for m in mData.absorption[0]])+"\n")
+    f.write("modNuFission"+str(i)+" = "+str([float("%.8f"%m) for m in mData.nu_fission[0]])+"\n")
+    f.write("modChi"+str(i)+" = "+str([float("%.8f"%m) for m in mData.chi[0]])+"\n")
+    f.write("modScatter"+str(i)+" = "+str([[float("%.8f"%mData.scatter_matrix[0][g][gp][0]) for gp in range(nGroups)] for g in range(nGroups)])+"\n")
+    f.write("# SigS[g][g'] = Scattering g->g'. So "+str(float("%.8f"%mData.scatter_matrix[0][1-1][2-1][0]))+" is scattering from 1->2"+"\n")
+
+    f.write("\n\n")
+
+
+
+f.close()
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 

@@ -110,8 +110,8 @@ settings.export_to_xml()
 
 # Instantiate a 2-group EnergyGroups object
 groups = mgxs.EnergyGroups()
-groups.group_edges = np.array([0., 0.625, 20.0e6])
-#groups.group_edges = np.array([0.0, 0.058, 0.14, 0.28, 0.625, 4, 10, 40, 5.53e3, 821e3, 20e6])
+#groups.group_edges = np.array([0., 0.625, 20.0e6])
+groups.group_edges = np.array([0.0, 0.058, 0.14, 0.28, 0.625, 4, 10, 40, 5.53e3, 821e3, 20e6])
 
 totalFuel = [mgxs.TotalXS(        domain=F_cell, groups=groups) for F_cell in F_cells]
 absorFuel = [mgxs.AbsorptionXS(   domain=F_cell, groups=groups) for F_cell in F_cells]
