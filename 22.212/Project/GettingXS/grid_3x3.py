@@ -5,7 +5,7 @@ import openmc.model
 import numpy as np
 
 
-radius_fuel = 0.3922
+radius_fuel = 0.39128
 pitch = 1.26
 
 # Basic materials
@@ -83,11 +83,6 @@ space = openmc.stats.Box((0.0, 0.0, 0.0),(3.0*pitch, 3.0*pitch, 0))
 settings.source = openmc.Source(space=space)
 settings.export_to_xml()
 
-#groups = [0.0,0.625,20e6]
-
-#groups = [0.0,0.058,0.14,0.625, 10.0,5.53e3, 20e6]
-#groups = [0.0,0.14,4.0,10.0,20e6]
-
 groups = [0.0, 0.058, 0.14, 0.28, 0.625, 4, 10, 40, 5.53e3, 821e3, 20e6]
 nGroups = len(groups)-1
 
@@ -104,6 +99,14 @@ mgxs_lib.build_library()
 
 tallies = openmc.Tallies()
 mgxs_lib.add_to_tallies_file(tallies)
+
+flux_tally = openmc.Tally(name='flux')
+energy_filter = openmc.EnergyFilter(groups)
+flux_tally.filters = [openmc.CellFilter(mCells+fCells)]
+flux_tally.filters.append(energy_filter)
+#flux_tally.scores = ['flux','nu-fission']
+flux_tally.scores = ['flux']
+tallies.append(flux_tally)
 tallies.export_to_xml()
 
 
@@ -112,6 +115,8 @@ openmc.run()
 
 sp = openmc.StatePoint('statepoint.100.h5')
 mgxs_lib.load_from_statepoint(sp)
+flux_tally=sp.get_tally(name='flux')
+
 
 for i in range(9): mgxs_lib.domains[i].name   = 'fuel' + str(i)
 for i in range(9): mgxs_lib.domains[9+i].name = 'mod'  + str(i)
@@ -126,9 +131,6 @@ fDatas = [ mgxs_file.get_by_name('fuel'+str(i)) for i in range(9) ]
 mDatas = [ mgxs_file.get_by_name('mod' +str(i)) for i in range(9) ]
 
 
-
-
-
 # Make sure that total = scatter + absorption for both fuel and mod
 for fData in fDatas:
     totalScatt = sum([fData.scatter_matrix[0][0][g][0] for g in range(nGroups)])
@@ -139,8 +141,6 @@ for mData in mDatas:
 
 
 
-
-#print(mDatas[0].scatter_matrix)
 
 ##################################################################
 # PLOT
@@ -176,11 +176,6 @@ for i in range(9):
     f.write("# CELL "+str(i+1)+", with center at ("+x0+","+y0+")\n")
     f.write("# -----------------------------------------------------------------------------\n\n")
 
-    #f.write("SigT_M"+str(i)+" = "+str(mData.total[0])+"\n")
-    #f.write("SigA_M"+str(i)+" = "+str(mData.absorption[0])+"\n")
-    #f.write("SigS_M"+str(i)+" = "+str(mData.scatter_matrix[0])+"\n")
-
-
     f.write("fuelTotal"+str(i)+" = "+str([float("%.8f"%f) for f in fData.total[0]])+"\n")
     f.write("fuelAbsorption"+str(i)+" = "+str([float("%.8f"%f) for f in fData.absorption[0]])+"\n")
     f.write("fuelNuFission"+str(i)+" = "+str([float("%.8f"%f) for f in fData.nu_fission[0]])+"\n")
@@ -205,6 +200,17 @@ f.close()
 
 
 
+
+
+f = open("flux.py","w+")
+
+for i in range(9):
+    modFlux  = flux_tally.get_slice(filters=[openmc.CellFilter], filter_bins=[((mCells[i]).id,)])
+    fuelFlux = flux_tally.get_slice(filters=[openmc.CellFilter], filter_bins=[((fCells[i]).id,)])
+    f.write("modFlux"+str(i)+"  = "+str([float("%.8f"%flux[0][0]) for flux in modFlux.mean])+"\n")
+    f.write("fuelFlux"+str(i)+" = "+str([float("%.8f"%flux[0][0]) for flux in fuelFlux.mean])+"\n")
+    f.write("\n\n")
+f.close()
 
 
 

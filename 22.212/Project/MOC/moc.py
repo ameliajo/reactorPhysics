@@ -15,8 +15,8 @@ import sys
 numRaysPerRun = 100
 rayDist = 200.0
 deadZone = 20.0
-fissionSourceError = 0.01
-kError = 0.1
+fissionSourceError = 0.001
+kError = 0.01
 print("Running",numRaysPerRun,"rays for a distance of",rayDist,"with a deadzone of",deadZone)
 
 fig, ax = plt.subplots() 
@@ -258,6 +258,8 @@ def runMOC(oldFissSrc,newFissSrc,cells,k,phi,Q):
                     phi[i][j][g] = phi[i][j][g]/(mat.SigT[g]*V) + Q[i][j][g]*4.0*pi
 
                     newFissSrc[i][j][g] = mat.SigF[g]*phi[i][j][g]
+                    #newFissSrc[i][j][g] = getFissionIntoG(g,mat.chi,mat.SigF,phi[i][j])/k
+
                     kNumer += newFissSrc[i][j][g]
                     kDenom += oldFissSrc[i][j][g]
  
@@ -273,7 +275,11 @@ def runMOC(oldFissSrc,newFissSrc,cells,k,phi,Q):
             for j in range(nCellRegs):
                 for g in range(nGroups):
                     mat = allReg[i][j].mat
+
                     newFissSrc[i][j][g] = mat.SigF[g]*phi[i][j][g]/k
+                    #newFissSrc[i][j][g] = getFissionIntoG(g,mat.chi,mat.SigF,phi[i][j])/k
+
+
                     sigS = getScatteringIntoG(g,mat.SigS_matrix,phi[i][j])
                     Q[i][j][g] = (sigS+newFissSrc[i][j][g]) / (mat.SigT[g]*4*pi)
 
@@ -343,6 +349,7 @@ for c in range(nCells):
         for g in range(nGroups):
             sigS = getScatteringIntoG(g,mat.SigS_matrix,[1.0]*nGroups)
             sigF = getFissionIntoG(g,mat.chi,mat.SigF,[1.0]*nGroups)
+            sigF = mat.SigF[g]
             oldFissSrc[c][i][g] = sigF
             Q[c][i][g] = ( sigS + sigF )/(mat.SigT[g]*4.0*pi)
 
