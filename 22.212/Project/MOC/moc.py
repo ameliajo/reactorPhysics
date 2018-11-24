@@ -15,8 +15,8 @@ import sys
 numRaysPerRun = 100
 rayDist = 200.0
 deadZone = 20.0
-fissionSourceError = 0.001
-kError = 0.01
+fissionSourceError = 0.01
+kError = 0.1
 print("Running",numRaysPerRun,"rays for a distance of",rayDist,"with a deadzone of",deadZone)
 
 fig, ax = plt.subplots() 
@@ -294,6 +294,15 @@ def runMOC(oldFissSrc,newFissSrc,cells,k,phi,Q):
         if totalDiff < fissionSourceError and diff_k < kError: 
             for i in phi: print("MOD  ",[float("%0.2E"%k) for k in i[0]])
             for i in phi: print("FUEL ",[float("%0.2E"%k) for k in i[1]])
+
+            f = open("fluxMOC.py","w+")
+            for i in range(9):
+                f.write("MOC_modFlux"+str(i)+"  = "+str([float("%.8f"%flux) for flux in phi[i][0]])+"\n")
+                f.write("MOC_fuelFlux"+str(i)+" = "+str([float("%.8f"%flux) for flux in phi[i][1]])+"\n")
+                f.write("\n\n")
+            f.close()
+
+
             return kVals,phi
 
         phi = initToZero(nGroups,nCellRegs,nCells)
@@ -392,6 +401,10 @@ for i in phi:
 
 print()
 print(kVals[-1])
+
+
+
+
 """
 
 """

@@ -12,7 +12,7 @@ pitch = 1.26
 uo2 = openmc.Material(name='fuel')
 uo2.add_element('U', 1, enrichment=3.2)
 uo2.add_element('O', 2)
-#uo2.add_element('Gd', 0.0007)
+uo2.add_element('Gd', 0.0007)
 uo2.set_density('g/cc', 10.341)
 
 
@@ -202,13 +202,13 @@ f.close()
 
 
 
-f = open("flux.py","w+")
+f = open("fluxMC.py","w+")
 
 for i in range(9):
     modFlux  = flux_tally.get_slice(filters=[openmc.CellFilter], filter_bins=[((mCells[i]).id,)])
     fuelFlux = flux_tally.get_slice(filters=[openmc.CellFilter], filter_bins=[((fCells[i]).id,)])
-    f.write("modFlux"+str(i)+"  = "+str([float("%.8f"%flux[0][0]) for flux in modFlux.mean])+"\n")
-    f.write("fuelFlux"+str(i)+" = "+str([float("%.8f"%flux[0][0]) for flux in fuelFlux.mean])+"\n")
+    f.write("MC_modFlux"+str(i)+"  = "+str([float("%.8f"%flux[0][0]) for flux in modFlux.mean])+"\n")
+    f.write("MC_fuelFlux"+str(i)+" = "+str([float("%.8f"%flux[0][0]) for flux in fuelFlux.mean])+"\n")
     f.write("\n\n")
 f.close()
 
