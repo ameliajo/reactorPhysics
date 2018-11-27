@@ -84,6 +84,9 @@ settings.source = openmc.Source(space=space)
 settings.export_to_xml()
 
 groups = [0.0, 0.058, 0.14, 0.28, 0.625, 4, 10, 40, 5.53e3, 821e3, 20e6]
+groups = [0.0, 4, 10, 20e6]
+groups = [0.0, 0.058, 4, 10, 20e6]
+groups = [0.0, 20e6]
 nGroups = len(groups)-1
 
 mgxs_lib = openmc.mgxs.Library(geometry)
@@ -181,7 +184,7 @@ for i in range(9):
     f.write("fuelNuFission"+str(i)+" = "+str([float("%.8f"%f) for f in fData.nu_fission[0]])+"\n")
     f.write("fuelChi"+str(i)+" = "+str([float("%.8f"%f) for f in fData.chi[0]])+"\n")
     f.write("fuelScatter"+str(i)+" = "+str([[float("%.8f"%fData.scatter_matrix[0][g][gp][0]) for gp in range(nGroups)] for g in range(nGroups)])+"\n")
-    f.write("# SigS[g][g'] = Scattering g->g'. So "+str(float("%.8f"%fData.scatter_matrix[0][1-1][2-1][0]))+" is scattering from 1->2"+"\n")
+    #f.write("# SigS[g][g'] = Scattering g->g'. So "+str(float("%.8f"%fData.scatter_matrix[0][1-1][2-1][0]))+" is scattering from 1->2"+"\n")
 
     f.write("\n")
 
@@ -190,7 +193,7 @@ for i in range(9):
     f.write("modNuFission"+str(i)+" = "+str([float("%.8f"%m) for m in mData.nu_fission[0]])+"\n")
     f.write("modChi"+str(i)+" = "+str([float("%.8f"%m) for m in mData.chi[0]])+"\n")
     f.write("modScatter"+str(i)+" = "+str([[float("%.8f"%mData.scatter_matrix[0][g][gp][0]) for gp in range(nGroups)] for g in range(nGroups)])+"\n")
-    f.write("# SigS[g][g'] = Scattering g->g'. So "+str(float("%.8f"%mData.scatter_matrix[0][1-1][2-1][0]))+" is scattering from 1->2"+"\n")
+    #f.write("# SigS[g][g'] = Scattering g->g'. So "+str(float("%.8f"%mData.scatter_matrix[0][1-1][2-1][0]))+" is scattering from 1->2"+"\n")
 
     f.write("\n\n")
 

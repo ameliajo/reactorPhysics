@@ -34,6 +34,11 @@ for i in range(9):
     MOC_sum += sum(MOC_modFlux[i]) + sum(MOC_fuelFlux[i])
 
 
+print([MOC_fuelFlux0[i]/MC_fuelFlux0[i] for i in range(len(MOC_fuelFlux0))])
+print([MOC_fuelFlux1[i]/MC_fuelFlux0[i] for i in range(len(MOC_fuelFlux1))])
+print([MOC_fuelFlux2[i]/MC_fuelFlux0[i] for i in range(len(MOC_fuelFlux2))])
+print([MOC_fuelFlux3[i]/MC_fuelFlux0[i] for i in range(len(MOC_fuelFlux3))])
+
 nGroups = len(MC_modFlux0)
 invSumMC  = 1.0/MC_sum
 invSumMOC = 1.0/MOC_sum
@@ -62,15 +67,13 @@ sph = []
 for cellNum in range(9):
     sph.append([[],[]])
     for g in range(nGroups):
-        sph_mod  = MOC_modFlux[cellNum][g] / MC_modFlux[cellNum][g]
-        sph_fuel = MOC_modFlux[cellNum][g] / MC_modFlux[cellNum][g]
+        sph_mod  = MC_modFlux[cellNum][g] / MOC_modFlux[cellNum][g]
+        sph_fuel = MC_modFlux[cellNum][g] / MOC_modFlux[cellNum][g]
         sph[cellNum][0].append(sph_mod)
         sph[cellNum][1].append(sph_fuel)
 
-#print(sphVals)
 
 plt.legend(loc='best')
-#plt.show()
 
 
 
@@ -118,10 +121,9 @@ for i in range(9):
     f.write("modChi"+str(i)+"  = "+str([float("%.8f"%x) for x in m_chi_new])+"\n")
     f.write("modScatter"+str(i)+" = "+str([[float("%.8f"%m_scatter_new[g][gp]) for gp in range(nGroups)] for g in range(nGroups)])+"\n")
  
-    print(sph[0][0][0])
-    print(fuelTotal0)
-    print(fuelTotal[0])
-    print(f_total_new)
+    print("SPH FACTOR",sph[0][0][0])
+    print("SPH FACTOR",sph[1][1][1])
+    print("SPH FACTOR",sph)
     break
 
 

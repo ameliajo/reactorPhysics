@@ -1,5 +1,4 @@
 import matplotlib.pyplot as plt
-import random
 from geom import *
 from plotting import *
 from materials import *
@@ -10,24 +9,30 @@ from colors import *
 import time
 import numpy as np
 import sys
+from numpy.random import random_sample as rand
 
 
-numRaysPerRun = 100
-rayDist = 200.0
-deadZone = 20.0
-fissionSourceError = 0.01
+numRaysPerRun = 1
+rayDist = 40.0
+deadZone = 0.0
+fissionSourceError = 0.001
 kError = 0.1
 print("Running",numRaysPerRun,"rays for a distance of",rayDist,"with a deadzone of",deadZone)
 
 fig, ax = plt.subplots() 
 
 class ray:
-    def __init__(self,x,y,length):
+    def __init__(self,x,y,length,theta,varphi):
         self.x0 = x; self.y0 = y; self.l = length; self.psi = None
-        polar = 2.0*pi*random.random()
-        self.cos_azi = random.random()
+        self.u = np.array([np.cos(theta),np.sin(theta)])
+        self.mu = np.cos(varphi)
+        polar = 2.0*pi*np.random.random()
+        self.cos_azi = np.random.random()
         self.sin_azi = np.sin(np.arccos(self.cos_azi))
         self.sin, self.cos = self.sin_azi*np.sin(polar), self.sin_azi*np.cos(polar)
+
+
+
 
 
 def initToZero(nGroups,nCellRegs,nCells):
@@ -48,7 +53,8 @@ def getCell(cells,r):
 
         # smudge factor bc corners were out to get me
         smudge = 1.0e-5 * (-1)**counter * (1+counter)
-        r.x0, r.y0 = r.x0+smudge*r.cos, r.y0+smudge*r.sin
+        #r.x0, r.y0 = r.x0+smudge*r.cos, r.y0+smudge*r.sin
+        r.x0, r.y0 = r.x0+smudge*r.u[0], r.y0+smudge*r.u[1]
         counter += 1
 
 
@@ -129,7 +135,8 @@ def findFirstIntersection(xPlanes,yPlanes,circles,r,recentDist):
     times = [i["t"] for i in intersections]
     firstInt = intersections[times.index(min(times))]
     r.x1, r.y1 = firstInt["x"], firstInt["y"]
-    firstInt["dist"] = ((r.x1-r.x0)**2+(r.y1-r.y0)**2)**0.5/r.sin_azi
+    #firstInt["dist"] = ((r.x1-r.x0)**2+(r.y1-r.y0)**2)**0.5/r.sin_azi
+    firstInt["dist"] = ((r.x1-r.x0)**2+(r.y1-r.y0)**2)**0.5/r.mu
     if weAreStuck(recentDist,firstInt): print("GOT STUCK"); return None
     return firstInt,recentDist
  
@@ -176,11 +183,19 @@ def runRay(rayNum,k,phi,Q):
 
     # Initialize Ray 
         
-    x0 = (cells[2].R.x-cells[0].L.x)*(random.random()) + cells[0].L.x
-    y0 = (cells[8].U.y-cells[0].D.y)*(random.random()) + cells[0].D.y
+    x0 = (cells[2].R.x-cells[0].L.x)*(np.random.random()) + cells[0].L.x
+    y0 = (cells[8].U.y-cells[0].D.y)*(np.random.random()) + cells[0].D.y
     
-    r = ray(x0,y0,rayDist) # should be 3m length
 
+    rstart = np.array([x0,y0])
+    polar = (2*rand()-1)*pi/2
+    theta = rand()*2*pi
+    varphi = polar
+    #print(rstart,polar,theta)
+
+
+    r = ray(x0,y0,rayDist,theta,varphi) # should be 3m length
+    print(r.u)
     cell,xPlanes,yPlanes,circles = getCell(cells,r)
 
     recentDist = [] 
@@ -190,6 +205,7 @@ def runRay(rayNum,k,phi,Q):
 
         cell,xPlanes,yPlanes,circles = getCell(cells,r)
         r.xMax, r.yMax = r.x0+r.cos*r.l, r.y0+r.sin*r.l
+        print(r.xMax,r.yMax)
 
         firstIntersect,recentDist = findFirstIntersection(xPlanes,yPlanes,circles,r,recentDist)
         if not firstIntersect: print('something bad'); return distInFuel,distInMod
@@ -239,7 +255,8 @@ def runMOC(oldFissSrc,newFissSrc,cells,k,phi,Q):
     invDist = 0.0
 
     while not converged:
-        random.seed(1)
+        np.random.seed(42)
+
         distInMod,distInFuel = runRays(numRaysPerRun,k,phi,Q)
         invDist = 1.0/(distInMod+distInFuel)
 
@@ -271,6 +288,7 @@ def runMOC(oldFissSrc,newFissSrc,cells,k,phi,Q):
         phi = [[[groupTerm/phiSum for groupTerm in regTerm] for regTerm in cellTerm] for cellTerm in phi]
 
         totalDiff = 0.0
+        totalFissSrc = 0.0
         for i in range(nCells):
             for j in range(nCellRegs):
                 for g in range(nGroups):
@@ -284,14 +302,16 @@ def runMOC(oldFissSrc,newFissSrc,cells,k,phi,Q):
                     Q[i][j][g] = (sigS+newFissSrc[i][j][g]) / (mat.SigT[g]*4*pi)
 
                     totalDiff += abs(oldFissSrc[i][j][g] - newFissSrc[i][j][g])
+                    totalFissSrc += oldFissSrc[i][j][g]
                     oldFissSrc[i][j][g] = newFissSrc[i][j][g]
 
     
+        print()
         print("------  Run # ",counter,"       k-eff",k,"        Error in Fission Source",totalDiff)
         kVals.append(k)
     
         # Check if converged
-        if totalDiff < fissionSourceError and diff_k < kError: 
+        if (totalDiff) < fissionSourceError and diff_k < kError: 
             for i in phi: print("MOD  ",[float("%0.2E"%k) for k in i[0]])
             for i in phi: print("FUEL ",[float("%0.2E"%k) for k in i[1]])
 
@@ -304,6 +324,7 @@ def runMOC(oldFissSrc,newFissSrc,cells,k,phi,Q):
 
 
             return kVals,phi
+        return kVals,phi
 
         phi = initToZero(nGroups,nCellRegs,nCells)
         counter += 1
@@ -400,7 +421,7 @@ for i in phi:
                 print("Got a negative flux value! :( ",k)
 
 print()
-print(kVals[-1])
+print("Final k: ",kVals[-1],"\n\n")
 
 
 
