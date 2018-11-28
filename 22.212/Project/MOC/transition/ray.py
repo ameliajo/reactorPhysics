@@ -1,14 +1,15 @@
 import numpy as np
 import cmath
+from numpy.random import random_sample as rand
+from math import pi
 
-from region import what_region
+from region import *
 from crossingGeom import *
 
-def make_segments(ray, surfaces, regions, cutoff_length=300, deadzone=50):
-    while ray.length < cutoff_length:
+def drawRay(ray, surfaces, regions, deadzone):
+    while ray.length < ray.maxDist:
 
-        region_id = what_region(ray.r, regions)
-        bestInt = {"t":np.Inf}
+        bestInt = {"t":1e5}
 
         allSurfaceCrossings = [crossCircle(ray.r,ray.u,circle) for circle in surfaces[0]] +  \
                               [crossXPlane(ray.r,ray.u,xPlane) for xPlane in surfaces[1]] +  \
@@ -26,10 +27,17 @@ def make_segments(ray, surfaces, regions, cutoff_length=300, deadzone=50):
         ray.length += fullDistTraveled
 
 
+        region_id = 0
+        for region in regions:
+            if region.evaluate(ray.r):
+                region_id = region.uid
+                break
+ 
+
         if ray.length < deadzone:
             segment = Segment(ray.r, r, ray.mu, region_id, active=False)
         else:
-            regions[region_id].tot_track_length += fullDistTraveled
+            regions[region_id].activeDist += fullDistTraveled
             ray.active_length += fullDistTraveled
             segment = Segment(ray.r, r, ray.mu, region_id, active=True)
 
@@ -49,15 +57,15 @@ def make_segments(ray, surfaces, regions, cutoff_length=300, deadzone=50):
 
 
 class Ray():
-    def __init__(self, r, theta, varphi):
-        self.r = r
+    def __init__(self,sideLen,maxDist):
+        self.r = np.array([rand(),rand()])*sideLen
+        self.mu = np.cos((2.0*rand()-1.0)*pi*0.5)
+        theta = rand()*2*pi
         self.u = np.array([np.cos(theta), np.sin(theta)])
-        self.varphi = varphi
-        self.mu = np.cos(varphi)
-        self.region = None
         self.segments = []
         self.length = 0
         self.active_length = 0
+        self.maxDist = maxDist 
 
 
 class Segment():
@@ -66,7 +74,6 @@ class Segment():
         self.r1 = r1
         self.mu = mu
         self.region = region_num
-
         self.d = np.linalg.norm(r1-r0)/mu
         self.active = active
 

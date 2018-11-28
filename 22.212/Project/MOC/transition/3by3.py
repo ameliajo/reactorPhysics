@@ -5,24 +5,19 @@ from surface import XPlane, YPlane, Circle
 from tools import *
 from plotting import *
 from region import Region
-from ray import Ray, make_segments
+from ray import * 
 from mat import *
 
 pitch = 1.26
-length = 1.26*3
+sideLen= 1.26*3
 radius = 0.39218
+n_rays = 100
+rayLen = 100.0
+
 # Surfaces starting with 100 will be circles
 # Surfaces starting with 200 will be planes
-xcoords = [pitch*(i+0.5) for i in range(3)]
-ycoords = [pitch*(i+0.5) for i in range(3)]
-
-circles = []
-counter = 0
-for j in range(3):
-    for i in range(3):
-        circle = Circle(surface_id=101+counter, x0=xcoords[i], y0=ycoords[j], R=radius)
-        counter += 1
-        circles.append(circle)
+circX = [pitch*(i+0.5) for i in range(3)]
+circY = [pitch*(i+0.5) for i in range(3)]
 
 
 boundaries = ['reflection', 'transmission', 'transmission', 'reflection']
@@ -34,24 +29,23 @@ YPlanes = [YPlane(205+i, (3-i)*pitch, boundaries[i]) for i in range(4)]
 ngroup = 10
 fuel_phi_guess = np.ones([ngroup,])
 mod_phi_guess = np.ones([ngroup,])*0.1
-regions = []
-for i in range(9):
-    regions.append(Region([circles[i]], i, fuelClass,'fuel',fuel_phi_guess,[-1]))
 
+circles = []
 modVec = []
 counter = 0
-
-
-
 for j in range(3):
     for i in range(3):
-        surfaces = [XPlanes[i], XPlanes[i+1], YPlanes[j], YPlanes[j+1], circles[counter]]
-        modVec.append(Region(surfaces,counter+9, modClass,'mod', mod_phi_guess))
+        circles.append(Circle(101+counter, circX[i], circY[j], radius))
+        modVec.append(Region([XPlanes[i], XPlanes[i+1], YPlanes[j], YPlanes[j+1], 
+                      circles[-1]],counter+9, modClass, mod_phi_guess))
+
         counter += 1
+
+
+
+regions = [Region([circles[i]], i, fuelClass,fuel_phi_guess,[-1]) for i in range(9)]
 regions += modVec
-
 surfaces = [circles,XPlanes,YPlanes]
-
-n_rays = 100
-main(n_rays, surfaces, regions, length, ngroup, False)
+#main(n_rays, surfaces, regions, sideLen, ngroup, False, rayLen)
+main(n_rays, surfaces, regions, sideLen, ngroup, True, rayLen)
 

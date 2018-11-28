@@ -1,12 +1,13 @@
-
+import numpy as np
 
 
 class Material:
-    def __init__(self,SigT,nuSigF,SigS_matrix,chi):
-        self.SigT = SigT
-        self.nuSigF = nuSigF
-        self.SigS_matrix = SigS_matrix
-        self.chi = chi
+    def __init__(self,SigT,nuSigF,SigS_matrix,chi,name):
+        self.SigT = np.array(SigT)
+        self.nuSigF = np.array(nuSigF)
+        self.SigS = np.array(SigS_matrix)
+        self.chi = np.array(chi)
+        self.name = name
 
 
 
@@ -31,7 +32,7 @@ fuelScatter = [[2.144511894524181728e-01, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0
 
 
 
-modClass  = Material(modTotal,modNuFission,modScatter,modChi)
-fuelClass = Material(fuelTotal,fuelNuFission,fuelScatter,fuelChi)
+modClass  = Material(modTotal,modNuFission,modScatter,modChi,'mod')
+fuelClass = Material(fuelTotal,fuelNuFission,fuelScatter,fuelChi,'fuel')
 
 
