@@ -3,10 +3,9 @@ import numpy as np
 import time
 from numpy.random import random_sample as rand
 from math import pi
-from surface import *
-from tools import *
+#from surface import *
+from geometry import *
 from plotting import *
-from region import *
 from ray import *
 from physics import *
 

@@ -6,6 +6,32 @@ from math import pi
 from region import *
 from crossingGeom import *
 
+class Ray():
+    def __init__(self,sideLen,maxDist):
+        self.r = np.array([rand(),rand()])*sideLen
+        self.mu = np.cos((2.0*rand()-1.0)*pi*0.5)
+        theta = rand()*2*pi
+        self.u = np.array([np.cos(theta), np.sin(theta)])
+        self.segments = []
+        self.length = 0
+        self.active_length = 0
+        self.maxDist = maxDist 
+        self.x = self.r[0]
+        self.y = self.r[1]
+        self.ux = self.u[0]
+        self.uy = self.u[1]
+
+
+class Segment():
+    def __init__(self, r0, r1, mu, region_num, active=True):
+        self.r0 = r0
+        self.r1 = r1
+        self.mu = mu
+        self.region = region_num
+        self.d = np.linalg.norm(r1-r0)/mu
+        self.active = active
+
+
 def drawRay(ray, surfaces, regions, deadzone):
     while ray.length < ray.maxDist:
 
@@ -33,7 +59,6 @@ def drawRay(ray, surfaces, regions, deadzone):
                 region_id = region.uid
                 break
  
-
         if ray.length < deadzone:
             segment = Segment(ray.r, r, ray.mu, region_id, active=False)
         else:
@@ -45,7 +70,7 @@ def drawRay(ray, surfaces, regions, deadzone):
         ray.r = r
 
         if bestInt['surface'].boundary_type == 'reflection':
-            ray.u = np.array([-ray.u[0], ray.u[1]]) if bestInt['surface'].type == 'x-plane' \
+            ray.u = np.array([-ray.u[0], ray.u[1]]) if bestInt['surface'].type == 'x' \
                else np.array([ray.u[0], -ray.u[1]])
 
 
@@ -56,24 +81,4 @@ def drawRay(ray, surfaces, regions, deadzone):
     return ray
 
 
-class Ray():
-    def __init__(self,sideLen,maxDist):
-        self.r = np.array([rand(),rand()])*sideLen
-        self.mu = np.cos((2.0*rand()-1.0)*pi*0.5)
-        theta = rand()*2*pi
-        self.u = np.array([np.cos(theta), np.sin(theta)])
-        self.segments = []
-        self.length = 0
-        self.active_length = 0
-        self.maxDist = maxDist 
-
-
-class Segment():
-    def __init__(self, r0, r1, mu, region_num, active=True):
-        self.r0 = r0
-        self.r1 = r1
-        self.mu = mu
-        self.region = region_num
-        self.d = np.linalg.norm(r1-r0)/mu
-        self.active = active
 

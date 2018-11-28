@@ -14,15 +14,20 @@ class Region():
         self.tracks_phi = np.zeros([nGroups,])
         self.activeDist = 0.0
 
-    def evaluate(cls, r):
-        """Check if r is located within the region
-        r : 2-tuple coordinates of point
-        """
-        for idx, surface in enumerate(cls.surfaces):
-            sgn = cls.orientations[idx]
+    def evaluate(self, r):
+        for idx, surface in enumerate(self.surfaces):
+            sgn = self.orientations[idx]
             if sgn*surface.evaluate(r) < 0:
                 return False
         return True
+
+
+    def isInRegion(self, r):
+        for surface in self.surfaces:
+            if surface.type == 'circle':
+                return surface.rayIsInCircle(r)
+
+
 
         
     

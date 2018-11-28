@@ -1,10 +1,9 @@
 import numpy as np
 from main import main 
 
-from surface import XPlane, YPlane, Circle
-from tools import *
+#from surface import XPlane, YPlane, Circle
+from geometry import *
 from plotting import *
-from region import Region
 from ray import * 
 from mat import *
 
@@ -46,6 +45,6 @@ for j in range(3):
 regions = [Region([circles[i]], i, fuelClass,fuel_phi_guess,[-1]) for i in range(9)]
 regions += modVec
 surfaces = [circles,XPlanes,YPlanes]
-#main(n_rays, surfaces, regions, sideLen, ngroup, False, rayLen)
-main(n_rays, surfaces, regions, sideLen, ngroup, True, rayLen)
+main(n_rays, surfaces, regions, sideLen, ngroup, False, rayLen)
+#main(n_rays, surfaces, regions, sideLen, ngroup, True, rayLen)
 
