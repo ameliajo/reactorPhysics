@@ -1,54 +1,60 @@
-NGROUP = 10
-import numpy as np
 import time
 from numpy.random import random_sample as rand
-from math import pi
-#from surface import *
-from geometry import *
 from plotting import *
 from ray import *
 from physics import *
 
 np.random.seed(42)
 
-def main(n_rays, surfaces, regions, sideLen, ngroup, plot=False, maxRayDist=100.0, deadzone=10):
+def runRays(n_rays, surfaces, regions, sideLen, ngroup, plot=False, maxRayDist=100.0, deadzone=10):
     start = time.perf_counter()
+
+
+    ##########################################################################
+    # DRAW ALL RAYS
+    ##########################################################################
     rays = []
     allActiveDists = 0.0
-
     rays = [drawRay(Ray(sideLen,maxRayDist), surfaces, regions, deadzone) for i in range(n_rays)]
     allActiveDists = sum([ray.active_length for ray in rays])
 
     for region in regions:
         region.vol = region.activeDist/allActiveDists
     
-    counter = 0
-    oldFissSrc, k = calc_q(regions, ngroup, 1, justStarting=True)
+
+
+    ##########################################################################
+    # ITERATE  
+    ##########################################################################
+    oldFissSrc, k = updateQ(regions, ngroup, 1, justStarting=True)
     kVals = [k]
-    converged = False
+    converged, counter = False, 0
+
     while not converged:
-        normalize_phi(regions, ngroup)
+        normPhiInAllRegs(regions, ngroup)
         counter += 1
         print('Iterations: ', counter, ' k = ', k)
 
         updatePhi(rays, ngroup, regions)
 
         for reg in regions:
-            SigT, vol = reg.mat.SigT, reg.vol
-            reg.phi        = reg.tracks_phi/(vol*SigT*allActiveDists) + reg.q/SigT
+            reg.phi = reg.tracks_phi/(reg.vol*reg.mat.SigT*allActiveDists) + \
+                      reg.q/reg.mat.SigT
             reg.tracks_phi = np.zeros([ngroup,])
 
-        newFissSrc, k = calc_q(regions, ngroup, k, oldFissSrc)
+        newFissSrc, k = updateQ(regions, ngroup, k, oldFissSrc)
         diffFissSrc = abs(newFissSrc-oldFissSrc)/oldFissSrc
         diffK       = abs((kVals[-1]-k)/kVals[-1])
         oldFissSrc = newFissSrc
 
-        converged = diffK < 1e-5 and diffFissSrc < 1e-7
+        converged = (diffK < 1e-5 and diffFissSrc < 1e-7) or (counter > 500)
         kVals.append(k)
         
-        if counter > 500: break
-        
     print('k = ', k, ' after ', counter, 'iterations')
+
+    if (abs(k-1.27657266746)<1e-12): print("\nGreat! Looks perfect :)\n")
+    else: print("NOOOOOOOOO YOU FOOL :( :( :(\n:(\n:(\n:(")
+
     end = time.perf_counter()
     elapsed_time = end - start
 
@@ -57,6 +63,12 @@ def main(n_rays, surfaces, regions, sideLen, ngroup, plot=False, maxRayDist=100.
     print('Elapsed time:               ', elapsed_time)
     print('Time per segment per group: ', elapsed_time/(segments*ngroup))
 
+
+
+
+    ##########################################################################
+    # PLOTTING
+    ##########################################################################
     if plot:
         ktitle ='k = '+str(k)+' Rays ='+str(n_rays)
         print('Plotting tracks')

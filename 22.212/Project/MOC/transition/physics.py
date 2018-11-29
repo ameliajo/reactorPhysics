@@ -1,14 +1,15 @@
 import numpy as np
-from math import pi
-from mat import *
+from math      import pi
+from materials import *
 
-def normalize_phi(regions, ngroup):
+def normPhiInAllRegs(regions, ngroup):
     phi_sum = sum([sum([reg.phi[g] for g in range(ngroup)]) for reg in regions])
     for region in regions:
-        region.phi = [phi_g/phi_sum for phi_g in region.phi]
+        region.phi/= phi_sum# = [phi_g/phi_sum for phi_g in region.phi]
 
 
-def calc_q(regions, ngroup, k, oldFissSrc=1,justStarting=False):
+
+def updateQ(regions, ngroup, k, oldFissSrc=1,justStarting=False):
     newFissSrc = 0
     for reg in regions:
         mat = reg.mat

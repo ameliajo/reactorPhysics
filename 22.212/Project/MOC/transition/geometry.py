@@ -1,68 +1,50 @@
 import numpy as np
 
 class Surface(object):
-    def __init__(self, surface_id, boundary_type, name =''):
+    def __init__(self, surface_id, BC):
         self.id = surface_id
-        self.boundary_type = boundary_type
-        self.name = name
+        self.BC = BC
 
 class XPlane():
     type = 'x'
-    def __init__(self, surface_id, x0, boundary_type='transmission',name=''):
+    def __init__(self, surface_id, x0, BC='transmission'):
         self.x0 = x0
         self.id = surface_id
-        self.boundary_type = boundary_type
-        self.name = name
+        self.BC = BC
 
 
-
-    def evaluate(self, point):
-        return point[0] - self.x0
+    def areWeInHere(xPlane, x, y, onPosSide):
+        return (x > xPlane.x0) == onPosSide
 
 
 class YPlane():
     type = 'y'
-    def __init__(self, surface_id, y0, boundary_type='transmission',name=''):
+    def __init__(self, surface_id, y0, BC='transmission'):
         self.y0 = y0
         self.id = surface_id
-        self.boundary_type = boundary_type
-        self.name = name
+        self.BC = BC
 
-
-
-    def evaluate(self, point):
-        return point[1] - self.y0
+    def areWeInHere(yPlane, x, y, onPosSide):
+        return (y > yPlane.y0) == onPosSide
 
 class Circle():
     type = 'circle'
-    def __init__(self, surface_id, x0, y0, R, name='',boundary_type='transmission'):
+    def __init__(self, surface_id, x0, y0, R, BC='transmission'):
         self.x0 = x0
         self.y0 = y0
         self.r = R
         self.id = surface_id
-        self.boundary_type = boundary_type
-        self.name = name
+        self.BC = BC
 
-
-
-    def evaluate(self, point):
-        x = point[0] - self.x0
-        y = point[1] - self.y0
-        return x**2 + y**2 - self.r**2
-
-    def rayIsInCircle(self,r):
-        x = r[0] - self.x0
-        y = r[1] - self.y0
-        return x**2 + y**2 < self.r**2
-
-
-
+    def areWeInHere(circle, x, y, onPosSide):
+        return ((x-circle.x0)**2 + (y-circle.y0)**2 > circle.r**2) == onPosSide
 
 
 class Region():
-    def __init__(self, surfaces, uid, mat,phi=0, orientations = [1, -1, -1, 1, 1],vol=0):
-        self.surfaces = surfaces
-        self.orientations = orientations
+    def __init__(self, surfacesAndSides, uid, mat, phi=0, vol=0):
+        surfacesTHENsides= list(zip(*surfacesAndSides))
+        self.surfaces     = surfacesTHENsides[0]
+        self.orientations = surfacesTHENsides[1]
         self.uid = uid
         self.phi = phi
         self.vol = vol
@@ -75,20 +57,15 @@ class Region():
 
     def evaluate(self, r):
         for idx, surface in enumerate(self.surfaces):
-            sgn = self.orientations[idx]
-            if sgn*surface.evaluate(r) < 0:
+            onPosSide = self.orientations[idx]
+            if not surface.areWeInHere(r[0],r[1],onPosSide):
                 return False
+
         return True
 
 
-    def isInRegion(self, r):
-        for surface in self.surfaces:
-            if surface.type == 'circle':
-                return surface.rayIsInCircle(r)
 
 
-
-        
  
 
     

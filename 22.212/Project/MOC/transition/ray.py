@@ -2,8 +2,6 @@ import numpy as np
 import cmath
 from numpy.random import random_sample as rand
 from math import pi
-
-from region import *
 from crossingGeom import *
 
 class Ray():
@@ -16,19 +14,15 @@ class Ray():
         self.length = 0
         self.active_length = 0
         self.maxDist = maxDist 
-        self.x = self.r[0]
-        self.y = self.r[1]
-        self.ux = self.u[0]
-        self.uy = self.u[1]
 
 
 class Segment():
-    def __init__(self, r0, r1, mu, region_num, active=True):
-        self.r0 = r0
-        self.r1 = r1
-        self.mu = mu
+    def __init__(self, ray, nextStop, region_num, active):
+        self.start = ray.r
+        self.end   = nextStop
+        self.mu = ray.mu
         self.region = region_num
-        self.d = np.linalg.norm(r1-r0)/mu
+        self.d = np.linalg.norm(self.start-self.end)/self.mu
         self.active = active
 
 
@@ -37,9 +31,9 @@ def drawRay(ray, surfaces, regions, deadzone):
 
         bestInt = {"t":1e5}
 
-        allSurfaceCrossings = [crossCircle(ray.r,ray.u,circle) for circle in surfaces[0]] +  \
-                              [crossXPlane(ray.r,ray.u,xPlane) for xPlane in surfaces[1]] +  \
-                              [crossYPlane(ray.r,ray.u,yPlane) for yPlane in surfaces[2]] 
+        allSurfaceCrossings = [crossCircle(ray,circle) for circle in surfaces[0]] +  \
+                              [crossXPlane(ray,xPlane) for xPlane in surfaces[1]] +  \
+                              [crossYPlane(ray,yPlane) for yPlane in surfaces[2]] 
 
         for surface in allSurfaceCrossings:  # make bestInt equal to current
             for intersection in surface:     # intersection if currents got 
@@ -52,31 +46,23 @@ def drawRay(ray, surfaces, regions, deadzone):
         fullDistTraveled = ((r[0]-ray.r[0])**2 + (r[1]-ray.r[1])**2)**0.5 / ray.mu
         ray.length += fullDistTraveled
 
-
-        region_id = 0
-        for region in regions:
-            if region.evaluate(ray.r):
-                region_id = region.uid
-                break
+        regionID = [region for region in regions if region.evaluate(ray.r)][0].uid
  
         if ray.length < deadzone:
-            segment = Segment(ray.r, r, ray.mu, region_id, active=False)
+            ray.segments.append(Segment(ray, r, regionID, False))
         else:
-            regions[region_id].activeDist += fullDistTraveled
-            ray.active_length += fullDistTraveled
-            segment = Segment(ray.r, r, ray.mu, region_id, active=True)
+            regions[regionID].activeDist += fullDistTraveled
+            ray.active_length            += fullDistTraveled
+            ray.segments.append(Segment(ray, r, regionID, True))
 
-        ray.segments.append(segment)
         ray.r = r
 
-        if bestInt['surface'].boundary_type == 'reflection':
+        if bestInt['surface'].BC == 'reflection':
             ray.u = np.array([-ray.u[0], ray.u[1]]) if bestInt['surface'].type == 'x' \
                else np.array([ray.u[0], -ray.u[1]])
 
 
-        # Move ray forward a small bit to insure location in new region
-        smudge = 1e-11
-        ray.r += ray.u*smudge
+        ray.r += ray.u*1e-11
 
     return ray
 
