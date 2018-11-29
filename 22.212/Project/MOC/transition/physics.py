@@ -24,16 +24,16 @@ def updateQ(regions, ngroup, k, oldFissSrc=1,justStarting=False):
 
 def updatePhi(rays, ngroup, regions):
     for ray in rays:
-        region = regions[ray.segments[0].region]
+        region = regions[ray.segments[0].regionID]
         mat = region.mat
         psi = region.q/(4*pi*mat.SigT)
 
         for segment in ray.segments:
             d = segment.d
-            region = regions[segment.region]
+            region = regions[segment.regionID]
             mat = region.mat
             q = region.q
             delta_psi = (psi - q/(4.0*pi*mat.SigT))*(1.0-np.exp(-mat.SigT*d))
-            region.tracks_phi += 4.0*pi*delta_psi if segment.active else 0
+            region.phi += 4.0*pi*delta_psi if segment.active else 0
             psi -= delta_psi
             

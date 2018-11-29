@@ -16,7 +16,7 @@ def runRays(n_rays, surfaces, regions, sideLen, ngroup, plot=False, maxRayDist=1
     rays = []
     allActiveDists = 0.0
     rays = [drawRay(Ray(sideLen,maxRayDist), surfaces, regions, deadzone) for i in range(n_rays)]
-    allActiveDists = sum([ray.active_length for ray in rays])
+    allActiveDists = sum([ray.distActive for ray in rays])
 
     for region in regions:
         region.vol = region.activeDist/allActiveDists
@@ -31,16 +31,15 @@ def runRays(n_rays, surfaces, regions, sideLen, ngroup, plot=False, maxRayDist=1
     converged, counter = False, 0
 
     while not converged:
-        normPhiInAllRegs(regions, ngroup)
         counter += 1
-        print('Iterations: ', counter, ' k = ', k)
+        print('Iterations # ', counter, ' k = ', k)
+
+        for reg in regions: reg.phi = np.zeros([ngroup])
 
         updatePhi(rays, ngroup, regions)
 
         for reg in regions:
-            reg.phi = reg.tracks_phi/(reg.vol*reg.mat.SigT*allActiveDists) + \
-                      reg.q/reg.mat.SigT
-            reg.tracks_phi = np.zeros([ngroup,])
+            reg.phi = reg.phi/(reg.vol*reg.mat.SigT*allActiveDists) + reg.q/reg.mat.SigT
 
         newFissSrc, k = updateQ(regions, ngroup, k, oldFissSrc)
         diffFissSrc = abs(newFissSrc-oldFissSrc)/oldFissSrc

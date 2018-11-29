@@ -3,6 +3,7 @@ import cmath
 from numpy.random import random_sample as rand
 from math import pi
 from crossingGeom import *
+from geometry import *
 
 class Ray():
     def __init__(self,sideLen,maxDist):
@@ -11,23 +12,23 @@ class Ray():
         theta = rand()*2*pi
         self.u = np.array([np.cos(theta), np.sin(theta)])
         self.segments = []
-        self.length = 0
-        self.active_length = 0
+        self.distTotal  = 0.0
+        self.distActive = 0.0
         self.maxDist = maxDist 
 
 
 class Segment():
-    def __init__(self, ray, nextStop, region_num, active):
+    def __init__(self, ray, nextStop, regionID, active):
         self.start = ray.r
         self.end   = nextStop
         self.mu = ray.mu
-        self.region = region_num
+        self.regionID = regionID 
         self.d = np.linalg.norm(self.start-self.end)/self.mu
         self.active = active
 
 
 def drawRay(ray, surfaces, regions, deadzone):
-    while ray.length < ray.maxDist:
+    while ray.distTotal < ray.maxDist:
 
         bestInt = {"t":1e5}
 
@@ -44,22 +45,25 @@ def drawRay(ray, surfaces, regions, deadzone):
         r = np.array([bestInt['x'],bestInt['y']])
 
         fullDistTraveled = ((r[0]-ray.r[0])**2 + (r[1]-ray.r[1])**2)**0.5 / ray.mu
-        ray.length += fullDistTraveled
+        ray.distTotal += fullDistTraveled
 
-        regionID = [region for region in regions if region.evaluate(ray.r)][0].uid
+        regionID = [region for region in regions if region.evaluate(ray.r)][0].ID
  
-        if ray.length < deadzone:
+        if ray.distTotal < deadzone:
             ray.segments.append(Segment(ray, r, regionID, False))
         else:
             regions[regionID].activeDist += fullDistTraveled
-            ray.active_length            += fullDistTraveled
+            ray.distActive += fullDistTraveled
             ray.segments.append(Segment(ray, r, regionID, True))
 
         ray.r = r
 
-        if bestInt['surface'].BC == 'reflection':
-            ray.u = np.array([-ray.u[0], ray.u[1]]) if bestInt['surface'].type == 'x' \
+        
+        surfaceWeHit = bestInt['surface']
+        if surfaceWeHit.BC == 'reflection':
+            ray.u = np.array([-ray.u[0], ray.u[1]]) if isinstance(surfaceWeHit,XPlane) \
                else np.array([ray.u[0], -ray.u[1]])
+
 
 
         ray.r += ray.u*1e-11
