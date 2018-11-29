@@ -6,9 +6,10 @@ from physics import *
 
 np.random.seed(42)
 
-def runRays(n_rays, surfaces, regions, sideLen, ngroup, plot=False, maxRayDist=100.0, deadzone=10):
-    start = time.perf_counter()
+def runRays(n_rays, surfaces, regions, sideLen, ngroup, plot=False, 
+            maxRayDist=100.0, deadzone=10, verbose=True, sphIter=0):
 
+    start = time.perf_counter()
 
     ##########################################################################
     # DRAW ALL RAYS
@@ -32,7 +33,7 @@ def runRays(n_rays, surfaces, regions, sideLen, ngroup, plot=False, maxRayDist=1
 
     while not converged:
         counter += 1
-        print('Iterations # ', counter, ' k = ', k)
+        if verbose: print('Iterations # ', counter, ' k = ', k)
 
         for reg in regions: reg.phi = np.zeros([ngroup])
 
@@ -49,18 +50,35 @@ def runRays(n_rays, surfaces, regions, sideLen, ngroup, plot=False, maxRayDist=1
         converged = (diffK < 1e-5 and diffFissSrc < 1e-7) or (counter > 500)
         kVals.append(k)
         
-    print('k = ', k, ' after ', counter, 'iterations')
+    if verbose: print('k = ', k, ' after ', counter, 'iterations')
 
-    if (abs(k-1.27657266746)<1e-12): print("\nGreat! Looks perfect :)\n")
-    else: print("NOOOOOOOOO YOU FOOL :( :( :(\n:(\n:(\n:(")
+    #if (abs(k-1.27657266746)<1e-12): print("\nGreat! Looks perfect :)\n")
+    #else: print("NOOOOOOOOO YOU FOOL :( :( :(\n:(\n:(\n:(")
 
     end = time.perf_counter()
     elapsed_time = end - start
 
     segments = sum([len(ray.segments) for ray in rays])
 
-    print('Elapsed time:               ', elapsed_time)
-    print('Time per segment per group: ', elapsed_time/(segments*ngroup))
+    if verbose: print('Elapsed time:               ', elapsed_time)
+    if verbose: print('Time per segment per group: ', elapsed_time/(segments*ngroup))
+
+
+
+
+
+    ##########################################################################
+    # WRITING FLUX TO FILE
+    ##########################################################################
+
+    f = open(str("fluxMOC"+str(sphIter)+".py"),"w+")
+    f.write("MOC_k = "+str(k)+"\n")
+    for i,region in enumerate(regions):
+        f.write("MOC_modFlux"+str(i)+"  = "+str([float("%.8f"%flux) for flux in region.phi])+"\n")
+        f.write("MOC_fuelFlux"+str(i)+" = "+str([float("%.8f"%flux) for flux in region.phi])+"\n")
+        f.write("\n\n")
+    f.close()
+
 
 
 

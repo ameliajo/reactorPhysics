@@ -12,7 +12,7 @@ pitch = 1.26
 uo2 = openmc.Material(name='fuel')
 uo2.add_element('U', 1, enrichment=3.2)
 uo2.add_element('O', 2)
-uo2.add_element('Gd', 0.0007)
+#uo2.add_element('Gd', 0.0007)
 uo2.set_density('g/cc', 10.341)
 
 
@@ -61,7 +61,7 @@ for j in range(3):
         count += 1
 
 
-root = openmc.Universe(cells=(                                              \
+root = openmc.Universe(cells=(                                        \
     mCells[0], mCells[1], mCells[2], mCells[3], mCells[4], mCells[5], \
     mCells[6], mCells[7], mCells[8], fCells[0], fCells[1], fCells[2], \
     fCells[3], fCells[4], fCells[5], fCells[6], fCells[7], fCells[8] ))
@@ -83,10 +83,10 @@ space = openmc.stats.Box((0.0, 0.0, 0.0),(3.0*pitch, 3.0*pitch, 0))
 settings.source = openmc.Source(space=space)
 settings.export_to_xml()
 
-groups = [0.0, 0.058, 0.14, 0.28, 0.625, 4, 10, 40, 5.53e3, 821e3, 20e6]
 groups = [0.0, 4, 10, 20e6]
 groups = [0.0, 0.058, 4, 10, 20e6]
 groups = [0.0, 20e6]
+groups = [0.0, 0.058, 0.14, 0.28, 0.625, 4, 10, 40, 5.53e3, 821e3, 20e6]
 nGroups = len(groups)-1
 
 mgxs_lib = openmc.mgxs.Library(geometry)
@@ -113,7 +113,10 @@ tallies.append(flux_tally)
 tallies.export_to_xml()
 
 
+import sys
+sys.stdout = open('output','w')
 openmc.run()
+
 
 
 sp = openmc.StatePoint('statepoint.100.h5')
@@ -183,7 +186,8 @@ for i in range(9):
     f.write("fuelAbsorption"+str(i)+" = "+str([float("%.8f"%f) for f in fData.absorption[0]])+"\n")
     f.write("fuelNuFission"+str(i)+" = "+str([float("%.8f"%f) for f in fData.nu_fission[0]])+"\n")
     f.write("fuelChi"+str(i)+" = "+str([float("%.8f"%f) for f in fData.chi[0]])+"\n")
-    f.write("fuelScatter"+str(i)+" = "+str([[float("%.8f"%fData.scatter_matrix[0][g][gp][0]) for gp in range(nGroups)] for g in range(nGroups)])+"\n")
+    #f.write("fuelScatter"+str(i)+" = "+str([[float("%.8f"%fData.scatter_matrix[0][g][gp][0]) for gp in range(nGroups)] for g in range(nGroups)])+"\n")
+    f.write("fuelScatter"+str(i)+" = "+str([[float("%.8f"%fData.scatter_matrix[0][gp][g][0]) for gp in range(nGroups)] for g in range(nGroups)])+"\n")
     #f.write("# SigS[g][g'] = Scattering g->g'. So "+str(float("%.8f"%fData.scatter_matrix[0][1-1][2-1][0]))+" is scattering from 1->2"+"\n")
 
     f.write("\n")
@@ -192,7 +196,8 @@ for i in range(9):
     f.write("modAbsorption"+str(i)+" = "+str([float("%.8f"%m) for m in mData.absorption[0]])+"\n")
     f.write("modNuFission"+str(i)+" = "+str([float("%.8f"%m) for m in mData.nu_fission[0]])+"\n")
     f.write("modChi"+str(i)+" = "+str([float("%.8f"%m) for m in mData.chi[0]])+"\n")
-    f.write("modScatter"+str(i)+" = "+str([[float("%.8f"%mData.scatter_matrix[0][g][gp][0]) for gp in range(nGroups)] for g in range(nGroups)])+"\n")
+    #f.write("modScatter"+str(i)+" = "+str([[float("%.8f"%mData.scatter_matrix[0][g][gp][0]) for gp in range(nGroups)] for g in range(nGroups)])+"\n")
+    f.write("modScatter"+str(i)+" = "+str([[float("%.8f"%mData.scatter_matrix[0][gp][g][0]) for gp in range(nGroups)] for g in range(nGroups)])+"\n")
     #f.write("# SigS[g][g'] = Scattering g->g'. So "+str(float("%.8f"%mData.scatter_matrix[0][1-1][2-1][0]))+" is scattering from 1->2"+"\n")
 
     f.write("\n\n")
@@ -206,7 +211,7 @@ f.close()
 
 
 f = open("fluxMC.py","w+")
-
+#f.write("MC_k = "+str(k) for flux in modFlux.mean])+"\n")
 for i in range(9):
     modFlux  = flux_tally.get_slice(filters=[openmc.CellFilter], filter_bins=[((mCells[i]).id,)])
     fuelFlux = flux_tally.get_slice(filters=[openmc.CellFilter], filter_bins=[((fCells[i]).id,)])

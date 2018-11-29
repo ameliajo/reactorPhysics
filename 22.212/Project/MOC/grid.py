@@ -1,13 +1,22 @@
 import numpy as np
+import sys
 from runRays   import *
 from geometry  import *
 from materials import *
 
-pitch   = 1.26
-sideLen = pitch*3
-radius  = 0.39218
-numRays = 100
-rayLen  = 100.0
+verbose = True
+if len(sys.argv) > 1:
+    if sys.argv[1] == 'quiet': verbose = False
+if len(sys.argv) > 2:
+    sphIter = int(sys.argv[2])
+        
+
+pitch    = 1.26
+sideLen  = pitch*3
+radius   = 0.39218
+numRays  = 100
+rayLen   = 100.0
+deadzone = 10
 
 circX = [pitch*(i+0.5) for i in range(3)]
 circY = [pitch*(i+0.5) for i in range(3)]
@@ -33,6 +42,6 @@ for i, region in enumerate(regions):
     region.ID = i
 
 surfaces = [circles,XPlanes,YPlanes]
-runRays(numRays, surfaces, regions, sideLen, ngroup, False, rayLen)
+runRays(numRays, surfaces, regions, sideLen, ngroup, False, rayLen, deadzone, verbose, sphIter)
 
 
