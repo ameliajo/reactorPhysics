@@ -21,26 +21,13 @@ def normalizeToUnity(nPins, modFlux, fuelFlux):
 def calcSPH(nPins,nGroups,MOC_modFlux,MOC_fuelFlux,MC_modFlux,MC_fuelFlux):
     sph = [[],[]]
     for g in range(nGroups):
-        sph_mod  = MC_modFlux[0][g] / MOC_modFlux[0][g]
-        sph_fuel = MC_fuelFlux[0][g] / MOC_fuelFlux[0][g]
-        #sph_mod  = MOC_modFlux[0][g] / MC_modFlux[0][g]
-        #sph_fuel = MOC_fuelFlux[0][g] / MC_fuelFlux[0][g]
+        #sph_mod  = MC_modFlux[0][g] / MOC_modFlux[0][g]
+        #sph_fuel = MC_fuelFlux[0][g] / MOC_fuelFlux[0][g]
+        sph_mod  = MOC_modFlux[0][g] / MC_modFlux[0][g]
+        sph_fuel = MOC_fuelFlux[0][g] / MC_fuelFlux[0][g]
 
         sph[0].append(sph_mod)
         sph[1].append(sph_fuel)
-
-    """
-    for cellNum in range(nPins):
-        sph.append([[],[]])
-        for g in range(nGroups):
-            #sph_mod  = MC_modFlux[cellNum][g] / MOC_modFlux[cellNum][g]
-            #sph_fuel = MC_modFlux[cellNum][g] / MOC_modFlux[cellNum][g]
-            sph_mod  = MOC_modFlux[cellNum][g] / MC_modFlux[cellNum][g]
-            sph_fuel = MOC_modFlux[cellNum][g] / MC_modFlux[cellNum][g]
-
-            sph[cellNum][0].append(sph_mod)
-            sph[cellNum][1].append(sph_fuel)
-    """
 
 
     return sph
