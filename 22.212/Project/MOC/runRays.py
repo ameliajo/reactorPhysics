@@ -73,11 +73,19 @@ def runRays(n_rays, surfaces, regions, sideLen, ngroup, plot=False,
 
     f = open(str("fluxMOC"+str(sphIter)+".py"),"w+")
     f.write("MOC_k = "+str(k)+"\n")
+    for i in range(9):
+        f.write("MOC_modFlux"+str(i)+" = "+str([float("%.8f"%flux) for flux in regions[9+i].phi])+"\n")
+        f.write("MOC_fuelFlux"+str(i)+" = "+str([float("%.8f"%flux) for flux in regions[i].phi])+"\n")
+    f.write("\n\n")
+    f.close()
+
+    """
     for i,region in enumerate(regions):
         f.write("MOC_modFlux"+str(i)+"  = "+str([float("%.8f"%flux) for flux in region.phi])+"\n")
         f.write("MOC_fuelFlux"+str(i)+" = "+str([float("%.8f"%flux) for flux in region.phi])+"\n")
         f.write("\n\n")
     f.close()
+    """
 
 
 
