@@ -4,6 +4,10 @@ import openmc.mgxs
 import openmc.model
 import numpy as np
 
+import sys
+sys.stdout = open('output','w')
+
+
 
 radius_fuel = 0.39128
 pitch = 1.26
@@ -103,18 +107,16 @@ mgxs_lib.build_library()
 tallies = openmc.Tallies()
 mgxs_lib.add_to_tallies_file(tallies)
 
+
 flux_tally = openmc.Tally(name='flux')
 energy_filter = openmc.EnergyFilter(groups)
-flux_tally.filters = [openmc.CellFilter(mCells+fCells)]
-flux_tally.filters.append(energy_filter)
+flux_tally.filters = [openmc.CellFilter(mCells+fCells),openmc.EnergyFilter(groups)]
 #flux_tally.scores = ['flux','nu-fission']
 flux_tally.scores = ['flux']
 tallies.append(flux_tally)
 tallies.export_to_xml()
 
 
-import sys
-sys.stdout = open('output','w')
 openmc.run()
 
 
