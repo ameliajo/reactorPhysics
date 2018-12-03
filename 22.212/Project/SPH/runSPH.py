@@ -5,22 +5,6 @@ from sphTools import *
 from writeXS import *
 
 
-
-def readInEigenvalue(filename):
-    for line in reversed(list(open(filename))):
-        if 'Combined k-effective' in line:
-            return line.split()[3]
-
-def plotThis(MC_modFlux,MC_fuelFlux):
-    plt.plot(MC_modFlux[0],label='MC mod')
-    plt.plot(MOC_modFlux[0],label='MOC mod')
-    plt.plot(MC_fuelFlux[0],label='MC fuel')
-    plt.plot(MOC_fuelFlux[0],label='MOC fuel')
-    plt.legend(loc='best')
-    plt.show()
-
-
-
 if len(sys.argv) > 1:
     if sys.argv[1] == "full":
         subprocess.run(['python','../GettingXS/grid_3x3.py'])
@@ -29,17 +13,11 @@ if len(sys.argv) > 1:
                         'tallies.out','tallies.xml'])
         print("\n\n")
 
-#subprocess.run(['cp','XS.py','../MOC'])
-#subprocess.run(['python','../MOC/grid.py','quiet','0'])
 subprocess.run(['cp','XS.py','XS_original.py'])
 
 from fluxMC import   *
-MC_modFlux = [ MC_modFlux0, MC_modFlux1, MC_modFlux2, MC_modFlux3, MC_modFlux4, MC_modFlux5, MC_modFlux6, MC_modFlux7, MC_modFlux8 ]
-MC_fuelFlux = [ MC_fuelFlux0, MC_fuelFlux1, MC_fuelFlux2, MC_fuelFlux3, MC_fuelFlux4, MC_fuelFlux5, MC_fuelFlux6, MC_fuelFlux7, MC_fuelFlux8 ]
 
-
-nPins   = len(MC_modFlux)
-nGroups = len(MC_modFlux[0])
+nPins, nGroups = len(MC_modFlux), len(MC_modFlux[0])
 
 MC_k = readInEigenvalue(filename='output')
 print('MC SOLUTION',MC_k)
@@ -48,46 +26,72 @@ for i in range(9): MC_fuelFlux[i].reverse()
 for i in range(9): MC_modFlux[i].reverse()
 normalizeToUnity( nPins, MC_modFlux, MC_fuelFlux  )
 
-#plotThis(MC_modFlux,MC_fuelFlux)
 
-xsFileName = 'XS.py'
+xsFile = 'XS'
+
+# fluxMOC = MOC(XS)
+subprocess.run(['cp',xsFile+'.py','../MOC/XS.py'])
+subprocess.run(['python','../MOC/grid.py','quiet',str(i)])
+exec("from fluxMOC"+str(i)+" import *")
+
+print('MOC init    ',MOC_k)
+MOC_k_vals = [MOC_k]
 
 
-for i in range(10):
-
-    # fluxMOC = MOC(XS)
-    subprocess.run(['cp',xsFileName,'../MOC'])
-    subprocess.run(['python','../MOC/grid.py','quiet',str(i)])
-    exec("from fluxMOC"+str(i)+" import *")
-
-
-    print('SPH Iter:',i,"   ",MOC_k)
-    MOC_modFlux = [ MOC_modFlux0, MOC_modFlux1, MOC_modFlux2, MOC_modFlux3, MOC_modFlux4, MOC_modFlux5, MOC_modFlux6, MOC_modFlux7, MOC_modFlux8 ]
-    MOC_fuelFlux = [ MOC_fuelFlux0, MOC_fuelFlux1, MOC_fuelFlux2, MOC_fuelFlux3, MOC_fuelFlux4, MOC_fuelFlux5, MOC_fuelFlux6, MOC_fuelFlux7, MOC_fuelFlux8 ]
+for i in range(500):
 
     normalizeToUnity( nPins, MOC_modFlux, MOC_fuelFlux )
 
-        
+    #diff = [abs(MC_modFlux[0][i]-MOC_modFlux[0][i]) for i in range(nGroups)]
+    #plt.plot(diff,label='MOC mod'+str(i))
+    
+    #diff = [abs(MC_fuelFlux[0][i]-MOC_fuelFlux[0][i]) for i in range(nGroups)]
+    #plt.plot(diff,label='MOC fuel'+str(i))
+ 
+
     # sph = SPH(fluxMOC,fluxMC)
     sph = calcSPH(nPins,nGroups,MOC_modFlux,MOC_fuelFlux,MC_modFlux,MC_fuelFlux)
 
     # update XS values
-    exec("from XS"+str(i)+" import *")
-    xsFileName = 'XS'+str(i+1)+'.py'
-    writeXS( sph, nGroups, nPins, xsFileName,                                     \
+    exec("from "+xsFile+" import *")
+
+    subprocess.run(['cp',xsFile+".py",'../MOC'])
+    xsFile = 'XS'+str(i)
+    writeXS( sph, nGroups, nPins, xsFile+".py",                                   \
              fuelTotal0, fuelAbsorption0, fuelNuFission0, fuelChi0, fuelScatter0, \
              modTotal0,  modAbsorption0,  modNuFission0,  modChi0,  modScatter0 )
 
+    # fluxMOC = MOC(XS)
+    subprocess.run(['cp',xsFile+'.py','../MOC/XS.py'])
+    subprocess.run(['python','../MOC/grid.py','quiet',str(i)])
+    exec("from fluxMOC"+str(i)+" import *")
+
+    print('SPH Iter:',i,"   ",MOC_k)
+    MOC_k_vals.append(MOC_k)
 
 
+MC_k_vals = [MC_k]*len(MOC_k_vals)
+plt.plot(MC_k_vals,label='MC k')
+plt.plot(MOC_k_vals,label='MOC k')
+
+plt.legend(loc='best')
+plt.show()
 
 
+"""
+subprocess.run(['rm','XS.py'])
+subprocess.run(['rm','XS0.py','fluxMOC0.py'])
+subprocess.run(['rm','XS1.py','fluxMOC1.py'])
+subprocess.run(['rm','XS2.py','fluxMOC2.py'])
+subprocess.run(['rm','XS3.py','fluxMOC3.py'])
+subprocess.run(['rm','XS4.py','fluxMOC4.py'])
+subprocess.run(['rm','XS5.py','fluxMOC5.py'])
+subprocess.run(['rm','XS6.py','fluxMOC6.py'])
+subprocess.run(['rm','XS7.py','fluxMOC7.py'])
+subprocess.run(['rm','XS8.py','fluxMOC8.py'])
+subprocess.run(['rm','XS9.py','fluxMOC9.py'])
 
-
-
-
-
-
+"""
 
 subprocess.run(['cp','XS_original.py','XS.py'])
 

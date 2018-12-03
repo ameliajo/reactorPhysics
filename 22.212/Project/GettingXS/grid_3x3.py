@@ -220,6 +220,11 @@ for i in range(9):
     f.write("MC_modFlux"+str(i)+"  = "+str([float("%.8f"%flux[0][0]) for flux in modFlux.mean])+"\n")
     f.write("MC_fuelFlux"+str(i)+" = "+str([float("%.8f"%flux[0][0]) for flux in fuelFlux.mean])+"\n")
     f.write("\n\n")
+
+
+f.write("MC_modFlux = [ MC_modFlux0, MC_modFlux1, MC_modFlux2, MC_modFlux3, MC_modFlux4, MC_modFlux5, MC_modFlux6, MC_modFlux7, MC_modFlux8 ]\n")
+f.write("MC_fuelFlux = [ MC_fuelFlux0, MC_fuelFlux1, MC_fuelFlux2, MC_fuelFlux3, MC_fuelFlux4, MC_fuelFlux5, MC_fuelFlux6, MC_fuelFlux7, MC_fuelFlux8 ]")
+
 f.close()
 
 

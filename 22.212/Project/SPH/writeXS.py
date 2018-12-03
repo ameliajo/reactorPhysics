@@ -5,7 +5,10 @@ def writeXS( sph, nGroups, nPins, filename,                                  \
              modTotal,  modAbsorption,  modNuFission,  modChi,  modScatter ):
     f = open(filename,"w+")
 
-    f_total_new = [fuelTotal[g] /sph[0][g] for g in range(nGroups)]
+    for g in range(nGroups): sph[0][g] = 1.0 if sph[0][g] == 0.0 else sph[0][g]
+    for g in range(nGroups): sph[1][g] = 1.0 if sph[1][g] == 0.0 else sph[1][g]
+
+    f_total_new = [fuelTotal[g]/sph[0][g] for g in range(nGroups)]
     f_absorption_new = [fuelAbsorption[g]/sph[0][g] for g in range(nGroups)]
     f_nuFission_new = [fuelNuFission[g]/sph[0][g] for g in range(nGroups)]
     #f_chi_new = [fuelChi[g]/sph[0][g] for g in range(nGroups)]

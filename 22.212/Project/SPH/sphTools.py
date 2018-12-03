@@ -14,26 +14,28 @@ def normalizeToUnity(nPins, modFlux, fuelFlux):
 
 
 
-
-
-    
-
 def calcSPH(nPins,nGroups,MOC_modFlux,MOC_fuelFlux,MC_modFlux,MC_fuelFlux):
     sph = [[],[]]
     for g in range(nGroups):
-        #sph_mod  = MC_modFlux[0][g] / MOC_modFlux[0][g]
-        #sph_fuel = MC_fuelFlux[0][g] / MOC_fuelFlux[0][g]
-        sph_mod  = MOC_modFlux[0][g] / MC_modFlux[0][g]
-        sph_fuel = MOC_fuelFlux[0][g] / MC_fuelFlux[0][g]
-
-        sph[0].append(sph_mod)
-        sph[1].append(sph_fuel)
-
+        sph[0].append(MOC_modFlux[0][g] / MC_modFlux[0][g])
+        sph[1].append(MOC_fuelFlux[0][g] / MC_fuelFlux[0][g])
 
     return sph
 
 
+def readInEigenvalue(filename):
+    for line in reversed(list(open(filename))):
+        if 'Combined k-effective' in line:
+            return line.split()[3]
 
+
+
+def plotThis(MC_modFlux,MC_fuelFlux):
+    plt.plot(MC_modFlux[0],label='MC mod')
+    plt.plot(MOC_modFlux[0],label='MOC mod')
+    plt.plot(MC_fuelFlux[0],label='MC fuel')
+    plt.plot(MOC_fuelFlux[0],label='MOC fuel')
+    plt.legend(loc='best')
 
 
 

@@ -3,6 +3,7 @@ from numpy.random import random_sample as rand
 from plotting import *
 from ray import *
 from physics import *
+from materials import *
 
 np.random.seed(42)
 
@@ -47,7 +48,7 @@ def runRays(n_rays, surfaces, regions, sideLen, ngroup, plot=False,
         diffK       = abs((kVals[-1]-k)/kVals[-1])
         oldFissSrc = newFissSrc
 
-        converged = (diffK < 1e-5 and diffFissSrc < 1e-7) or (counter > 500)
+        converged = (diffK < 1e-5 and diffFissSrc < 1e-7) or (counter > 100)
         kVals.append(k)
         
     if verbose: print('k = ', k, ' after ', counter, 'iterations')
@@ -71,12 +72,15 @@ def runRays(n_rays, surfaces, regions, sideLen, ngroup, plot=False,
     # WRITING FLUX TO FILE
     ##########################################################################
 
+    print("Writing to fluxMOC"+str(sphIter)+".py")
     f = open(str("fluxMOC"+str(sphIter)+".py"),"w+")
     f.write("MOC_k = "+str(k)+"\n")
     for i in range(9):
         f.write("MOC_modFlux"+str(i)+" = "+str([float("%.8f"%flux) for flux in regions[9+i].phi])+"\n")
         f.write("MOC_fuelFlux"+str(i)+" = "+str([float("%.8f"%flux) for flux in regions[i].phi])+"\n")
     f.write("\n\n")
+    f.write("MOC_modFlux = [ MOC_modFlux0, MOC_modFlux1, MOC_modFlux2, MOC_modFlux3, MOC_modFlux4, MOC_modFlux5, MOC_modFlux6, MOC_modFlux7, MOC_modFlux8 ]\n")
+    f.write("MOC_fuelFlux = [ MOC_fuelFlux0, MOC_fuelFlux1, MOC_fuelFlux2, MOC_fuelFlux3, MOC_fuelFlux4, MOC_fuelFlux5, MOC_fuelFlux6, MOC_fuelFlux7, MOC_fuelFlux8 ]")
     f.close()
 
     """
