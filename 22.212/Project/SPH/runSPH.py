@@ -78,20 +78,10 @@ plt.legend(loc='best')
 plt.show()
 
 
-"""
-subprocess.run(['rm','XS.py'])
-subprocess.run(['rm','XS0.py','fluxMOC0.py'])
-subprocess.run(['rm','XS1.py','fluxMOC1.py'])
-subprocess.run(['rm','XS2.py','fluxMOC2.py'])
-subprocess.run(['rm','XS3.py','fluxMOC3.py'])
-subprocess.run(['rm','XS4.py','fluxMOC4.py'])
-subprocess.run(['rm','XS5.py','fluxMOC5.py'])
-subprocess.run(['rm','XS6.py','fluxMOC6.py'])
-subprocess.run(['rm','XS7.py','fluxMOC7.py'])
-subprocess.run(['rm','XS8.py','fluxMOC8.py'])
-subprocess.run(['rm','XS9.py','fluxMOC9.py'])
 
-"""
+
+
+
 
 subprocess.run(['cp','XS_original.py','XS.py'])
 

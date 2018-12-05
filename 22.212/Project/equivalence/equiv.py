@@ -1,28 +1,27 @@
 import matplotlib.pyplot as plt
 import numpy as np
 plt.style.use('seaborn-dark')
-
 import openmc
-import openmc.mgxs as mgxs
 import urllib.request
 
 
-def getPointwiseSig(E):
-    return total.xs['294K'](E)
+def getPointwiseSig(E, total):
+    return total.xs['0K'](E)
 
 
-def fluxEquivalentEq(E, C, fuelSigP, SigEq):
-    fuelSig = getPointwiseSig(E)
+
+def calcSigEq(approx,lbar,b=1):
+    return 1.0/lbar if approx == 'wigner' else b/lbar
+
+
+def fluxEquivalentEq(E, C, fuelSigP, SigEq, total):
+    fuelSig = getPointwiseSig(E, total)
     return (fuelSigP + SigEq) / (E * (fuelSig + SigEq))
 
 
 
-
-# Download ENDF file
 url = 'https://t2.lanl.gov/nis/data/data/ENDFB-VII.1-neutron/U/235'
 filename, headers = urllib.request.urlretrieve(url, 'u235.endf')
-
-# Load into memory
 u235 = openmc.data.IncidentNeutron.from_endf(filename)
 total = u235[1]
 
@@ -30,42 +29,14 @@ total = u235[1]
 
 C = 0.1452
 fuelSigP = 2.0
-SigEq = 1.0/(3.1)
+lbar = 3.1
 
-#phi = []
-#for E in range(1,1000):
-#    phi.append(fluxEquivalentEq(E,C,fuelSigP,SigEq))
-#plt.plot(phi)
-#plt.show()
-
-
-
-openmc.plot_xs('U235', ['total'])
-
-# Download ENDF file
-url = 'https://t2.lanl.gov/nis/data/data/ENDFB-VII.1-neutron/U/235'
-filename, headers = urllib.request.urlretrieve(url, 'u235.endf')
-
-# Load into memory
-u235 = openmc.data.IncidentNeutron.from_endf(filename)
-total = u235[1]
-print(u235)
-
-u235Total = []
-
-E_vec = np.linspace(1e-5,1e6,1e6)
-for E in E_vec:
-    u235Total.append(total.xs['0K'](E))
-
-plt.loglog(E_vec,u235Total,'r')
-plt.ylim(1e-1,1e5)
-
-
-print("finished plotting")
-
-
+phi = []
+for E in np.linspace(1e-1,1e3,1e2):
+    SigEq = calcSigEq('wigner',lbar)
+    phi.append(fluxEquivalentEq(E,C,fuelSigP,SigEq,total))
+plt.plot(phi)
 plt.show()
-
 
 
 

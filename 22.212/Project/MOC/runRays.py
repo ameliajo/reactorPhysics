@@ -53,9 +53,6 @@ def runRays(n_rays, surfaces, regions, sideLen, ngroup, plot=False,
         
     if verbose: print('k = ', k, ' after ', counter, 'iterations')
 
-    #if (abs(k-1.27657266746)<1e-12): print("\nGreat! Looks perfect :)\n")
-    #else: print("NOOOOOOOOO YOU FOOL :( :( :(\n:(\n:(\n:(")
-
     end = time.perf_counter()
     elapsed_time = end - start
 
@@ -72,7 +69,7 @@ def runRays(n_rays, surfaces, regions, sideLen, ngroup, plot=False,
     # WRITING FLUX TO FILE
     ##########################################################################
 
-    print("Writing to fluxMOC"+str(sphIter)+".py")
+    #print("Writing to fluxMOC"+str(sphIter)+".py")
     f = open(str("fluxMOC"+str(sphIter)+".py"),"w+")
     f.write("MOC_k = "+str(k)+"\n")
     for i in range(9):
