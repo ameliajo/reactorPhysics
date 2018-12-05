@@ -1,3 +1,16 @@
+
+
+class group:
+    def __init__(self,ID,E_low,E_high):
+        self.ID     = ID
+        self.E_low  = E_low
+        self.E_high = E_high
+        self.sigT   = False
+
+    def __str__(self):
+        return("ID:  "+str(self.ID)+"      E range:     "+str('%.2E'%self.E_low)+" - "+str('%.2E'%self.E_high)+"     sigma(dil0) = "+str('%.2E'%self.sigT[0])) if not not self.sigT else ("ID:  "+str(self.ID)+"      E range:     "+str('%.2E'%self.E_low)+" - "+str('%.2E'%self.E_high)+"     sigma(dil0) = "+str(None))
+
+
 def convertToExpPos(x):
     split = x.split('+')
     return float(split[0])*10.0**float(split[1])
@@ -67,6 +80,12 @@ Ebounds = restOfTitle[nSig0+1:nSig0+nGroups+2]
 #print()
 
 
+groups = []
+for g in range(nGroups):
+    groups.append(group(g,Ebounds[g],Ebounds[g+1]))
+
+
+
 
 
 ##############################################################################
@@ -86,19 +105,21 @@ sigT = {}
 # Split sigT into various dilutions
 ##############################################################################
 
-sigT_dilutionVecs = []
+sigT_groupSplitting = []
 dilution = []
 for line in sigT_lines:
     dilution.append(line)
     if None in line:
-        sigT_dilutionVecs.append(dilution)
+        sigT_groupSplitting.append(dilution)
         dilution = []
 
 
-[za,awr,numLegndr,nSig0,breakupFlag,nGroups,MF,MT,lineNum] = sigT_dilutionVecs[0][0]
+reactionHeading = sigT_groupSplitting[0].pop(0)
+#[za,awr,numLegndr,nSig0,breakupFlag,nGroups,MF,MT,lineNum] = sigT_groupSplitting[0][0]
+[za,awr,numLegndr,nSig0,breakupFlag,nGroups,MF,MT,lineNum] = reactionHeading
 numLegndr,nGroups,lineNum = int(numLegndr),int(nGroups),int(lineNum)
 assert(lineNum == 1)
-#print(sigT_dilutionVecs[0][0])
+#print(sigT_groupSplitting[0][0])
 #print(za,awr,numLegndr,nSig0,breakupFlag,nGroups,MF,MT,lineNum)
 #print()
 
@@ -107,27 +128,51 @@ assert(lineNum == 1)
 ##############################################################################
 # look at sigT dilution #1
 ##############################################################################
+##############################################################################
+####### look at group1
+##############################################################################
 
-[temp,zero,numSecPos,indexToLowestNonzeroGroup,nWordsList,groupIndex,MF,MT,lineNum] = sigT_dilutionVecs[0][1]
-#print(sigT_dilutionVecs[0][1])
+
+
+[temp,zero,numSecPos,indexToLowestNonzeroGroup,nWordsList,groupIndex,MF,MT,lineNum] = sigT_groupSplitting[0][0]
+numSecPos,indexToLowestNonzeroGroup,nWordsList,groupIndex,lineNum = int(numSecPos),int(indexToLowestNonzeroGroup),int(nWordsList),int(groupIndex),int(lineNum) 
+#print(sigT_groupSplitting[0][1])
 #print(temp,zero,numSecPos,indexToLowestNonzeroGroup,nWordsList,groupIndex,MF,MT,lineNum)
 #print()
 
 fluxSigma = []
-for line in sigT_dilutionVecs[0][2:]:
+for line in sigT_groupSplitting[0][1:]:
     fluxSigma += line[:-3]
 assert(fluxSigma.pop() == None)
-flux  = fluxSigma[:int(len(fluxSigma)*0.5)]
-sigma = fluxSigma[int(len(fluxSigma)*0.5):]
-print(flux)
-print(sigma)
+flux   = fluxSigma[:int(len(fluxSigma)*0.5)]
+sigmaT = fluxSigma[int(len(fluxSigma)*0.5):]
+
+groups[groupIndex-1].sigT = sigmaT
+
+
+##############################################################################
+####### look at group2
+##############################################################################
+
+[temp,zero,numSecPos,indexToLowestNonzeroGroup,nWordsList,groupIndex,MF,MT,lineNum] = sigT_groupSplitting[1][0]
+numSecPos,indexToLowestNonzeroGroup,nWordsList,groupIndex,lineNum = int(numSecPos),int(indexToLowestNonzeroGroup),int(nWordsList),int(groupIndex),int(lineNum) 
+#print(sigT_groupSplitting[1][0])
+#print(temp,zero,numSecPos,indexToLowestNonzeroGroup,nWordsList,groupIndex,MF,MT,lineNum)
+#print()
+
+fluxSigma = []
+for line in sigT_groupSplitting[1][1:]:
+    fluxSigma += line[:-3]
+assert(fluxSigma.pop() == None)
+flux   = fluxSigma[:int(len(fluxSigma)*0.5)]
+sigmaT = fluxSigma[int(len(fluxSigma)*0.5):]
+
+print(groups[1])
+groups[groupIndex-1].sigT = sigmaT
 
 
 
-
-
-
-
+print(groups[1])
 
 
 
