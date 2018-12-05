@@ -30,10 +30,9 @@ groupr
  4                                     / card6a
  1e-5 .625 5530 .821e6 10e6            / card6b
  3 1 'total'/
- 3 2 'elastic'/
  3 18 'fission'/
  3 102 'capture'/
- 3 252 'xi'/
+ 6 2  'scatter matrix'/
  0/
  0/
 moder

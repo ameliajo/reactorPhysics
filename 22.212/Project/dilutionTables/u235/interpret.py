@@ -8,7 +8,26 @@ class group:
         self.sigT   = False
 
     def __str__(self):
-        return("ID:  "+str(self.ID)+"      E range:     "+str('%.2E'%self.E_low)+" - "+str('%.2E'%self.E_high)+"     sigma(dil0) = "+str('%.2E'%self.sigT[0])) if not not self.sigT else ("ID:  "+str(self.ID)+"      E range:     "+str('%.2E'%self.E_low)+" - "+str('%.2E'%self.E_high)+"     sigma(dil0) = "+str(None))
+        return  \
+        "ID:  "+str(self.ID)+\
+        "    E range:   "+str('%.2E'%self.E_low)+" - "+str('%.2E'%self.E_high)+\
+        "    sigT(dil0) = "+str('%.2E'%self.sigT[0])+ \
+        "    sigF(dil0) = "+str('%.2E'%self.sigF[0]) \
+        if self.sigT and self.sigF else \
+        "ID:  "+str(self.ID)+\
+        "    E range:   "+str('%.2E'%self.E_low)+" - "+str('%.2E'%self.E_high)+\
+        "    sigT(dil0) = "+str('%.2E'%self.sigT[0])+ \
+        "    sigF(dil0) = "+str(None)\
+        if self.sigT and not self.sigF else \
+        "ID:  "+str(self.ID)+\
+        "    E range:   "+str('%.2E'%self.E_low)+" - "+str('%.2E'%self.E_high)+\
+        "    sigT(dil0) = "+str(None)+ \
+        "    sigF(dil0) = "+str('%.2E'%self.sigF[0]) \
+        if not self.sigT and self.sigF else \
+        "    sigT(dil0) = "+str(None)+ \
+        "    sigF(dil0) = "+str(None)
+
+
 
 
 def convertToExpPos(x):
@@ -93,13 +112,9 @@ for g in range(nGroups):
 ##############################################################################
 
 sigT_lines = [line for line in array if line[-2] == 1   ]
-sigE_lines = [line for line in array if line[-2] == 2   ]
 sigF_lines = [line for line in array if line[-2] == 18  ]
 sigG_lines = [line for line in array if line[-2] == 102 ]
 
-
-
-sigT = {}
 
 ##############################################################################
 # Split sigT into various dilutions
@@ -115,69 +130,71 @@ for line in sigT_lines:
 
 
 reactionHeading = sigT_groupSplitting[0].pop(0)
-#[za,awr,numLegndr,nSig0,breakupFlag,nGroups,MF,MT,lineNum] = sigT_groupSplitting[0][0]
 [za,awr,numLegndr,nSig0,breakupFlag,nGroups,MF,MT,lineNum] = reactionHeading
-numLegndr,nGroups,lineNum = int(numLegndr),int(nGroups),int(lineNum)
+nSig0,numLegndr,nGroups,lineNum = int(nSig0),int(numLegndr),int(nGroups),int(lineNum)
 assert(lineNum == 1)
-#print(sigT_groupSplitting[0][0])
-#print(za,awr,numLegndr,nSig0,breakupFlag,nGroups,MF,MT,lineNum)
-#print()
 
 
 
 ##############################################################################
-# look at sigT dilution #1
+# loop through all groups
 ##############################################################################
-##############################################################################
-####### look at group1
-##############################################################################
+for g in range(nGroups):
+    [temp,zero,numSecPos,IG2LO,nWordsList,groupIndex,MF,MT,lineNum] = sigT_groupSplitting[g][0]
+    numSecPos,IG2LO,nWordsList,groupIndex,lineNum = int(numSecPos),int(IG2LO),int(nWordsList),int(groupIndex),int(lineNum) 
+    assert(g+1 == groupIndex)
+
+    fluxSigma = []
+    for line in sigT_groupSplitting[g][1:]:
+        fluxSigma += line[:-3]
+    assert(fluxSigma.pop() == None)
+
+    flux   = fluxSigma[:int(len(fluxSigma)*0.5)]
+    sigmaT = fluxSigma[int(len(fluxSigma)*0.5):]
+    sigmaT = [sigmaT[i]/flux[i] for i in range(nSig0)]
+
+    groups[g].sigT = sigmaT
 
 
 
-[temp,zero,numSecPos,indexToLowestNonzeroGroup,nWordsList,groupIndex,MF,MT,lineNum] = sigT_groupSplitting[0][0]
-numSecPos,indexToLowestNonzeroGroup,nWordsList,groupIndex,lineNum = int(numSecPos),int(indexToLowestNonzeroGroup),int(nWordsList),int(groupIndex),int(lineNum) 
-#print(sigT_groupSplitting[0][1])
-#print(temp,zero,numSecPos,indexToLowestNonzeroGroup,nWordsList,groupIndex,MF,MT,lineNum)
-#print()
-
-fluxSigma = []
-for line in sigT_groupSplitting[0][1:]:
-    fluxSigma += line[:-3]
-assert(fluxSigma.pop() == None)
-flux   = fluxSigma[:int(len(fluxSigma)*0.5)]
-sigmaT = fluxSigma[int(len(fluxSigma)*0.5):]
-
-groups[groupIndex-1].sigT = sigmaT
 
 
 ##############################################################################
-####### look at group2
+# Split sigF into various dilutions
 ##############################################################################
 
-[temp,zero,numSecPos,indexToLowestNonzeroGroup,nWordsList,groupIndex,MF,MT,lineNum] = sigT_groupSplitting[1][0]
-numSecPos,indexToLowestNonzeroGroup,nWordsList,groupIndex,lineNum = int(numSecPos),int(indexToLowestNonzeroGroup),int(nWordsList),int(groupIndex),int(lineNum) 
-#print(sigT_groupSplitting[1][0])
-#print(temp,zero,numSecPos,indexToLowestNonzeroGroup,nWordsList,groupIndex,MF,MT,lineNum)
-#print()
-
-fluxSigma = []
-for line in sigT_groupSplitting[1][1:]:
-    fluxSigma += line[:-3]
-assert(fluxSigma.pop() == None)
-flux   = fluxSigma[:int(len(fluxSigma)*0.5)]
-sigmaT = fluxSigma[int(len(fluxSigma)*0.5):]
-
-print(groups[1])
-groups[groupIndex-1].sigT = sigmaT
+sigF_groupSplitting = []
+dilution = []
+for line in sigF_lines:
+    dilution.append(line)
+    if None in line:
+        sigF_groupSplitting.append(dilution)
+        dilution = []
 
 
+reactionHeading = sigF_groupSplitting[0].pop(0)
+[za,awr,numLegndr,nSig0,breakupFlag,nGroups,MF,MT,lineNum] = reactionHeading
+nSig0,numLegndr,nGroups,lineNum = int(nSig0),int(numLegndr),int(nGroups),int(lineNum)
 
-print(groups[1])
+##############################################################################
+# loop through all groups
+##############################################################################
+for g in range(nGroups):
+    [temp,zero,numSecPos,IG2LO,nWordsList,groupIndex,MF,MT,lineNum] = sigF_groupSplitting[g][0]
+    numSecPos,IG2LO,nWordsList,groupIndex,lineNum = int(numSecPos),int(IG2LO),int(nWordsList),int(groupIndex),int(lineNum) 
 
+    assert(g+1 == groupIndex)
 
+    fluxSigma = []
+    for line in sigF_groupSplitting[g][1:]:
+        fluxSigma += line[:-3]
+    assert(fluxSigma.pop() == None)
 
+    flux   = fluxSigma[:int(len(fluxSigma)*0.5)]
+    sigmaF = fluxSigma[int(len(fluxSigma)*0.5):]
+    sigmaF = [sigmaT[i]/flux[i] for i in range(nSig0)]
 
-
+    groups[g].sigF = sigmaF
 
 
 
