@@ -31,10 +31,10 @@ phiInitF = np.ones([ngroup,])
 phiInitM = np.ones([ngroup,])*0.1
 
 circles = [ Circle( circX[i], circY[j], radius ) for j in range(3) for i in range(3) ]
-fuelVec = [ Region( [ (circles[i], False) ], fuelClass, phiInitF ) for i in range(9) ] 
+fuelVec = [ Region( [ (circles[i], False) ], fuelClass, 'fuel' ) for i in range(9) ] 
 modVec  = [ Region( [ (XPlanes[i], True), (XPlanes[i+1], False),               \
                       (YPlanes[j], True), (YPlanes[j+1], False),               \
-                      (circles[-1], True) ], modClass, phiInitM )              \
+                      (circles[-1], True) ], modClass, 'mod')              \
                       for j in range(3) for i in range(3) ]
 
 regions  = fuelVec + modVec
@@ -43,6 +43,6 @@ for i, region in enumerate(regions):
     region.ID = i
 
 surfaces = [circles,XPlanes,YPlanes]
-runMC(numRays, surfaces, regions, sideLen, ngroup, True, rayLen, deadzone, verbose, sphIter)
+runMC(numRays, surfaces, regions, sideLen, ngroup, False, rayLen, deadzone, verbose, sphIter)
 
 

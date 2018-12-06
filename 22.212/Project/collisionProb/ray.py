@@ -7,17 +7,17 @@ from geometry import *
 
 class Neutron():
     def __init__(self,sideLen=0,reg=None,init=True):
-        if init and not reg:
-            self.r = np.array([rand(),rand()])*sideLen
-        elif init and reg.type == 'circle':
-            l, r = reg.x0 - reg.r, reg.x0 + reg.r
-            d, u = reg.y0 - reg.r, reg.y0 + reg.r
-            inCircle = False
-            while not inCircle:
-               self.r = np.array([l+rand()*(r-l),d+rand()*(u-d)])
-               inCircle = (self.r[0]-reg.x0)**2 + (self.r[1]-reg.y0)**2 < reg.r**2
-
         if init:
+            if not reg:
+                self.r = np.array([rand(),rand()])*sideLen
+            elif reg.type == 'circle':
+                l, r = reg.x0 - reg.r, reg.x0 + reg.r
+                d, u = reg.y0 - reg.r, reg.y0 + reg.r
+                inCircle = False
+                while not inCircle:
+                   self.r = np.array([l+rand()*(r-l),d+rand()*(u-d)])
+                   inCircle = (self.r[0]-reg.x0)**2 + (self.r[1]-reg.y0)**2 < reg.r**2
+
             self.mu = np.cos((2.0*rand()-1.0)*pi*0.5)
             theta = rand()*2*pi
             self.u = np.array([np.cos(theta), np.sin(theta)])
@@ -34,6 +34,14 @@ class Segment():
         self.regionID = regionID 
         self.d = np.linalg.norm(self.start-self.end)/self.mu
         self.active = active
+
+
+
+def weCollide(distTraveled,regionID,regions):
+    mat = regions[regionID].mat
+    randomSampleDist = -np.log(rand())/mat.SigT
+    return randomSampleDist < distTraveled
+
 
 
 def advance(n, surfaces, regions):
@@ -59,6 +67,7 @@ def advance(n, surfaces, regions):
     #n.r = r
     n_next = Neutron()
     n_next.r = r
+    n_next.u = n.u 
 
         
     surfaceWeHit = bestInt['surface']
@@ -66,11 +75,9 @@ def advance(n, surfaces, regions):
         n_next.u = np.array([-n.u[0], n.u[1]]) if isinstance(surfaceWeHit,XPlane) \
               else np.array([n.u[0], -n.u[1]])
 
+    n_next.r += n_next.u*1e-11
 
-
-    n_next.r += n.u*1e-11
-
-    return n_next
+    return n_next,fullDistTraveled,regionID
 
 
 

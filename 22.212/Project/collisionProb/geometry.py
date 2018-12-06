@@ -35,14 +35,12 @@ class Circle():
 
 
 class Region():
-    def __init__(self, surfacesAndSides, mat, phi):
+    def __init__(self, surfacesAndSides, mat, name):
+        self.name = name
         surfacesTHENsides = list(zip(*surfacesAndSides))
         self.surfaces     = surfacesTHENsides[0]
         self.orientations = surfacesTHENsides[1]
-        self.phi = phi
         self.mat = mat
-        self.q = np.zeros([len(phi)])
-        self.activeDist = 0.0
 
     def evaluate(self, r):
         for i, surface in enumerate(self.surfaces):
