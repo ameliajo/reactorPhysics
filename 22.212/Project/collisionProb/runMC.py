@@ -1,20 +1,15 @@
 import time
 from numpy.random import random_sample as rand
-from plotting import *
 from ray import *
-from physics import *
 from materials import *
+import matplotlib.pyplot as plt
 
 np.random.seed(42)
 
-def runMC(n_rays, surfaces, regions, sideLen, ngroup, plot=False, 
-            maxRayDist=100.0, deadzone=10, verbose=True, sphIter=0):
+def runMC(n_rays, surfaces, regions, sideLen, ngroup, plot=False ):
 
+    plot = False
     start = time.perf_counter()
-
-    ##########################################################################
-    # DRAW NEUTRON 
-    ##########################################################################
 
     pinHits = np.array([0]*9)
     modHits = 0
@@ -33,35 +28,28 @@ def runMC(n_rays, surfaces, regions, sideLen, ngroup, plot=False,
                   'tab:brown', 'tab:pink', 'tab:gray', 'tab:olive', 'tab:cyan']
 
 
-
-
-    numParticles = 1e4
+    numParticles = 1000
+    counter = 0
     for i in range(numParticles):
         n = Neutron(sideLen,circles[0])
-        if plot:
-            ax.plot(n.r[0],n.r[1],'bo')
+        if plot: ax.plot(n.r[0],n.r[1],'bo')
 
-        counter = 0
         while True:
-            n_next,distTraveled,regionID = advance(n,surfaces,regions)
+            if plot: oldr = n.r
+            distTraveled,regionID = advance(n,surfaces,regions)
             if plot:
-                ax.plot(n_next.r[0],n_next.r[1],color=colors[counter%len(colors)],marker='o')
-                ax.plot([n.r[0],n_next.r[0]],[n.r[1],n_next.r[1]],colors[counter%len(colors)]) 
-            counter += 1
-            #print(n.r,n.u)
-            #print(n_next.r,n_next.u)
-            #print()
+                ax.plot(n.r[0],n.r[1],color=colors[counter%len(colors)],marker='o')
+                ax.plot([oldr[0],n.r[0]],[oldr[1],n.r[1]],colors[counter%len(colors)]) 
+                counter += 1
 
-            if weCollide(distTraveled,regionID,regions):
-                #hits[regionID] += 1
+            if weCollide(distTraveled,regions[regionID].mat):
                 if regions[regionID].name == 'mod':
                     modHits += 1
                 else:
                     pinHits[regionID] += 1
                 break
 
-            n.r = n_next.r
-            n.u = n_next.u
+
     print(modHits/numParticles)
     print(pinHits/numParticles*100)
     assert(sum(pinHits)+modHits == numParticles)
@@ -69,6 +57,12 @@ def runMC(n_rays, surfaces, regions, sideLen, ngroup, plot=False,
     if plot:
         plt.show()
     
+    end = time.perf_counter()
+    elapsed_time = end - start
+
+    print('Elapsed time:', '%.4f'%elapsed_time)
+
+
 
 
 
