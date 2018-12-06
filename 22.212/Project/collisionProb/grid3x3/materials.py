@@ -10,8 +10,8 @@ class Material:
         self.chi = chi
         self.name = name
 
-modClass  = Material(modTotal0,modNuFission0,modScatter0,modChi0,'mod',0)
-fuelClass = Material(fuelTotal0,fuelNuFission0,fuelScatter0,fuelChi0,'fuel',0)
+mMat  = Material(modTotal0,modNuFission0,modScatter0,modChi0,'mod',0)
+fMat = Material(fuelTotal0,fuelNuFission0,fuelScatter0,fuelChi0,'fuel',0)
 
 
 

@@ -1,23 +1,29 @@
 import time
-from numpy.random import random_sample as rand
-from ray import *
+from neutron import *
 from materials import *
 import matplotlib.pyplot as plt
 
 np.random.seed(42)
 
-def runMC(n_rays, surfaces, regions, sideLen, ngroup, plot=False ):
+plot          = False
+pitch         = 1.26
+radius        = 0.39218
+numParticles  = 1000
 
-    plot = False
+
+
+def runMC(pitch,radius,plot=False,numParticles=100):
+    sideLen  = pitch*3
+
+    regions,surfaces = makeGeometry(pitch,radius)
+
     start = time.perf_counter()
 
-    pinHits = np.array([0]*9)
-    modHits = 0
+    pinHits, modHits = np.array([0]*9), 0
      
     circles = surfaces[0]
     if plot:
-        ax = plt.gca()
-        ax.cla()
+        ax = plt.gca(); ax.cla()
         ax.set_xlim((0,sideLen))
         ax.set_ylim((0,sideLen))
 
@@ -28,13 +34,13 @@ def runMC(n_rays, surfaces, regions, sideLen, ngroup, plot=False ):
                   'tab:brown', 'tab:pink', 'tab:gray', 'tab:olive', 'tab:cyan']
 
 
-    numParticles = 1000
     counter = 0
     for i in range(numParticles):
         n = Neutron(sideLen,circles[0])
         if plot: ax.plot(n.r[0],n.r[1],'bo')
 
-        while True:
+        collided = False
+        while not collided:
             if plot: oldr = n.r
             distTraveled,regionID = advance(n,surfaces,regions)
             if plot:
@@ -42,30 +48,26 @@ def runMC(n_rays, surfaces, regions, sideLen, ngroup, plot=False ):
                 ax.plot([oldr[0],n.r[0]],[oldr[1],n.r[1]],colors[counter%len(colors)]) 
                 counter += 1
 
-            if weCollide(distTraveled,regions[regionID].mat):
-                if regions[regionID].name == 'mod':
-                    modHits += 1
-                else:
-                    pinHits[regionID] += 1
-                break
+            collided = weCollide(distTraveled,regions[regionID].mat)
+            if collided and regions[regionID].name == 'mod':
+                modHits += 1
+            elif collided and regions[regionID].name == 'fuel':
+                pinHits[regionID] += 1
 
 
-    print(modHits/numParticles)
-    print(pinHits/numParticles*100)
     assert(sum(pinHits)+modHits == numParticles)
 
-    if plot:
-        plt.show()
+    if plot: plt.show()
     
     end = time.perf_counter()
     elapsed_time = end - start
 
     print('Elapsed time:', '%.4f'%elapsed_time)
+    return pinHits/numParticles
 
 
 
 
-
-
-
+collisionProb = runMC(pitch,radius,False,numParticles)
+print(collisionProb*100)
 
