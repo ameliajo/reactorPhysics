@@ -77,16 +77,16 @@ with open("tape26", "r") as f:
 nSig0,nWordsTitle,lineNum = int(nSig0),int(nWordsTitle),int(lineNum)
 assert(zero == 0 and minus1 == -1)
 #print(header[0])
-#print(za,awr,nSig0,nWordsTitle)
-#print()
+print("ZA",za,"AWR",awr,"#Sig0",nSig0,"#Words",nWordsTitle)
+print()
 
 
 [temp,zero1,nGroups,nPhoton,nWordsList,zero2,lineNum] = header[1]
 nGroups,nPhoton,nWordsList,lineNum = int(nGroups),int(nPhoton),int(nWordsList),int(lineNum)
 assert(zero1 == 0 and zero2 == 0)
 #print(header[1])
-#print(temp,nGroups,nPhoton,nWordsList)
-#print()
+print("TEMP",temp,"#Groups",nGroups,"#PhotonGroups",nPhoton,"#Words",nWordsList)
+print()
 
 restOfTitle = []
 for entry in header[2:]:
@@ -94,9 +94,9 @@ for entry in header[2:]:
 title = restOfTitle[0]
 Sig0 = restOfTitle[1:nSig0+1]
 Ebounds = restOfTitle[nSig0+1:nSig0+nGroups+2]
-#print(Sig0)
-#print(Ebounds)
-#print()
+print("Dilution Vals",Sig0)
+print("energy bounds",Ebounds)
+print()
 
 
 groups = []
@@ -119,7 +119,6 @@ sigG_lines = [line for line in array if line[-2] == 102 ]
 ##############################################################################
 # Split sigT into various dilutions
 ##############################################################################
-
 sigT_groupSplitting = []
 dilution = []
 for line in sigT_lines:
@@ -128,12 +127,12 @@ for line in sigT_lines:
         sigT_groupSplitting.append(dilution)
         dilution = []
 
-
 reactionHeading = sigT_groupSplitting[0].pop(0)
 [za,awr,numLegndr,nSig0,breakupFlag,nGroups,MF,MT,lineNum] = reactionHeading
 nSig0,numLegndr,nGroups,lineNum = int(nSig0),int(numLegndr),int(nGroups),int(lineNum)
+print("ZA",za,"AWR",awr,"#Legndr",numLegndr,"#Sig0",nSig0,"#Groups",nGroups)
+print()
 assert(lineNum == 1)
-
 
 
 ##############################################################################
@@ -195,6 +194,7 @@ for g in range(nGroups):
     sigmaF = [sigmaT[i]/flux[i] for i in range(nSig0)]
 
     groups[g].sigF = sigmaF
+
 
 
 
