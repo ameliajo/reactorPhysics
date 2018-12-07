@@ -88,9 +88,15 @@ And since we're traveling from right to left, that means we're starting with $i+
 % \[\psi_{i,n}=\psi_{i+1/2,n}e^{-\Sigma_{ti}\Delta_i/\mu_n}+\frac{Q_i}{\Sigma_{ti}}\left(1-e^{-\Sigma_{ti}\Delta_i/\mu_n}\right)~\mbox{for }\mu>0\]
 
  \subsubsection*{$\mu>0$}
+\[\mu_n\left(\psi_{i+\frac{1}{2},n}-\psi_{i-\frac{1}{2},n}\right)+\Delta_i\Sigma_{ti}\psi_{i,n}=\Delta_iQ_i\]
+\[\mu_n\left(\psi_{i+\frac{1}{2},n}-\psi_{i-\frac{1}{2},n}\right)+\Delta_i\Sigma_{ti}\left(\psi_{i-1/2,n}e^{-\Sigma_{ti}\Delta_i/\mu_n}+\frac{Q_i}{\Sigma_{ti}}\left(1-e^{-\Sigma_{ti}\Delta_i/\mu_n}\right)\right)=\Delta_iQ_i\]
+\[\mu_n\psi_{i+\frac{1}{2},n}-\mu_n\psi_{i-\frac{1}{2},n}+\Delta_i\Sigma_{ti}\psi_{i-1/2,n}e^{-\Sigma_{ti}\Delta_i/\mu_n}+\Delta_iQ_i-\Delta_iQ_ie^{-\Sigma_{ti}\Delta_i/\mu_n}=\Delta_iQ_i\]
 And since we're traveling from left to right, that means we're starting with $i-1/2$ and we're trying to get to $i+1/2$. So I'll solve for $i+1/2$ in terms of $i-1/2$.
+\[\mu_n\psi_{i+\frac{1}{2},n}=\Delta_iQ_i+\mu_n\psi_{i-\frac{1}{2},n}-\Delta_i\Sigma_{ti}\psi_{i-1/2,n}e^{-\Sigma_{ti}\Delta_i/\mu_n}-\Delta_iQ_i+\Delta_iQ_ie^{-\Sigma_{ti}\Delta_i/\mu_n}\]
+\[\psi_{i+\frac{1}{2},n}=\psi_{i-\frac{1}{2},n}-\frac{\Delta_i\Sigma_{ti}}{\mu_n}\psi_{i-1/2,n}e^{-\Sigma_{ti}\Delta_i/\mu_n}+\frac{\Delta_iQ_i}{\mu_n}e^{-\Sigma_{ti}\Delta_i/\mu_n}\]
+\[\boxed{\psi_{i+\frac{1}{2},n}=\left(1-\frac{\Delta_i\Sigma_{ti}}{\mu_n}e^{-\Sigma_{ti}\Delta_i/\mu_n}\right)\psi_{i-1/2,n}+\frac{\Delta_iQ_i}{\mu_n}e^{-\Sigma_{ti}\Delta_i/\mu_n}}\]
 
- \subsubsection*{$\mu<0$}
-And since we're traveling from right to left, that means we're starting with $i+1/2$ and we're trying to get to $i-1/2$. So I'll solve for $i-1/2$ in terms of $i+1/2$.
+ %\subsubsection*{$\mu<0$}
+%nd since we're traveling from right to left, that means we're starting with $i+1/2$ and we're trying to get to $i-1/2$. So I'll solve for $i-1/2$ in terms of $i+1/2$.
 
 \end{document}

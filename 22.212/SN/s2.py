@@ -33,7 +33,7 @@ class GaussLegendre:
 
 s2 = GaussLegendre(2)
 
-numCells = 80
+numCells = 300
 width = 50.0
 dx = width/numCells
 SigT = 1.0
@@ -46,41 +46,26 @@ for i in range(numCells):
     R = L + dx 
     cells.append(cell(i,SigT,SigS,src,dx))
 
-broom(s2,cells,dx)
 
 
-###############################################################################
-# Plot avg flux
-###############################################################################
-phi = []
-x = []
-for cell in cells:
-    phi.append(cell.phi)
-    x.append(cell.M)
-
-invMaxVal = 1.0/max(phi)
-
-phi = [x*invMaxVal for x in phi]
-
-plt.plot(x,phi)
-broom(s2,cells,dx)
-
-
-###############################################################################
-# Plot avg flux
-###############################################################################
-phi = []
-x = []
-for cell in cells:
-    phi.append(cell.phi)
-    x.append(cell.M)
-
-invMaxVal = 1.0/max(phi)
-
-phi = [x*invMaxVal for x in phi]
-
-plt.plot(x,phi)
-
+methods = ['step','diamond','step-characteristic']
+for method in methods:
+    numIter = 1
+    for i in range(numIter):
+        broom(s2,cells,dx,method)
+        phi = []
+        x = []
+        for cell in cells:
+            phi.append(cell.phi)
+            x.append(cell.M)
+        invMaxVal = 1.0/max(phi)
+        phi = [x*invMaxVal for x in phi]
+        plt.plot(x,phi,label=method)
+    
+plt.title('Sn methods for '+str(width)+'cm slab, using '+str(numCells)+' cells')
+plt.xlabel('distance (cm)')
+plt.ylabel('avg. scalar flux')
+plt.legend(loc='best')
 plt.show()
 
 
