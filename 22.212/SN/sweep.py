@@ -27,51 +27,43 @@ def stepCharacteristic(psi_in,mu_n,cell,dx):
 
 
 def getPsiOut(psi_in,mu,cell,dx,method):
-    if method == 'step':
-        return step(psi_in,mu,cell,dx)
-    if method == 'diamond':
-        return diamondDiff(psi_in,mu,cell,dx)
-    if method == 'step-characteristic':
-        return stepCharacteristic(psi_in,mu,cell,dx)
+    if method == 'step':               return step(psi_in,mu,cell,dx)
+    if method == 'diamond':            return diamondDiff(psi_in,mu,cell,dx)
+    if method == 'stepCharacteristic': return stepCharacteristic(psi_in,mu,cell,dx)
     raise ValueError
 
         
 
 
-def broom(quad,cells,dx,method):
+def broom(S,cells,dx,method):
+    assert(S.N%2 == 0) # Require that order is even
+
+    psi = np.zeros((len(cells)+1,S.N))
+
     # Forward Sweep
-    mu = quad.mu[0]
-    psi_forward = [0.0]*(len(cells)+1)
-    psi_in = 0.0 # Because of vacuum BC
-    for i,cell in enumerate(cells):
-        psi_out = getPsiOut(psi_in,mu,cell,dx,method)
-        psi_forward[i+1] = psi_out
-        psi_in = psi_out
+    for n in range(int(S.N/2)):
+        mu = S.mu[n]
+        psi_in = 0.0 # Because of vacuum BC
+        for i,cell in enumerate(cells):
+            psi_in = psi[i+1,n] = getPsiOut(psi_in,mu,cell,dx,method)
 
     # Backward Sweep
-    mu = quad.mu[1]
-    psi_backward = [0.0]*(len(cells)+1)
-    psi_in = 0.0 # Because of vacuum BC
-    for i,cell in enumerate(cells):
-        psi_out = getPsiOut(psi_in,mu,cell,dx,method)
-        psi_backward[-2-i] = psi_out
-        psi_in = psi_out
+    for n in range(int(S.N/2),S.N):
+        mu = S.mu[n]
+        psi_in = 0.0 # Because of vacuum BC
+        for i,cell in enumerate(cells):
+            psi_in = psi[-2-i,n] = getPsiOut(psi_in,mu,cell,dx,method)
 
 
     for i,cell in enumerate(cells):
-
-        wgtF = quad.wgt[0]
-        psiR = psi_forward[i+1]
-        psiL = psi_forward[i]
-        flux_i = wgtF*(psiR + psiL)*0.5
-
-        wgtF = quad.wgt[1]
-        psiR = psi_backward[i+1]
-        psiL = psi_backward[i]
-        flux_i += wgtF*(psiR + psiL)*0.5
+        flux_i = 0.0
+        for n in range(S.N):
+            wgtF = S.wgt[n]
+            psiR = psi[i+1,n]
+            psiL = psi[i,n]
+            flux_i += wgtF*(psiR + psiL)*0.5
 
         cell.phi = flux_i
-
 
 
 

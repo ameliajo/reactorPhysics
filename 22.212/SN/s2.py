@@ -22,7 +22,7 @@ class cell:
 
 
 ##############################################################################
-# Define quadrature capabilities
+# Define quadrature 
 ##############################################################################
 from numpy.polynomial.legendre import leggauss
 class GaussLegendre:
@@ -31,9 +31,10 @@ class GaussLegendre:
         self.mu, self.wgt = leggauss(N)
 	
 
-s2 = GaussLegendre(2)
+S = GaussLegendre(2)
+S = GaussLegendre(4)
 
-numCells = 300
+numCells = 100
 width = 50.0
 dx = width/numCells
 SigT = 1.0
@@ -48,11 +49,12 @@ for i in range(numCells):
 
 
 
-methods = ['step','diamond','step-characteristic']
+methods = ['step','diamond','stepCharacteristic']
+#methods = ['step']
 for method in methods:
     numIter = 1
     for i in range(numIter):
-        broom(s2,cells,dx,method)
+        broom(S,cells,dx,method)
         phi = []
         x = []
         for cell in cells:
@@ -62,7 +64,8 @@ for method in methods:
         phi = [x*invMaxVal for x in phi]
         plt.plot(x,phi,label=method)
     
-plt.title('Sn methods for '+str(width)+'cm slab, using '+str(numCells)+' cells')
+
+plt.title('S'+str(S.N)+' method for '+str(width)+'cm slab, using '+str(numCells)+' cells')
 plt.xlabel('distance (cm)')
 plt.ylabel('avg. scalar flux')
 plt.legend(loc='best')
