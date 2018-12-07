@@ -11,7 +11,7 @@ class cell:
         self.phi   = 1.0
         self.psiL  = 0.0
         self.psiR  = 0.0
-        self.width = width
+        self.dx    = width
         self.L     = ID*width
         self.M     = (ID+0.5)*width
         self.R     = (ID+1)*width
@@ -34,7 +34,7 @@ class GaussLegendre:
 S = GaussLegendre(2)
 S = GaussLegendre(4)
 
-numCells = 100
+numCells = 800
 width = 50.0
 dx = width/numCells
 SigT = 1.0
@@ -43,18 +43,15 @@ src  = 1.0
 
 cells = []
 for i in range(numCells):
-    L = i * dx
-    R = L + dx 
     cells.append(cell(i,SigT,SigS,src,dx))
 
 
 
-methods = ['step','diamond','stepCharacteristic']
-#methods = ['step']
+methods = ['step','diamond','stepCharacteristic','linearDiscontinuous']
 for method in methods:
     numIter = 1
     for i in range(numIter):
-        broom(S,cells,dx,method)
+        broom(S,cells,method)
         phi = []
         x = []
         for cell in cells:
@@ -63,6 +60,7 @@ for method in methods:
         invMaxVal = 1.0/max(phi)
         phi = [x*invMaxVal for x in phi]
         plt.plot(x,phi,label=method)
+
     
 
 plt.title('S'+str(S.N)+' method for '+str(width)+'cm slab, using '+str(numCells)+' cells')

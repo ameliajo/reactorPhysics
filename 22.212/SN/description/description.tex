@@ -99,4 +99,25 @@ And since we're traveling from left to right, that means we're starting with $i-
  %\subsubsection*{$\mu<0$}
 %nd since we're traveling from right to left, that means we're starting with $i+1/2$ and we're trying to get to $i-1/2$. So I'll solve for $i-1/2$ in terms of $i+1/2$.
 
+
+
+ \subsection*{Linear Discontinuous}
+ So the idea of Linear Discontinuous is that we alternate between ``known'' values, and artificial values that make solving this problem easier. So when I'm going from left to right, I start with a known source at $i=1/2$. I use that to calculate an artificial value at $i=1/2$. This artificial value gives me the real value at $i=3/2$, which I then use to get the artificial values at $i=3/2$, etc.
+ 
+ \subsubsection*{$\mu>0$}
+ \[\mbox{Real}\quad\rightarrow\quad\mbox{Fake}\quad\rightarrow\quad\mbox{Real}\quad\rightarrow\quad\mbox{Fake}\quad\rightarrow\quad\mbox{Real}\quad\rightarrow\quad\mbox{Fake}\quad\rightarrow\quad\mbox{Real}\]
+ \[\psi^R_{0}\quad\rightarrow\quad\psi^L_1\quad\rightarrow\quad\psi^R_1\quad\rightarrow\quad\psi^L_2\quad\rightarrow\quad\psi^R_2\quad\rightarrow\quad\psi^L_3\quad\rightarrow\quad\psi^R_3\]
+where $\psi_0^R$ is the flux on the right side of the zero'th cell (or, in this indexing, the furthest left cell), and similarly, $\psi_3^R$ is the real flux on the right side of the third cell (which here is the furthest right cell).
+\begin{enumerate}
+  \item Compute source
+  \item Solve for $\psi_{i,m}^L$ knowing $\psi_{i-1,m}^R$
+    \[\psi_{i,m}^L=\frac{\left(\tilde{Q}^L+2\mu_m\psi_{i-1,m}^R-\Sigma_{t}\Delta x_{i}\frac{\tilde{Q}^R}{3T_{2/3}}-\mu_m\frac{\tilde{Q}^R}{T_{2/3}}\right)}{\left(\mu_m+\mu_m\frac{s_{1/3}}{T_{2/3}}+\frac{2\Sigma_{t}\Delta x_{i}}{3}+\frac{\Sigma_{t}\Delta x_{i}S_{1/3}}{3T_{2/3}}\right)}\]
+    \[\tilde{Q}^{L}=\left(\frac{1}{3}Q^{R}+\frac{2}{3}Q^{L}\right)\Delta x\]
+    \[\tilde{Q}^{R}=\left(\frac{2}{3}Q^{R}+\frac{1}{3}Q^{L}\right)\Delta x\]
+  \item Solve for $\psi_{i,m}^R$ knowing $\psi_{i,m}^L$
+    \[\psi_{i,m}^R=\frac{\tilde{Q}^R+\psi_{i,m}^{L}\left(\mu_{m}-\Sigma_{t,i}\Delta x_{i}/3\right)}{\left(\mu_{m}+2\Sigma_{t,i}\Delta x_{i}/3\right)}\]
+    \[\tilde{Q}^{R}=\left(\frac{2}{3}Q^{R}+\frac{1}{3}Q^{L}\right)\Delta x\]
+
+  \item Sweep form left to right
+\end{enumerate}
 \end{document}
