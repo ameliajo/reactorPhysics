@@ -1,5 +1,6 @@
 import matplotlib.pyplot as plt
 import numpy as np
+from sweep import *
 
 class cell:
     def __init__(self,ID,SigT,SigS,src,width):
@@ -46,7 +47,7 @@ class GaussLegendre:
 s2 = GaussLegendre(2)
 
 width = 50.0
-numCells = 1000
+numCells = 4
 spacing = width/numCells
 SigT = 1.0
 SigS = 0.1
@@ -69,16 +70,15 @@ def getQ(cell):
 def diamondDifferenceForward(mu,cell,psiOld,dx):
     denom = (2.0*mu + cell.SigT*dx)
     Q = getQ(cell)
-    return ( (2.0*mu - cell.SigT) * psiOld + 2.0*Q*dx ) / denom
+    return ( (2.0*mu - cell.SigT*dx) * psiOld + 2.0*Q*dx ) / denom
 
 def diamondDifferenceBackward(mu,cell,psiOld,dx):
     denom = (2.0*mu - cell.SigT*dx)
     Q = getQ(cell)
-    return ( (2.0*mu + cell.SigT) * psiOld - 2.0*Q*dx ) / denom
+    return ( (2.0*mu + cell.SigT*dx) * psiOld - 2.0*Q*dx ) / denom
 
 
 
-"""
 dx = slab.dx
 muF = s2.mu[0]
 muB = s2.mu[1]
@@ -87,6 +87,7 @@ backwardPsiR = 0.0
 slabPsi_forward  = [0.0]*(numCells+1)
 slabPsi_backward = [0.0]*(numCells+1)
 
+"""
 for i in range(numCells):
     cell = slab.cells[i]
 
@@ -153,12 +154,15 @@ for cell in slab.cells:
 #plt.plot(cell_x,psiAvgB)
 plt.plot(cell_x,totalPsi)
 plt.show()
-         
-
-
-
-
 """
+         
+def diamondDiff(psi_in,mu,cell,dx):
+    Q = getQ(cell)
+    return ( psi_in * (2*mu - cell.SigT*dx) + 2.0*Q*dx) / \
+              ( 2*mu + cell.SigT*dx )
+
+
+
 
 # Forward
 psi_in = 0.0
@@ -167,8 +171,7 @@ psi_F = []
 for i,cell in enumerate(slab.cells[:-1]):
     dx = slab.dx
     Q = getQ(cell) 
-    psi_out = ( psi_in * (2*mu - cell.SigT*dx) + 2.0*Q*dx) / \
-              ( 2*mu + cell.SigT*dx )
+    psi_out = diamondDiff(psi_in,mu,cell,dx)
     slab.cells[i+1].psi = psi_out
     psi_F.append(psi_out)
     psi_in = psi_out
@@ -181,26 +184,37 @@ for i,cell in enumerate(slab.cells[:-1]):
     n = len(slab.cells)-i-2
     dx = slab.dx
     Q = getQ(cell) 
-    psi_out = ( psi_in * (2*mu - cell.SigT*dx) + 2.0*Q*dx) / \
-              ( 2*mu + cell.SigT*dx )
+    psi_out = diamondDiff(psi_in,mu,cell,dx)
     slab.cells[n].psi = psi_out
     psi_B.append(psi_out)
     psi_in = psi_out
 
 
 psi_total = psi_F + [psi_B[-i-1] for i in range(len(psi_B))]
-plt.plot(psi_total)
+#plt.plot(psi_total)
 
+#plt.show()
+
+
+print()
+
+transportSweep(s2,slab.cells,dx)
+phi = []
+x = []
+for cell in slab.cells:
+    phi.append(cell.phi)
+    x.append(cell.M)
+
+plt.plot(x,phi)
 plt.show()
 
 
 
 
 
+"""
 
-
-
-
+"""
 
 
 
