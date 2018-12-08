@@ -5,7 +5,7 @@ import openmc.model
 import numpy as np
 
 import sys
-sys.stdout = open('output','w')
+#sys.stdout = open('output','w')
 
 
 
@@ -18,6 +18,11 @@ uo2.add_element('U', 1, enrichment=3.2)
 uo2.add_element('O', 2)
 #uo2.add_element('Gd', 0.0007)
 uo2.set_density('g/cc', 10.341)
+x = uo2.get_nuclide_atom_densities()
+#for d in x:
+#    print(d,x[d],x[d][1]*1E24)
+
+
 
 
 water = openmc.Material(3, "h2o")

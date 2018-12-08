@@ -5,8 +5,7 @@ import subprocess
 
 
 
-def interpretGENDF(nuclide,verbose):
-    t_26 = nuclide+'_tape26'
+def interpretGENDF(nuclide,verbose,t_26):
     mat = '9228' if nuclide == 'u235' else '9237'
     subprocess.run(['cp',t_26,'tape26'])
     
@@ -114,12 +113,9 @@ def interpretGENDF(nuclide,verbose):
 
 
     subprocess.run(['rm','tape26'])
+    return groups
 
 
-
-
-
-interpretGENDF('u238',True)
 
 
 
