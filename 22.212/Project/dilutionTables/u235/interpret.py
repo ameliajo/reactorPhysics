@@ -32,6 +32,34 @@ def splitTheseGroups(lines):
             dilution = []
     return groupSplitting
 
+def checkHeading(reactionHeading):
+    if len(reactionHeading) == 9:
+        [zaNew,awrNew,numLegndr,nSig0,breakupFlag,nGroups,MF,MT,lineNum] = reactionHeading
+    else:
+        [zaNew,awrNew,numLegndr,nSig0,breakupFlag,nGroups,MF_MT,lineNum] = reactionHeading
+        MF, MT = float(str(MF_MT)[0]), float(str(MF_MT)[1:])
+
+    nSig0,numLegndr,nGroups,lineNum,MF,MT = \
+    int(nSig0),int(numLegndr),int(nGroups),int(lineNum),int(MF),int(float(MT))
+    if MT != 452:
+        assert(zaNew == za);        assert(lineNum == 1); 
+        assert(nSig0 == len(Sig0)); assert(nGroups == len(Ebounds)-1)
+    return numLegndr
+
+
+def processLIST(LIST_for_this_group_for_this_reaction,g):
+    if len(LIST_for_this_group_for_this_reaction) == 9:
+        [temp,zero,numSecPos,IG2LO,nWordsList,groupIndex,MF,MT,lineNum] = \
+        LIST_for_this_group_for_this_reaction
+    else:
+        [temp,zero,numSecPos,IG2LO,nWordsList,groupIndex,MF_MT,lineNum] = \
+        LIST_for_this_group_for_this_reaction 
+        MF, MT = str(MF_MT)[0], str(MF_MT)[1:]
+
+    numSecPos,IG2LO,nWordsList,groupIndex,lineNum = \
+    int(numSecPos),int(IG2LO),int(nWordsList),int(groupIndex),int(lineNum) 
+    assert(g+1 == groupIndex and int(zero) == 0)
+
 
 
 
@@ -69,37 +97,24 @@ with open("tape26", "r") as f:
 ##############################################################################
 # Format header
 ##############################################################################
+
+# CONT
 [za,awr,zero,nSig0,minus1,nWordsTitle,lineNum] = header[0]
 nSig0,nWordsTitle,lineNum = int(nSig0),int(nWordsTitle),int(lineNum)
 assert(zero == 0 and minus1 == -1)
-#print(header[0])
-#print("ZA",za,"AWR",awr,"#Sig0",nSig0,"#Words",nWordsTitle)
-#print()
 
-
+# LIST
 [temp,zero1,nGroups,nPhoton,nWordsList,zero2,lineNum] = header[1]
 nGroups,nPhoton,nWordsList,lineNum = int(nGroups),int(nPhoton),int(nWordsList),int(lineNum)
 assert(zero1 == 0 and zero2 == 0)
-#print(header[1])
-#print("TEMP",temp,"#Groups",nGroups,"#PhotonGroups",nPhoton,"#Words",nWordsList)
-#print()
 
-restOfTitle = []
-for entry in header[2:]:
-    restOfTitle += entry[:-1]
-title = restOfTitle[0]
-Sig0 = restOfTitle[1:nSig0+1]
-Ebounds = restOfTitle[nSig0+1:nSig0+nGroups+2]
-#print("Dilution Vals",Sig0)
-#print("energy bounds",Ebounds)
-#print()
+restOfFirstLIST = [a for b  in header[2:] for a in b[:-1]]
 
+title   = restOfFirstLIST[0]
+Sig0    = restOfFirstLIST[1:nSig0+1]
+Ebounds = restOfFirstLIST[nSig0+1:nSig0+nGroups+2]
 
-groups = []
-for g in range(nGroups):
-    groups.append(group(g,Ebounds[g],Ebounds[g+1]))
-
-
+groups = [group(g,Ebounds[g],Ebounds[g+1]) for g in range(nGroups)]
 
 
 
@@ -114,194 +129,101 @@ nu_lines   = [line for line in data if line[-2] == 3452 ]
 
 
 
-def checkHeading(reactionHeading):
-    [zaNew,awrNew,numLegndr,nSig0,breakupFlag,nGroups,MF,MT,lineNum] = reactionHeading
-    nSig0,numLegndr,nGroups,lineNum,MF,MT = int(nSig0),int(numLegndr),int(nGroups),int(lineNum),int(MF),int(MT)
-    #print("ZA",za,"AWR",awr,"#Legndr",numLegndr,"#Sig0",nSig0,"#Groups",nGroups,"MF",MF,"MT",MT)
-    #print()
-    assert(zaNew == za)
-    assert(lineNum == 1); 
-    assert(nSig0 == len(Sig0))
-    assert(nGroups == len(Ebounds)-1)
-    return numLegndr
-
-
-
 ##############################################################################
-# Split sigT into various dilutions
+# sigT 
 ##############################################################################
 sigT_groupSplitting = splitTheseGroups(sigT_lines)
-
 reactionHeading = sigT_groupSplitting[0].pop(0)
 numLegndr = checkHeading(reactionHeading)
 
-
-##############################################################################
-
 for g in range(nGroups):
-    #[temp,zero,numSecPos,IG2LO,nWordsList,groupIndex,MF,MT,lineNum] = sigT_groupSplitting[g][0]
-    [temp,zero,numSecPos,IG2LO,nWordsList,groupIndex,MF,MT,lineNum] = sigT_groupSplitting[g].pop(0)
-    numSecPos,IG2LO,nWordsList,groupIndex,lineNum = int(numSecPos),int(IG2LO),int(nWordsList),int(groupIndex),int(lineNum) 
-    #print("TEMP",temp,"#Vals",nWordsList,"Group#",groupIndex,"MF",MF,"MT",MT,"line#",lineNum)
-    assert(g+1 == groupIndex and int(zero) == 0)
-    LIST_data = []
-    for line in sigT_groupSplitting[g]:
-        LIST_data += line[:-3]
+    processLIST(sigT_groupSplitting[g].pop(0),g)
+    LIST_data = [a for b in sigT_groupSplitting[g] for a in b[:-3]]
     assert(LIST_data.pop() == None)
-
-    sigmaT = LIST_data[int(len(LIST_data)*0.5):][0::numLegndr]
-
-    groups[g].sigT = sigmaT
+    groups[g].sigT = LIST_data[int(len(LIST_data)*0.5):][0::numLegndr]
 
 #print(groups[0].sigT)
 #print(groups[1].sigT)
-
-
-
 #print("\n")
 
 
 
 
 ##############################################################################
-# Split sigF into various dilutions
+# sigF 
 ##############################################################################
-
 sigF_groupSplitting = splitTheseGroups(sigF_lines)
-
 reactionHeading = sigF_groupSplitting[0].pop(0)
-[za,awr,numLegndr,nSig0,breakupFlag,nGroups,MF,MT,lineNum] = reactionHeading
-nSig0,numLegndr,nGroups,lineNum = int(nSig0),int(numLegndr),int(nGroups),int(lineNum)
-#print("ZA",za,"AWR",awr,"#Legndr",numLegndr,"#Sig0",nSig0,"#Groups",nGroups,"MF",MF,"MT",MT)
-#print()
-
-##############################################################################
+numLegndr = checkHeading(reactionHeading)
 
 for g in range(nGroups):
-    [temp,zero,numSecPos,IG2LO,nWordsList,groupIndex,MF,MT,lineNum] = sigF_groupSplitting[g][0]
-    numSecPos,IG2LO,nWordsList,groupIndex,lineNum = int(numSecPos),int(IG2LO),int(nWordsList),int(groupIndex),int(lineNum) 
-    #print("TEMP",temp,"#Vals",nWordsList,"Group#",groupIndex,"MF",MF,"MT",MT,"line#",lineNum)
-
-    assert(g+1 == groupIndex and int(zero) == 0)
-
-    fluxSigma = []
-    for line in sigF_groupSplitting[g][1:]:
-        fluxSigma += line[:-3]
-    assert(fluxSigma.pop() == None)
-
-    flux   = fluxSigma[:int(len(fluxSigma)*0.5)]
-    sigmaF = fluxSigma[int(len(fluxSigma)*0.5):][0::numLegndr]
-
-    groups[g].sigF = sigmaF
-
-
+    processLIST(sigF_groupSplitting[g].pop(0),g)
+    LIST_data = [a for b in sigF_groupSplitting[g] for a in b[:-3]]
+    assert(LIST_data.pop() == None)
+    groups[g].sigF = LIST_data[int(len(LIST_data)*0.5):][0::numLegndr]
 
 #print(groups[0].sigF)
 #print(groups[1].sigF)
-
-
-
 #print("\n")
 
 
 
 
 ##############################################################################
-# Split sigA into various dilutions
+# sigA 
 ##############################################################################
-
 sigA_groupSplitting = splitTheseGroups(sigA_lines)
-
 reactionHeading = sigA_groupSplitting[0].pop(0)
-[za,awr,numLegndr,nSig0,breakupFlag,nGroups,MF_MT,lineNum] = reactionHeading
-MF, MT = str(MF_MT)[0], str(MF_MT)[1:]
-nSig0,numLegndr,nGroups,lineNum = int(nSig0),int(numLegndr),int(nGroups),int(lineNum)
-#print("ZA",za,"AWR",awr,"#Legndr",numLegndr,"#Sig0",nSig0,"#Groups",nGroups,"MF",MF,"MT",MT)
-#print()
-
-##############################################################################
+numLegndr = checkHeading(reactionHeading)
 
 for g in range(nGroups):
-    [temp,zero,numSecPos,IG2LO,nWordsList,groupIndex,MF_MT,lineNum] = sigA_groupSplitting[g][0]
-    MF, MT = str(MF_MT)[0], str(MF_MT)[1:]
-    numSecPos,IG2LO,nWordsList,groupIndex,lineNum = int(numSecPos),int(IG2LO),int(nWordsList),int(groupIndex),int(lineNum) 
-    #print("TEMP",temp,"#Vals",nWordsList,"Group#",groupIndex,"MF",MF,"MT",MT,"line#",lineNum)
-
-    assert(g+1 == groupIndex and int(zero) == 0)
-
-    fluxSigma = []
-    for line in sigA_groupSplitting[g][1:]:
-        fluxSigma += line[:-2]
-    assert(fluxSigma.pop() == None)
-
-    flux   = fluxSigma[:int(len(fluxSigma)*0.5)]
-    sigmaA = fluxSigma[int(len(fluxSigma)*0.5):][0::numLegndr]
-
-    groups[g].sigA = sigmaA
-
-
+    processLIST(sigA_groupSplitting[g].pop(0),g)
+    LIST_data = [a for b in sigA_groupSplitting[g] for a in b[:-2]]
+    assert(LIST_data.pop() == None)
+    groups[g].sigA = LIST_data[int(len(LIST_data)*0.5):][0::numLegndr]
 
 #print(groups[0].sigA)
 #print(groups[1].sigA)
-
-
-
-
 #print("\n")
 
 
 
 
-
 ##############################################################################
-# Split nu-bar
+# nu-bar
 ##############################################################################
-
-
 nu_groupSplitting = splitTheseGroups(nu_lines)
-
-
 reactionHeading = nu_groupSplitting[0].pop(0)
-[za,awr,numLegndr,nSig0,breakupFlag,nGroups,MF_MT,lineNum] = reactionHeading
-MF, MT = str(MF_MT)[0], str(MF_MT)[1:]
-nSig0,numLegndr,nGroups,lineNum = int(nSig0),int(numLegndr),int(nGroups),int(lineNum)
-#print("ZA",za,"AWR",awr,"#Legndr",numLegndr,"#Sig0",nSig0,"#Groups",nGroups,"MF",MF,"MT",MT)
-#print()
-
-##############################################################################
+numLegndr = checkHeading(reactionHeading)
 
 for g in range(nGroups):
-    [temp,zero,numSecPos,IG2LO,nWordsList,groupIndex,MF_MT,lineNum] = nu_groupSplitting[g][0]
-    MF, MT = str(MF_MT)[0], str(MF_MT)[1:]
-    numSecPos,IG2LO,nWordsList,groupIndex,lineNum = int(numSecPos),int(IG2LO),int(nWordsList),int(groupIndex),int(lineNum) 
-    #print("TEMP",temp,"#Vals",nWordsList,"Group#",groupIndex,"MF",MF,"MT",MT,"line#",lineNum)
+    processLIST(nu_groupSplitting[g].pop(0),g)
+    LIST_data = [a for b in nu_groupSplitting[g] for a in b[:-2]]
+    assert(LIST_data.pop() == None and len(LIST_data)==3)
+    groups[g].nuBar = LIST_data[int(len(LIST_data)*0.5):][0]
 
-    assert(g+1 == groupIndex and int(zero) == 0)
-
-    fluxSigma = []
-    for line in nu_groupSplitting[g][1:]:
-        fluxSigma += line[:-2]
-    assert(fluxSigma.pop() == None)
-
-    flux  = fluxSigma[:int(len(fluxSigma)*0.5)]
-    nuBar = fluxSigma[int(len(fluxSigma)*0.5):][1]
-    assert(len(fluxSigma)==3)
-
-    groups[g].nuBar = nuBar
+#print(groups[0].nuBar)
+#print(groups[1].nuBar)
 
 
 
-print(groups[0].nuBar)
-print(groups[1].nuBar)
+verbose = True
+if verbose:
+    for group in groups: print("SIGT",["%.4e"%g for g in group.sigT])
 
+    for group in groups: print("SIGT","%.4e"%group.sigT[0],"%.4e"%group.sigT[1],"%.4e"%group.sigT[2],"%.4e"%group.sigT[3],"%.4e"%group.sigT[4],"%.4e"%group.sigT[5],"%.4e"%group.sigT[6])
+    print()
 
+    for group in groups:
+        print("SIGF","%.4e"%group.sigF[0],"%.4e"%group.sigF[1],"%.4e"%group.sigF[2],"%.4e"%group.sigF[3],"%.4e"%group.sigF[4],"%.4e"%group.sigF[5],"%.4e"%group.sigF[6])
+    print()
 
+    for group in groups:
+        print("SIGA","%.4e"%group.sigA[0],"%.4e"%group.sigA[1],"%.4e"%group.sigA[2],"%.4e"%group.sigA[3],"%.4e"%group.sigA[4],"%.4e"%group.sigA[5],"%.4e"%group.sigA[6])
+    print()
 
-
-for group in groups:
-    print(group.sigT[0])
-
-
+    for group in groups:
+        print("NU  ","%.4e"%group.nuBar)
 
 
 
