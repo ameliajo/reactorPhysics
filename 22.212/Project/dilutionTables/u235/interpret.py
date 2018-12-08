@@ -79,14 +79,14 @@ with open("tape26", "r") as f:
             split = split[:-2]+[split[-1]]
             header.append([number(x) for x in split])
 
-        elif len(split) > 4 and split[-4][-4:] == '1395':
+        elif len(split) > 4 and split[-4][-4:] == '9228':
             split[-4] = split[-4][:-4]
             split = [None if val == '' else val for val in split]
             data.append([number(x) for x in split])
 
         # For instances where MF is more than two characters, and accidentally
         # hits our friendly MT
-        elif len(split) > 4 and split[-3][-4:] == '1395':
+        elif len(split) > 4 and split[-3][-4:] == '9228':
             split[-3] = split[-3][:-4]
             split = [None if val == '' else val for val in split]
             data.append([number(x) for x in split])
@@ -210,21 +210,12 @@ for g in range(nGroups):
 verbose = True
 if verbose:
     for group in groups: print("SIGT",["%.4e"%g for g in group.sigT])
-
-    for group in groups: print("SIGT","%.4e"%group.sigT[0],"%.4e"%group.sigT[1],"%.4e"%group.sigT[2],"%.4e"%group.sigT[3],"%.4e"%group.sigT[4],"%.4e"%group.sigT[5],"%.4e"%group.sigT[6])
     print()
-
-    for group in groups:
-        print("SIGF","%.4e"%group.sigF[0],"%.4e"%group.sigF[1],"%.4e"%group.sigF[2],"%.4e"%group.sigF[3],"%.4e"%group.sigF[4],"%.4e"%group.sigF[5],"%.4e"%group.sigF[6])
+    for group in groups: print("SIGF",["%.4e"%g for g in group.sigF])
     print()
-
-    for group in groups:
-        print("SIGA","%.4e"%group.sigA[0],"%.4e"%group.sigA[1],"%.4e"%group.sigA[2],"%.4e"%group.sigA[3],"%.4e"%group.sigA[4],"%.4e"%group.sigA[5],"%.4e"%group.sigA[6])
+    for group in groups: print("SIGA",["%.4e"%g for g in group.sigA])
     print()
-
-    for group in groups:
-        print("NU  ","%.4e"%group.nuBar)
-
+    for group in groups: print("NU  ",["%.4e"%group.nuBar])
 
 
 
