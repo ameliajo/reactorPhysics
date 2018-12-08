@@ -1,5 +1,5 @@
 
-class group:
+class Group:
     def __init__(self,ID,E_low,E_high,Sig0):
         self.ID     = ID
         self.E_low  = E_low
@@ -41,11 +41,8 @@ def checkHeading(reactionHeading):
 
     nSig0,numLegndr,nGroups,lineNum,MF,MT = \
     int(nSig0),int(numLegndr),int(nGroups),int(lineNum),int(MF),int(float(MT))
-    if MT != 452:
-        #assert(zaNew == za);        
-        assert(lineNum == 1); 
-        #assert(nSig0 == len(Sig0)); 
-        #assert(nGroups == len(Ebounds)-1)
+
+    assert(lineNum == 1); 
     return numLegndr
 
 
