@@ -1,96 +1,17 @@
 
-
-class group:
-    def __init__(self,ID,E_low,E_high):
-        self.ID     = ID
-        self.E_low  = E_low
-        self.E_high = E_high
-
-def convertToExpPos(x):
-    split = x.split('+')
-    return float(split[0])*10.0**float(split[1])
-
-def convertToExpNeg(x):
-    split = x.split('-')
-    return float(split[0])*10.0**(-1*float(split[1]))
+from parseGENDF_help import   *
+import subprocess
 
 
-def number(x):
-    if not x: return x
-    if '+' in x: return convertToExpPos(x)
-    if '-' in x[1:]: return convertToExpNeg(x)
-    try: return float(x)
-    except: return x
+#subprocess.run(['cp','u238_tape26','tape26'])
+#header, data = readFromTape26('9237')
 
-
-def splitTheseGroups(lines):
-    groupSplitting, dilution = [], []
-    for line in lines:
-        dilution.append(line)
-        if None in line:
-            groupSplitting.append(dilution)
-            dilution = []
-    return groupSplitting
-
-def checkHeading(reactionHeading):
-    if len(reactionHeading) == 9:
-        [zaNew,awrNew,numLegndr,nSig0,breakupFlag,nGroups,MF,MT,lineNum] = reactionHeading
-    else:
-        [zaNew,awrNew,numLegndr,nSig0,breakupFlag,nGroups,MF_MT,lineNum] = reactionHeading
-        MF, MT = float(str(MF_MT)[0]), float(str(MF_MT)[1:])
-
-    nSig0,numLegndr,nGroups,lineNum,MF,MT = \
-    int(nSig0),int(numLegndr),int(nGroups),int(lineNum),int(MF),int(float(MT))
-    if MT != 452:
-        assert(zaNew == za);        assert(lineNum == 1); 
-        assert(nSig0 == len(Sig0)); assert(nGroups == len(Ebounds)-1)
-    return numLegndr
-
-
-def processLIST(LIST_for_this_group_for_this_reaction,g):
-    if len(LIST_for_this_group_for_this_reaction) == 9:
-        [temp,zero,numSecPos,IG2LO,nWordsList,groupIndex,MF,MT,lineNum] = \
-        LIST_for_this_group_for_this_reaction
-    else:
-        [temp,zero,numSecPos,IG2LO,nWordsList,groupIndex,MF_MT,lineNum] = \
-        LIST_for_this_group_for_this_reaction 
-        MF, MT = str(MF_MT)[0], str(MF_MT)[1:]
-
-    numSecPos,IG2LO,nWordsList,groupIndex,lineNum = \
-    int(numSecPos),int(IG2LO),int(nWordsList),int(groupIndex),int(lineNum) 
-    assert(g+1 == groupIndex and int(zero) == 0)
-
-
+subprocess.run(['cp','u235_tape26','tape26'])
+header, data = readFromTape26('9228')
 
 
 
 print("\n")
-
-##############################################################################
-# Read in the values from tape26
-##############################################################################
-header = []
-data = []
-with open("tape26", "r") as f:
-    for line in f:
-        split = line.split()
-        if split[-2] == '1451':
-            split[-3] = split[-3][:-4] # Get rid of the 1451 ID tag in header
-            split = split[:-2]+[split[-1]]
-            header.append([number(x) for x in split])
-
-        elif len(split) > 4 and split[-4][-4:] == '9237':
-            split[-4] = split[-4][:-4]
-            split = [None if val == '' else val for val in split]
-            data.append([number(x) for x in split])
-
-        # For instances where MF is more than two characters, and accidentally
-        # hits our friendly MT
-        elif len(split) > 4 and split[-3][-4:] == '9237':
-            split[-3] = split[-3][:-4]
-            split = [None if val == '' else val for val in split]
-            data.append([number(x) for x in split])
-
 
 
         
@@ -114,7 +35,7 @@ title   = restOfFirstLIST[0]
 Sig0    = restOfFirstLIST[1:nSig0+1]
 Ebounds = restOfFirstLIST[nSig0+1:nSig0+nGroups+2]
 
-groups = [group(g,Ebounds[g],Ebounds[g+1]) for g in range(nGroups)]
+groups = [group(g,Ebounds[g],Ebounds[g+1],Sig0) for g in range(nGroups)]
 
 
 
@@ -224,6 +145,7 @@ print("\n")
 
 
 
+subprocess.run(['rm','tape26'])
 
 
 
