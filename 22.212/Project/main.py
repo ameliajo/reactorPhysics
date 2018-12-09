@@ -2,10 +2,12 @@ from math import pi
 import sys
 sys.path.append('./dilutionTables/')
 sys.path.append('./GettingXS/')
+sys.path.append('./collisionProb/')
 
 from interpret import *
 from import_XS_help import *
 from XS_nuclideSpecific import *
+from runMC import *
 
 
 
@@ -99,7 +101,6 @@ for nuclide in nonRes:
     SigT_new = [SigT_new[g] + nuclide.openMC_SigT[g] for g in range(nGroups)]
 SigT_new = [SigT_new[g] + u235.SigT[g] for g in range(nGroups)]
     
-print(SigT_new)
 
 
 
