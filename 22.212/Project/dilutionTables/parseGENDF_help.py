@@ -5,6 +5,8 @@ class Group:
         self.E_low  = E_low
         self.E_high = E_high
         self.dilutionVals = Sig0
+        self.sigT = None; self.sigF  = None
+        self.sigA = None; self.nuBar = None
 
 def convertToExpPos(x):
     split = x.split('+')
