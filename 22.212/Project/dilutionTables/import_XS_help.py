@@ -1,14 +1,14 @@
 from math import *
 
 class Nuclide:
-    def __init__(self,N,r,openMC_SigT=None):
+    def __init__(self,N,r,openMC_vals):
         self.N   = N
         self.pot = 4.0*pi*r*r
         self.sigT = []
         self.sigF = []
         self.sigA = []
         self.nuBar = []
-        self.openMC_SigT = openMC_SigT
+        self.importFromOpenMC(openMC_vals)
 
     def addXS(self,xsVals):
         self.sigT.append(xsVals[0])

@@ -4,19 +4,17 @@ import matplotlib.pyplot as plt
 
 np.random.seed(42)
 
-
-def runMC(pitch,radius,plot,numParticles,hole,fSigT,mSigT):
+def getCollisionProb(pitch,radius,plot,numParticles,hole,fSigT,mSigT,verbose,
+    startNeutronsFrom):
     sideLen  = pitch*3
 
-    fMat = Material(fSigT,'fuel')
-    mMat = Material(mSigT,'mod')
-    regions,surfaces = makeGeometry(pitch,radius,hole,fMat,mMat)
+    regions,surfaces = makeGeometry(pitch,radius,hole)
 
     start = time.perf_counter()
-
     pinHits, modHits = np.array([0]*9), 0
-     
     circles = surfaces[0]
+    startRegion = circles[startNeutronsFrom]
+
     if plot:
         ax = plt.gca(); ax.cla()
         ax.set_xlim((0,sideLen))
@@ -31,7 +29,7 @@ def runMC(pitch,radius,plot,numParticles,hole,fSigT,mSigT):
 
     counter = 0
     for i in range(numParticles):
-        n = Neutron(sideLen,circles[0])
+        n = Neutron(sideLen,startRegion)
         if plot: ax.plot(n.r[0],n.r[1],'bo')
 
         collided = False
@@ -43,33 +41,37 @@ def runMC(pitch,radius,plot,numParticles,hole,fSigT,mSigT):
                 ax.plot([oldr[0],n.r[0]],[oldr[1],n.r[1]],colors[counter%len(colors)]) 
                 counter += 1
 
-            collided = weCollide(distTraveled,regions[regionID].mat)
-            if collided and regions[regionID].name == 'mod':
-                modHits += 1
-            elif collided and regions[regionID].name == 'fuel':
-                pinHits[regionID] += 1
+            if regions[regionID].name == 'mod':
+                collided = weCollide(distTraveled,mSigT)
+                if collided: modHits += 1
+
+            if regions[regionID].name == 'fuel':
+                collided = weCollide(distTraveled,fSigT)
+                if collided: pinHits[regionID] += 1
+
 
 
     assert(sum(pinHits)+modHits == numParticles)
 
     if plot: plt.show()
     
-    end = time.perf_counter()
-    elapsed_time = end - start
-
-    print('Elapsed time:', '%.4f'%elapsed_time)
+    if verbose: 
+        end = time.perf_counter()
+        elapsed_time = end - start
+        print('Elapsed time:', '%.4f'%elapsed_time)
+        print(pinHits/numParticles*100)
     return pinHits/numParticles
 
 
-plot          = False
-pitch         = 1.26
-radius        = 0.39218
-numParticles  = 5000
-hole          = True
-
-
-fSigT = 0.27413873
-mSigT = 0.26955675
-collisionProb = runMC(pitch,radius,plot,numParticles,hole,fSigT,mSigT)
-print(collisionProb*100)
+if __name__ == "__main__":
+    plot          = False
+    pitch         = 1.26
+    radius        = 0.39218
+    numParticles  = 10000
+    hole          = True       # Pin Labels
+    startNeutronsFrom = 0      #  6  7  8
+    fSigT = 0.27413873         #  3  4  5 
+    mSigT = 0.26955675         #  0  1  2 
+    verbose = True
+    collisionProb = getCollisionProb(pitch,radius,plot,numParticles,hole,fSigT,mSigT,verbose,startNeutronsFrom)
 
