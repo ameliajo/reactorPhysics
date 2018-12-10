@@ -13,17 +13,18 @@ from XS import modTotal0
 
 class Pin:
     def __init__(self,N,radius,all_nuclides_pin):
-        self.nuclides = { \
-        'U235' : Nuclide(N['U235'],radius['U235'],all_nuclides_pin[0]), \
-        'U238' : Nuclide(N['U238'],radius['U238'],all_nuclides_pin[1]), \
-        'O16'  : Nuclide(N['O16' ],radius['O16' ],all_nuclides_pin[2]) }
+        self.U235 = Nuclide(N['U235'],radius['U235'],all_nuclides_pin[0])
+        self.U238 = Nuclide(N['U238'],radius['U238'],all_nuclides_pin[1])
+        self.O16  = Nuclide(N['O16' ],radius['O16' ],all_nuclides_pin[2])
 
     def calcSigT(self,nGroups):
         self.SigT = []
         for g in range(nGroups):
-            self.SigT.append(self.nuclides['U235'].SigT[g]        + \
-                             self.nuclides['U238'].openMC_SigT[g] + \
-                             self.nuclides['O16'].openMC_SigT[g])
+            self.SigT.append(self.U235.SigT[g]        + \
+                             self.U238.openMC_SigT[g] + \
+                             self.O16.openMC_SigT[g])
+
+
 
 
 
@@ -56,12 +57,8 @@ pin_3 = Pin(N_dict_Lo,radius,all_nuclides_pin_3)
 pin_5 = Pin(N_dict_Lo,radius,all_nuclides_pin_5)
 pin_7 = Pin(N_dict_Lo,radius,all_nuclides_pin_7)
 lowPins = [pin_1,pin_3,pin_5,pin_7]
-pins = highPins + lowPins
+pins = [pin_0,pin_1,pin_2,pin_3,pin_4,pin_5,pin_6,pin_7,pin_8]
 
-
-u235 = pin_0.nuclides['U235']
-u238 = pin_0.nuclides['U238']
-o16  = pin_0.nuclides['O16']
 
 pinRadius = 0.39128
 pitch = 1.26
@@ -80,8 +77,8 @@ C = 0.15
 #------------------------------------------------------------------------------
 # We're going to treat U-235 as the resonant nuclide for now, for pin0
 #------------------------------------------------------------------------------
-res    = u235
-nonRes = [u238,o16]
+res    = pin_0.U235
+nonRes = [pin_0.U238,pin_0.O16]
 
 # background = sum_nonRes [N_nonRes * sig_potNonRes / N_res] + 1/(N_res*l_bar)
 sig0 = sum([nuclide.N*nuclide.pot for nuclide in nonRes])/res.N + 1.0/(res.N*l_bar*(1.0-C))
@@ -106,10 +103,10 @@ if boundingDilutions == None: raise ValueError('Ideal dilution value out of rang
 # Pulling cross sections from the dilution table
 for pin in pins:
     for g in range(nGroups):
-        pin.nuclides['U235'].addXS(getDataFromEqTable(boundingDilutions,groupsU235[g],sig0))
+        pin.U235.addXS(getDataFromEqTable(boundingDilutions,groupsU235[g],sig0))
 
     # Making these microscopic cross sections into macroscropic cross sections
-    pin.nuclides['U235'].convertToMacro()
+    pin.U235.convertToMacro()
 
 
 
@@ -122,52 +119,20 @@ for nuclide in nonRes:
     SigT_new_hi = [SigT_new_hi[g] + nuclide.openMC_SigT[g] for g in range(nGroups)]
     SigT_new_lo = [SigT_new_lo[g] + nuclide.openMC_SigT[g] for g in range(nGroups)]
 
-SigT_new_hi = [SigT_new_hi[g] + pin_0.nuclides['U235'].SigT[g] for g in range(nGroups)]
-SigT_new_lo = [SigT_new_lo[g] + pin_1.nuclides['U235'].SigT[g] for g in range(nGroups)]
+SigT_new_hi = [SigT_new_hi[g] + pin_0.U235.SigT[g] for g in range(nGroups)]
+SigT_new_lo = [SigT_new_lo[g] + pin_1.U235.SigT[g] for g in range(nGroups)]
 
 
-nuclides = nonRes + [res]
-
-collisionProbsFromCorner = []
-collisionProbsFromSide   = []
-collisionProbsFromCenter = []
+collisionProbs = []
 
 for g in range(nGroups):
     fSigT_hi = SigT_new_hi[g]  # Use the values we just pulled from dilution table
     fSigT_lo = SigT_new_lo[g]  
-    mSigT = modTotal0[g] # Use openMC values generated from grid_3x3.py
+    mSigT    = modTotal0[g] # Use openMC values generated from grid_3x3.py
 
-    collProb_from_corner = getCollisionProb( pitch, pinRadius, plot=False,   \
+    collisionProbs.append(getCollisionProb( pitch, pinRadius, plot=False,    \
       numParticles=500, hole=False, fSigT_hi=fSigT_hi, fSigT_lo=fSigT_lo,    \
-      mSigT=mSigT, verbose=False, startNeutronsFrom=0)
-
-    collisionProbsFromCorner.append(collProb_from_corner)
-
-
-#print(collisionProbsFromCorner[0])
-#print(collisionProbsFromCorner[1])
-#print(collisionProbsFromCorner[2])
-
-
-P_0_to_0 = np.array([collisionProbsFromCorner[g][0] for g in range(nGroups)])
-P_0_to_1 = np.array([collisionProbsFromCorner[g][1] for g in range(nGroups)])
-
-#print(P_0_to_0)
-print(P_0_to_1)
-print()
-pin_0.calcSigT(nGroups)
-pin_1.calcSigT(nGroups)
-pin_2.calcSigT(nGroups)
-pin_3.calcSigT(nGroups)
-pin_4.calcSigT(nGroups)
-pin_5.calcSigT(nGroups)
-pin_6.calcSigT(nGroups)
-pin_7.calcSigT(nGroups)
-pin_8.calcSigT(nGroups)
-
-# P(1->0) = P(0->1) * SigT_0 / SigT_1
-P_1_to_0 = P_0_to_1 * pin_0.SigT / pin_1.SigT
-print(P_1_to_0)
+      mSigT=mSigT, verbose=False, startNeutronsFrom=0))
 
 
 
@@ -182,8 +147,25 @@ print(P_1_to_0)
 #        ----------------------------------------------------------------------
 #                 SUM_pins * P(pin->myPin) * V(pin) * N(res in pin)
 
+tones_Numer = 0.0
+tones_Denom = 0.0
 
+for pinID,pin in enumerate(pins):
+    pin.calcSigT(nGroups)
+    P_0_to_i = np.array([collisionProbs[g][pinID] for g in range(nGroups)])
+    # P(i->0) = P(0->i) * SigT_0 / SigT_i
+    P_i_to_0 = P_0_to_i * pin_0.SigT / pin.SigT
 
+    SUM_nonRes_sigPot = pin.U238.N*pin.U238.pot*1E-24 +\
+                        pin.O16.N*pin.O16.pot*1E-24
+    
+    tones_Numer += P_i_to_0 * SUM_nonRes_sigPot
+    tones_Denom += P_i_to_0 * pin.U235.N
+
+sig0_new = sum(tones_Numer/tones_Denom*1e24)/10.0
+print(sig0_new)
+print(sig0)
+   
 
 
 
