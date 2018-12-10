@@ -11,32 +11,57 @@ from getCollisionProb import *
 from XS import modTotal0
 
 
+class Pin:
+    def __init__(self,N,radius,all_nuclides_pin):
+        self.nuclides = { \
+        'U235' : Nuclide(N['U235'],radius['U235'],all_nuclides_pin[0]), \
+        'U238' : Nuclide(N['U238'],radius['U238'],all_nuclides_pin[1]), \
+        'O16'  : Nuclide(N['O16' ],radius['O16' ],all_nuclides_pin[2]) }
+
+    def calcSigT(self,nGroups):
+        self.SigT = []
+        for g in range(nGroups):
+            self.SigT.append(self.nuclides['U235'].SigT[g]        + \
+                             self.nuclides['U238'].openMC_SigT[g] + \
+                             self.nuclides['O16'].openMC_SigT[g])
+
+
+
 
 
 # Load in dilution table
 # groupsU235[g].sigT[d] will give you sigT for group g for dilution index d
-groupsU238 = interpretGENDF('u238',False,'dilutionTables/u238_tape26')
 groupsU235 = interpretGENDF('u235',False,'dilutionTables/u235_tape26')
 groupsU235.reverse() # Because NJOY does groups in inverse order (low -> high)
 
 # Gotten from OpenMC input, using uo2.get_nuclide_atom_densities and multiplying
 # by 1E24 bc the number densities are provided in atoms / b cm
-numberDensities = { 'U234': 6.68004682609e+18, 'U235': 7.47364244574e+20, \
-                    'U238': 2.23122440162e+22, 'U236': 3.42328721032e+18, \
-                    'O16' : 4.61219363482e+22,  'O17' : 1.74868413889e+19 }
+N_dict_Hi = { 'U235' : N_hi_U235, 'U238' : N_hi_U238, 'O16'  : N_hi_O16 }
+N_dict_Lo = { 'U235' : N_lo_U235, 'U238' : N_lo_U238, 'O16'  : N_lo_O16 }
 
 # Called ``AP'' in ENDF, found in MF 2 MT 151
 radius = { 'U234': 8.930000E-1, 'U235': 9.602000E-1, \
            'U238': 9.480000E-1, 'U236': 9.354000E-1, \
            'O16' : 5.562563E-1, 'O17' : 5.780000E-1 }
 
+pin_0 = Pin(N_dict_Hi,radius,all_nuclides_pin_0)
+pin_2 = Pin(N_dict_Hi,radius,all_nuclides_pin_2)
+pin_4 = Pin(N_dict_Hi,radius,all_nuclides_pin_4)
+pin_6 = Pin(N_dict_Hi,radius,all_nuclides_pin_6)
+pin_8 = Pin(N_dict_Hi,radius,all_nuclides_pin_8)
+highPins = [pin_0,pin_2,pin_4,pin_6,pin_8]
 
-u234 = Nuclide(numberDensities['U234'],radius['U234'],u234_all)
-u235 = Nuclide(numberDensities['U235'],radius['U235'],u235_all)
-u236 = Nuclide(numberDensities['U236'],radius['U236'],u236_all)
-u238 = Nuclide(numberDensities['U238'],radius['U238'],u238_all)
-o16  = Nuclide(numberDensities['O16' ],radius['O16' ],o16_all)
-o17  = Nuclide(numberDensities['O17' ],radius['O17' ],o17_all)
+pin_1 = Pin(N_dict_Lo,radius,all_nuclides_pin_1)
+pin_3 = Pin(N_dict_Lo,radius,all_nuclides_pin_3)
+pin_5 = Pin(N_dict_Lo,radius,all_nuclides_pin_5)
+pin_7 = Pin(N_dict_Lo,radius,all_nuclides_pin_7)
+lowPins = [pin_1,pin_3,pin_5,pin_7]
+pins = highPins + lowPins
+
+
+u235 = pin_0.nuclides['U235']
+u238 = pin_0.nuclides['U238']
+o16  = pin_0.nuclides['O16']
 
 pinRadius = 0.39128
 pitch = 1.26
@@ -53,10 +78,10 @@ C = 0.15
 ###############################################################################
 
 #------------------------------------------------------------------------------
-# We're going to treat U-235 as the resonant nuclide for now
+# We're going to treat U-235 as the resonant nuclide for now, for pin0
 #------------------------------------------------------------------------------
 res    = u235
-nonRes = [u234,u236,u238,o16,o17]
+nonRes = [u238,o16]
 
 # background = sum_nonRes [N_nonRes * sig_potNonRes / N_res] + 1/(N_res*l_bar)
 sig0 = sum([nuclide.N*nuclide.pot for nuclide in nonRes])/res.N + 1.0/(res.N*l_bar*(1.0-C))
@@ -79,22 +104,26 @@ if boundingDilutions == None: raise ValueError('Ideal dilution value out of rang
 
 
 # Pulling cross sections from the dilution table
-for g in range(nGroups):
-    u235.addXS(getDataFromEqTable(boundingDilutions,groupsU235[g],sig0))
+for pin in pins:
+    for g in range(nGroups):
+        pin.nuclides['U235'].addXS(getDataFromEqTable(boundingDilutions,groupsU235[g],sig0))
 
-
-# Making these microscopic cross sections into macroscropic cross sections
-u235.convertToMacro()
+    # Making these microscopic cross sections into macroscropic cross sections
+    pin.nuclides['U235'].convertToMacro()
 
 
 
 ###############################################################################
 # Evaluate group-wise collision probability using the effctive XS from dilution
 ###############################################################################
-SigT_new = [0.0]*nGroups
+SigT_new_hi = [0.0]*nGroups
+SigT_new_lo = [0.0]*nGroups
 for nuclide in nonRes:
-    SigT_new = [SigT_new[g] + nuclide.openMC_SigT[g] for g in range(nGroups)]
-SigT_new = [SigT_new[g] + u235.SigT[g] for g in range(nGroups)]
+    SigT_new_hi = [SigT_new_hi[g] + nuclide.openMC_SigT[g] for g in range(nGroups)]
+    SigT_new_lo = [SigT_new_lo[g] + nuclide.openMC_SigT[g] for g in range(nGroups)]
+
+SigT_new_hi = [SigT_new_hi[g] + pin_0.nuclides['U235'].SigT[g] for g in range(nGroups)]
+SigT_new_lo = [SigT_new_lo[g] + pin_1.nuclides['U235'].SigT[g] for g in range(nGroups)]
 
 
 nuclides = nonRes + [res]
@@ -104,30 +133,41 @@ collisionProbsFromSide   = []
 collisionProbsFromCenter = []
 
 for g in range(nGroups):
-    fSigT = SigT_new[g]  # Use the values we just pulled from dilution table
+    fSigT_hi = SigT_new_hi[g]  # Use the values we just pulled from dilution table
+    fSigT_lo = SigT_new_lo[g]  
     mSigT = modTotal0[g] # Use openMC values generated from grid_3x3.py
 
     collProb_from_corner = getCollisionProb( pitch, pinRadius, plot=False,   \
-      numParticles=500, hole=False, fSigT=fSigT, mSigT=mSigT, verbose=False, \
-      startNeutronsFrom=0)
-    collProb_from_side = getCollisionProb( pitch, pinRadius, plot=False,     \
-      numParticles=500, hole=False, fSigT=fSigT, mSigT=mSigT, verbose=False, \
-      startNeutronsFrom=1)
-    collProb_from_center = getCollisionProb( pitch, pinRadius, plot=False,   \
-      numParticles=500, hole=False, fSigT=fSigT, mSigT=mSigT, verbose=False, \
-      startNeutronsFrom=4)
+      numParticles=500, hole=False, fSigT_hi=fSigT_hi, fSigT_lo=fSigT_lo,    \
+      mSigT=mSigT, verbose=False, startNeutronsFrom=0)
 
     collisionProbsFromCorner.append(collProb_from_corner)
-    collisionProbsFromSide.append(collProb_from_side)
-    collisionProbsFromCenter.append(collProb_from_center)
 
 
-print(collisionProbsFromCorner[0])
-print(collisionProbsFromSide[0])
-print(collisionProbsFromCenter[0])
+#print(collisionProbsFromCorner[0])
+#print(collisionProbsFromCorner[1])
+#print(collisionProbsFromCorner[2])
 
 
+P_0_to_0 = np.array([collisionProbsFromCorner[g][0] for g in range(nGroups)])
+P_0_to_1 = np.array([collisionProbsFromCorner[g][1] for g in range(nGroups)])
 
+#print(P_0_to_0)
+print(P_0_to_1)
+print()
+pin_0.calcSigT(nGroups)
+pin_1.calcSigT(nGroups)
+pin_2.calcSigT(nGroups)
+pin_3.calcSigT(nGroups)
+pin_4.calcSigT(nGroups)
+pin_5.calcSigT(nGroups)
+pin_6.calcSigT(nGroups)
+pin_7.calcSigT(nGroups)
+pin_8.calcSigT(nGroups)
+
+# P(1->0) = P(0->1) * SigT_0 / SigT_1
+P_1_to_0 = P_0_to_1 * pin_0.SigT / pin_1.SigT
+print(P_1_to_0)
 
 
 
@@ -143,7 +183,6 @@ print(collisionProbsFromCenter[0])
 #                 SUM_pins * P(pin->myPin) * V(pin) * N(res in pin)
 
 
-P
 
 
 

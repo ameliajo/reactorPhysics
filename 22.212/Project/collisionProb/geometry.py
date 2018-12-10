@@ -14,7 +14,7 @@ def makeGeometry(pitch,radius,hole):
     YPlanes = [YPlane(i*pitch) for i in range(4)]
 
     circles = [Circle(circX[i],circY[j],radius) for j in range(3) for i in range(3)]
-    fRegs = [Region([ (circles[i],False) ],'fuel') for i in range(9)] 
+    fRegs = [Region([ (circles[i],False) ],['fuel (high enr.)','fuel (low enr.)'][i%2]) for i in range(9)] 
 
     if hole: circles.pop(4)
 

@@ -4,8 +4,10 @@ import matplotlib.pyplot as plt
 
 np.random.seed(42)
 
-def getCollisionProb(pitch,radius,plot,numParticles,hole,fSigT,mSigT,verbose,
-    startNeutronsFrom):
+
+def getCollisionProb(pitch,radius,plot,numParticles,hole,fSigT_hi, \
+    fSigT_lo,mSigT,verbose,startNeutronsFrom):
+
     sideLen  = pitch*3
 
     regions,surfaces = makeGeometry(pitch,radius,hole)
@@ -45,8 +47,12 @@ def getCollisionProb(pitch,radius,plot,numParticles,hole,fSigT,mSigT,verbose,
                 collided = weCollide(distTraveled,mSigT)
                 if collided: modHits += 1
 
-            if regions[regionID].name == 'fuel':
-                collided = weCollide(distTraveled,fSigT)
+            if regions[regionID].name == 'fuel (high enr.)':
+                collided = weCollide(distTraveled,fSigT_hi)
+                if collided: pinHits[regionID] += 1
+
+            if regions[regionID].name == 'fuel (low enr.)':
+                collided = weCollide(distTraveled,fSigT_lo)
                 if collided: pinHits[regionID] += 1
 
 
@@ -70,8 +76,9 @@ if __name__ == "__main__":
     numParticles  = 10000
     hole          = True       # Pin Labels
     startNeutronsFrom = 0      #  6  7  8
-    fSigT = 0.27413873         #  3  4  5 
-    mSigT = 0.26955675         #  0  1  2 
+    fSigT_lo = 0.27413873      #  3  4  5 
+    fSigT_hi = 0.88674345      #  0  1  2 
+    mSigT    = 0.26955675      
     verbose = True
-    collisionProb = getCollisionProb(pitch,radius,plot,numParticles,hole,fSigT,mSigT,verbose,startNeutronsFrom)
+    collisionProb = getCollisionProb(pitch,radius,plot,numParticles,hole,fSigT_hi,fSigT_lo,mSigT,verbose,startNeutronsFrom)
 

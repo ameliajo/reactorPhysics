@@ -12,26 +12,34 @@ import sys
 radius_fuel = 0.39128
 pitch = 1.26
 
+
+
 # Basic materials
-uo2 = openmc.Material(name='fuel')
-uo2.add_element('U', 1, enrichment=3.2)
-uo2.add_element('O', 2)
-#uo2.add_element('Gd', 0.0007)
-uo2.set_density('g/cc', 10.341)
-x = uo2.get_nuclide_atom_densities()
-#for d in x:
-#    print(d,x[d],x[d][1]*1E24)
+uo2_hi = openmc.Material(name='fuel')
+uo2_hi.add_nuclide('U235', 0.05)
+uo2_hi.add_nuclide('U238', 0.95)
+uo2_hi.add_nuclide('O16', 2.0)
+#uo2_hi.add_element('Gd', 0.0007)
+uo2_hi.set_density('g/cc', 10.0)
+
+uo2_lo = openmc.Material(name='fuel')
+uo2_lo.add_nuclide('U235', 0.03)
+uo2_lo.add_nuclide('U238', 0.97)
+uo2_lo.add_nuclide('O16', 2.0)
+#uo2_lo.add_element('Gd', 0.0007)
+uo2_lo.set_density('g/cc', 10.0)
+
 
 
 
 
 water = openmc.Material(3, "h2o")
-water.add_element('H', 2.0)
-water.add_element('O', 1.0)
+water.add_nuclide('H1', 2.0)
+water.add_nuclide('O16', 1.0)
 water.set_density('g/cm3', 1.0)
 
 
-materials = openmc.Materials([uo2, water])
+materials = openmc.Materials([uo2_hi, uo2_lo, water])
 materials.export_to_xml()
 
 
@@ -59,7 +67,7 @@ waterReg = +x1 & -x4 & +y1 & -y4 &                              \
            +fCylinders[3] &  +fCylinders[4] &  +fCylinders[5] & \
            +fCylinders[6] &  +fCylinders[7] &  +fCylinders[8] 
 
-fCells = [openmc.Cell(name='fuel'+str(i), fill=uo2, region=-fCylinders[i]) for i in range(9)]
+fCells = [openmc.Cell(name='fuel'+str(i), fill=[uo2_hi,uo2_lo][i%2], region=-fCylinders[i]) for i in range(9)]
 
 mCells = []
 count = 0
@@ -202,68 +210,49 @@ for cell in openmc_cells:
     for rxn_type in xs_library[cell.id]:
         xs_library[cell.id][rxn_type].load_from_statepoint(sp)
 
+##################################################################
+# PLOT
+##################################################################
+import sys
+if (len(sys.argv) > 1):
+    if (sys.argv[1] == 'plot'):
+
+        p = openmc.Plot()
+        p.filename = 'pinplot'
+        p.width = (3*pitch, 3*pitch)
+        p.pixels = (200, 200)
+        p.color_by = 'material'
+        p.origin = (3*pitch/2,3*pitch/2,0.0)
+        plots = openmc.Plots([p])
+        plots.export_to_xml()
+        openmc.plot_geometry()
+
+
+
+
 nufission = xs_library[fCells[0].id]['nu-fission']
-#nufission.print_xs(xs_type='macro', nuclides=['U235', 'U238','U234','U236','O16','O17'])
-u234_nu_fission = nufission.get_xs(xs_type='macro', nuclides=['U234'])
-u234_nu_fission_to_write = [float('%.8E'%x) for x in u234_nu_fission]
 u235_nu_fission = nufission.get_xs(xs_type='macro', nuclides=['U235'])
 u235_nu_fission_to_write = [float('%.8E'%x) for x in u235_nu_fission]
-u236_nu_fission = nufission.get_xs(xs_type='macro', nuclides=['U236'])
-u236_nu_fission_to_write = [float('%.8E'%x) for x in u236_nu_fission]
 u238_nu_fission = nufission.get_xs(xs_type='macro', nuclides=['U238'])
 u238_nu_fission_to_write = [float('%.8E'%x) for x in u238_nu_fission]
 o16_nu_fission = nufission.get_xs(xs_type='macro', nuclides=['O16'])
 o16_nu_fission_to_write = [float('%.8E'%x) for x in o16_nu_fission]
-o17_nu_fission = nufission.get_xs(xs_type='macro', nuclides=['O17'])
-o17_nu_fission_to_write = [float('%.8E'%x) for x in o17_nu_fission]
 
 total= xs_library[fCells[0].id]['total']
-#total.print_xs(xs_type='macro', nuclides=['U235', 'U238','U234','U236','O16','O17'])
-u234_total = total.get_xs(xs_type='macro', nuclides=['U234'])
-u234_total_to_write = [float('%.8E'%x) for x in u234_total]
 u235_total = total.get_xs(xs_type='macro', nuclides=['U235'])
 u235_total_to_write = [float('%.8E'%x) for x in u235_total]
-u236_total = total.get_xs(xs_type='macro', nuclides=['U236'])
-u236_total_to_write = [float('%.8E'%x) for x in u236_total]
 u238_total = total.get_xs(xs_type='macro', nuclides=['U238'])
 u238_total_to_write = [float('%.8E'%x) for x in u238_total]
 o16_total = total.get_xs(xs_type='macro', nuclides=['O16'])
 o16_total_to_write = [float('%.8E'%x) for x in o16_total]
-o17_total = total.get_xs(xs_type='macro', nuclides=['O17'])
-o17_total_to_write = [float('%.8E'%x) for x in o17_total]
-
-
-scatter = xs_library[fCells[0].id]['scatter']
-#scatter.print_xs(xs_type='macro', nuclides=['U235', 'U238','U234','U236','O16','O17'])
-u234_scatter = scatter.get_xs(xs_type='macro', nuclides=['U234'])
-u234_scatter_to_write = [[float('%.8E'%x) for x in y] for y in u234_scatter]
-u235_scatter = scatter.get_xs(xs_type='macro', nuclides=['U235'])
-u235_scatter_to_write = [[float('%.8E'%x) for x in y] for y in u235_scatter]
-u236_scatter = scatter.get_xs(xs_type='macro', nuclides=['U236'])
-u236_scatter_to_write = [[float('%.8E'%x) for x in y] for y in u236_scatter]
-u238_scatter = scatter.get_xs(xs_type='macro', nuclides=['U238'])
-u238_scatter_to_write = [[float('%.8E'%x) for x in y] for y in u238_scatter]
-o16_scatter = scatter.get_xs(xs_type='macro', nuclides=['O16'])
-o16_scatter_to_write = [[float('%.8E'%x) for x in y] for y in o16_scatter]
-o17_scatter = scatter.get_xs(xs_type='macro', nuclides=['O17'])
-o17_scatter_to_write = [[float('%.8E'%x) for x in y] for y in o17_scatter]
 
 chi= xs_library[fCells[0].id]['chi']
-#chi.print_xs(xs_type='macro', nuclides=['U235', 'U238','U234','U236','O16','O17'])
-u234_chi = chi.get_xs(xs_type='macro', nuclides=['U234'])
-u234_chi_to_write = [float('%.8E'%x) for x in u234_chi]
 u235_chi = chi.get_xs(xs_type='macro', nuclides=['U235'])
 u235_chi_to_write = [float('%.8E'%x) for x in u235_chi]
-u236_chi = chi.get_xs(xs_type='macro', nuclides=['U236'])
-u236_chi_to_write = [float('%.8E'%x) for x in u236_chi]
 u238_chi = chi.get_xs(xs_type='macro', nuclides=['U238'])
 u238_chi_to_write = [float('%.8E'%x) for x in u238_chi]
 o16_chi = chi.get_xs(xs_type='macro', nuclides=['O16'])
 o16_chi_to_write = [float('%.8E'%x) for x in o16_chi]
-o17_chi = chi.get_xs(xs_type='macro', nuclides=['O17'])
-o17_chi_to_write = [float('%.8E'%x) for x in o17_chi]
-
-
 
 
 
@@ -275,44 +264,42 @@ o17_chi_to_write = [float('%.8E'%x) for x in o17_chi]
 f = open("XS_nuclideSpecific.py","w+")
 #
 for i in range(9):
-    f.write("u234_nuFission = "+str(u234_nu_fission_to_write)+"\n")
-    f.write("u235_nuFission = "+str(u235_nu_fission_to_write)+"\n")
-    f.write("u236_nuFission = "+str(u236_nu_fission_to_write)+"\n")
-    f.write("u238_nuFission = "+str(u238_nu_fission_to_write)+"\n")
-    f.write("o16_nuFission = "+str(o16_nu_fission_to_write)+"\n")
-    f.write("o17_nuFission = "+str(o17_nu_fission_to_write)+"\n")
+    f.write("u235_nuFission"+str(i)+" = "+str(u235_nu_fission_to_write)+"\n")
+    f.write("u238_nuFission"+str(i)+" = "+str(u238_nu_fission_to_write)+"\n")
+    f.write("o16_nuFission"+str(i)+" = "+str(o16_nu_fission_to_write)+"\n")
     f.write("\n\n")
-    f.write("u234_total = "+str(u234_total_to_write)+"\n")
-    f.write("u235_total = "+str(u235_total_to_write)+"\n")
-    f.write("u236_total = "+str(u236_total_to_write)+"\n")
-    f.write("u238_total = "+str(u238_total_to_write)+"\n")
-    f.write("o16_total = "+str(o16_total_to_write)+"\n")
-    f.write("o17_total = "+str(o17_total_to_write)+"\n")
+    f.write("u235_total"+str(i)+" = "+str(u235_total_to_write)+"\n")
+    f.write("u238_total"+str(i)+" = "+str(u238_total_to_write)+"\n")
+    f.write("o16_total"+str(i)+" = "+str(o16_total_to_write)+"\n")
     f.write("\n\n")
-    f.write("u234_scatter = "+str(u234_scatter_to_write)+"\n")
-    f.write("u235_scatter = "+str(u235_scatter_to_write)+"\n")
-    f.write("u236_scatter = "+str(u236_scatter_to_write)+"\n")
-    f.write("u238_scatter = "+str(u238_scatter_to_write)+"\n")
-    f.write("o16_scatter = "+str(o16_scatter_to_write)+"\n")
-    f.write("o17_scatter = "+str(o17_scatter_to_write)+"\n")
-    f.write("\n\n")
-    f.write("u234_chi = "+str(u234_chi_to_write)+"\n")
-    f.write("u235_chi = "+str(u235_chi_to_write)+"\n")
-    f.write("u236_chi = "+str(u236_chi_to_write)+"\n")
-    f.write("u238_chi = "+str(u238_chi_to_write)+"\n")
-    f.write("o16_chi = "+str(o16_chi_to_write)+"\n")
-    f.write("o17_chi = "+str(o17_chi_to_write)+"\n")
+    f.write("u235_chi"+str(i)+" = "+str(u235_chi_to_write)+"\n")
+    f.write("u238_chi"+str(i)+" = "+str(u238_chi_to_write)+"\n")
+    f.write("o16_chi"+str(i)+" = "+str(o16_chi_to_write)+"\n")
     f.write("\n\n")
 
-    f.write("u234_all = [u234_nuFission,u234_total,u234_scatter,u234_chi]\n")
-    f.write("u235_all = [u235_nuFission,u235_total,u235_scatter,u235_chi]\n")
-    f.write("u236_all = [u236_nuFission,u236_total,u236_scatter,u236_chi]\n")
-    f.write("u238_all = [u238_nuFission,u238_total,u238_scatter,u238_chi]\n")
-    f.write("o16_all = [o16_nuFission,o16_total,o16_scatter,o16_chi]\n")
-    f.write("o17_all = [o17_nuFission,o17_total,o17_scatter,o17_chi]\n")
-
-    break
+    f.write("u235_all_rxn_for_pin_"+str(i)+" = [u235_nuFission"+str(i)+",u235_total"+str(i)+",u235_chi"+str(i)+"]\n")
+    f.write("u238_all_rxn_for_pin_"+str(i)+" = [u238_nuFission"+str(i)+",u238_total"+str(i)+",u238_chi"+str(i)+"]\n")
+    f.write("o16_all_rxn_for_pin_"+str(i)+" = [o16_nuFission"+str(i)+",o16_total"+str(i)+",o16_chi"+str(i)+"]\n")
     f.write("\n\n")
+    f.write("all_nuclides_pin_"+str(i)+" = [u235_all_rxn_for_pin_"+str(i)+",u238_all_rxn_for_pin_"+str(i)+",o16_all_rxn_for_pin_"+str(i)+"]\n")
+    f.write("\n\n")
+
+
+f.write("\n")
+f.write('u235_all_pins = [u235_all_rxn_for_pin_0, u235_all_rxn_for_pin_1, u235_all_rxn_for_pin_2, u235_all_rxn_for_pin_3, u235_all_rxn_for_pin_4, u235_all_rxn_for_pin_5, u235_all_rxn_for_pin_6, u235_all_rxn_for_pin_7, u235_all_rxn_for_pin_8]\n\n')
+f.write('u238_all_pins = [u238_all_rxn_for_pin_0, u238_all_rxn_for_pin_1, u238_all_rxn_for_pin_2, u238_all_rxn_for_pin_3, u238_all_rxn_for_pin_4, u238_all_rxn_for_pin_5, u238_all_rxn_for_pin_6, u238_all_rxn_for_pin_7, u238_all_rxn_for_pin_8]\n\n')
+f.write('o16_all_pins = [o16_all_rxn_for_pin_0, o16_all_rxn_for_pin_1, o16_all_rxn_for_pin_2, o16_all_rxn_for_pin_3, o16_all_rxn_for_pin_4, o16_all_rxn_for_pin_5, o16_all_rxn_for_pin_6, o16_all_rxn_for_pin_7, o16_all_rxn_for_pin_8]\n\n')
+
+f.write("\n\n")
+
+
+
+
+hi_N = uo2_hi.get_nuclide_atom_densities()
+lo_N = uo2_lo.get_nuclide_atom_densities()
+for i in hi_N:
+    f.write("N_hi_"+str(i)+" = "+str(hi_N[i][1]*1E24)+"\n")
+    f.write("N_lo_"+str(i)+" = "+str(lo_N[i][1]*1E24)+"\n")
 
 
 

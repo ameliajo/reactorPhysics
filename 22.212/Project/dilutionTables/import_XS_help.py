@@ -24,8 +24,9 @@ class Nuclide:
     def importFromOpenMC(self,openMC_vals):
         self.openMC_nuSigF = openMC_vals[0]
         self.openMC_SigT   = openMC_vals[1]
-        self.openMC_SigS   = openMC_vals[2]
-        self.openMC_Chi    = openMC_vals[3]
+        self.openMC_Chi    = openMC_vals[2]
+
+
 
 
         
