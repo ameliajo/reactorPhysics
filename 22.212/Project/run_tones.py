@@ -26,14 +26,24 @@ class Pin:
 
 
 
+# Define problem geometry
+pinRad = 0.39128;  pitch = 1.26
+l_bar  = 2*pinRad; C     = 0.15
 
 
 
 
+
+###############################################################################
 # Load in dilution table
+###############################################################################
+
 # groupsU235[g].sigT[d] will give you sigT for group g for dilution index d
 groupsU235 = interpretGENDF('u235',False,'dilutionTables/u235_tape26')
 groupsU235.reverse() # Because NJOY does groups in inverse order (low -> high)
+dilution = groupsU235[0].dilutionVals # All dilution values are the same, it
+                                      # doesn't matter I'm pulling this from 
+                                      # energy group 0
 
 # Gotten from OpenMC input, using uo2.get_nuclide_atom_densities and multiplying
 # by 1E24 bc the number densities are provided in atoms / b cm
@@ -45,26 +55,9 @@ radius = { 'U234': 8.930000E-1, 'U235': 9.602000E-1, \
            'U238': 9.480000E-1, 'U236': 9.354000E-1, \
            'O16' : 5.562563E-1, 'O17' : 5.780000E-1 }
 
-pin_0 = Pin(N_dict_Hi,radius,all_nuclides_pin_0)
-pin_2 = Pin(N_dict_Hi,radius,all_nuclides_pin_2)
-pin_4 = Pin(N_dict_Hi,radius,all_nuclides_pin_4)
-pin_6 = Pin(N_dict_Hi,radius,all_nuclides_pin_6)
-pin_8 = Pin(N_dict_Hi,radius,all_nuclides_pin_8)
-highPins = [pin_0,pin_2,pin_4,pin_6,pin_8]
 
-pin_1 = Pin(N_dict_Lo,radius,all_nuclides_pin_1)
-pin_3 = Pin(N_dict_Lo,radius,all_nuclides_pin_3)
-pin_5 = Pin(N_dict_Lo,radius,all_nuclides_pin_5)
-pin_7 = Pin(N_dict_Lo,radius,all_nuclides_pin_7)
-lowPins = [pin_1,pin_3,pin_5,pin_7]
-pins = [pin_0,pin_1,pin_2,pin_3,pin_4,pin_5,pin_6,pin_7,pin_8]
-
-
-pinRadius = 0.39128
-pitch = 1.26
-
-l_bar = 2.0 * pinRadius
-C = 0.15
+# Define pins materials
+pins = [Pin([N_dict_Hi,N_dict_Lo][i%2],radius,all_nuclides[i]) for i in range(9)]
 
 
 
@@ -77,103 +70,108 @@ C = 0.15
 #------------------------------------------------------------------------------
 # We're going to treat U-235 as the resonant nuclide for now, for pin0
 #------------------------------------------------------------------------------
-res    = pin_0.U235
-nonRes = [pin_0.U238,pin_0.O16]
+nonRes = [pins[0].U238,pins[0].O16]
 
 # background = sum_nonRes [N_nonRes * sig_potNonRes / N_res] + 1/(N_res*l_bar)
-sig0 = sum([nuclide.N*nuclide.pot for nuclide in nonRes])/res.N + 1.0/(res.N*l_bar*(1.0-C))
+sig0 = sum([nuclide.N*nuclide.pot for nuclide in nonRes])/pins[0].U235.N + \
+       1.0 / (pins[0].U235.N*l_bar*(1.0-C))
 
 
-###############################################################################
-# Evaluate the effective cross sections of resonance nuclides using the 
-# conventional equivalence theory.
-###############################################################################
 
-dilution = groupsU235[0].dilutionVals
-nGroups = len(groupsU235)
-boundingDilutions = None
-for i in range(len(dilution)-1):
-    if dilution[i] > sig0 > dilution[i+1]:
-        boundingDilutions = [(i,dilution[i]),(i+1,dilution[i+1])]
+converged = False
+counter = 0
+sig0Vals = [sig0]
+while not converged:
+    print(sig0)
+
+    ###########################################################################
+    # Evaluate the effective cross sections of resonance nuclides using the 
+    # conventional equivalence theory.
+    ###########################################################################
+
+    nGroups = len(groupsU235)
+    boundingDilutions = None
+    for i in range(len(dilution)-1):
+        if dilution[i] > sig0 > dilution[i+1]:
+            boundingDilutions = [(i,dilution[i]),(i+1,dilution[i+1])]
+            break
+
+    if boundingDilutions == None: raise ValueError('Ideal dilution value out of range')
+
+    # Pulling cross sections from the dilution table
+    for pin in pins:
+        for g in range(nGroups):
+            pin.U235.addXS(getDataFromEqTable(boundingDilutions,groupsU235[g],sig0))
+
+        # Making these microscopic cross sections into macroscropic cross sections
+        pin.U235.convertToMacro()
+
+
+
+    ###########################################################################
+    # Evaluate group-wise collision probability using the effctive XS from dilution
+    ###########################################################################
+
+    #--------------------------------------------------------------------------
+    # Calculate the macro. SigT for the high/low enr. fuel pins, and plug into the
+    # collision probability MC script
+    #--------------------------------------------------------------------------
+    SigT_hi = [ sum([nucl.openMC_SigT[g] for nucl in nonRes]) + \
+                pins[0].U235.SigT[g] for g in range(nGroups) ]
+    SigT_lo = [ sum([nucl.openMC_SigT[g] for nucl in nonRes]) + \
+                pins[1].U235.SigT[g] for g in range(nGroups) ]
+
+
+    # For hi/lo enr. of fuel, use values we just pulled from dilution table
+    # For moderator, use openMC values generated from grid_3x3.py
+    collisionProbs = [                                                   \
+        getCollisionProb( pitch, pinRad, plot=False, numParticles=5000,   \
+          hole=False, fSigT_hi=SigT_hi[g], fSigT_lo=SigT_lo[g],          \
+          mSigT=modTotal0[g], verbose=False, startNeutronsFrom=0 )       \
+        for g in range(nGroups)]
+
+
+
+
+
+    ###########################################################################
+    # Update the background cross section 
+    ###########################################################################
+
+    # sig0 = SUM_pins SUM_nonRes P(pin->me) * V(pin) * N(nonResInPin)*sig(pot)
+    #        ------------------------------------------------------------------
+    #                 SUM_pins * P(pin->me) * V(pin) * N(resInPin)
+
+    tones_Numer = 0.0
+    tones_Denom = 0.0
+
+    for pinID,pin in enumerate(pins):
+        pin.calcSigT(nGroups)
+        P_0_to_i = np.array([collisionProbs[g][pinID] for g in range(nGroups)])
+        # RECIPROCITY RELATION
+        # P(i->0) = P(0->i) * SigT_0 / SigT_i
+        P_i_to_0 = P_0_to_i * pins[0].SigT / pin.SigT
+
+        SUM_nonRes_sigPot = pin.U238.N*pin.U238.pot*1E-24 +\
+                            pin.O16.N*pin.O16.pot*1E-24
+        
+        tones_Numer += P_i_to_0 * SUM_nonRes_sigPot
+        tones_Denom += P_i_to_0 * pin.U235.N
+
+    sig0_new = sum(tones_Numer/tones_Denom*1e24)/10.0
+      
+
+
+    ###########################################################################
+    # Repeat
+    ###########################################################################
+    sig0 = sig0_new 
+    sig0Vals.append(sig0)
+
+    counter += 1
+    if counter > 10:
         break
 
-if boundingDilutions == None: raise ValueError('Ideal dilution value out of range')
-
-
-# Pulling cross sections from the dilution table
-for pin in pins:
-    for g in range(nGroups):
-        pin.U235.addXS(getDataFromEqTable(boundingDilutions,groupsU235[g],sig0))
-
-    # Making these microscopic cross sections into macroscropic cross sections
-    pin.U235.convertToMacro()
-
-
-
-###############################################################################
-# Evaluate group-wise collision probability using the effctive XS from dilution
-###############################################################################
-SigT_new_hi = [0.0]*nGroups
-SigT_new_lo = [0.0]*nGroups
-for nuclide in nonRes:
-    SigT_new_hi = [SigT_new_hi[g] + nuclide.openMC_SigT[g] for g in range(nGroups)]
-    SigT_new_lo = [SigT_new_lo[g] + nuclide.openMC_SigT[g] for g in range(nGroups)]
-
-SigT_new_hi = [SigT_new_hi[g] + pin_0.U235.SigT[g] for g in range(nGroups)]
-SigT_new_lo = [SigT_new_lo[g] + pin_1.U235.SigT[g] for g in range(nGroups)]
-
-
-collisionProbs = []
-
-for g in range(nGroups):
-    fSigT_hi = SigT_new_hi[g]  # Use the values we just pulled from dilution table
-    fSigT_lo = SigT_new_lo[g]  
-    mSigT    = modTotal0[g] # Use openMC values generated from grid_3x3.py
-
-    collisionProbs.append(getCollisionProb( pitch, pinRadius, plot=False,    \
-      numParticles=500, hole=False, fSigT_hi=fSigT_hi, fSigT_lo=fSigT_lo,    \
-      mSigT=mSigT, verbose=False, startNeutronsFrom=0))
-
-
-
-
-
-
-###############################################################################
-# Update the background cross section 
-###############################################################################
-
-# sig0 = SUM_pins SUM_nonRes P(pin->myPin) * V(pin) * N(nonRes in pin)*sig(pot)
-#        ----------------------------------------------------------------------
-#                 SUM_pins * P(pin->myPin) * V(pin) * N(res in pin)
-
-tones_Numer = 0.0
-tones_Denom = 0.0
-
-for pinID,pin in enumerate(pins):
-    pin.calcSigT(nGroups)
-    P_0_to_i = np.array([collisionProbs[g][pinID] for g in range(nGroups)])
-    # P(i->0) = P(0->i) * SigT_0 / SigT_i
-    P_i_to_0 = P_0_to_i * pin_0.SigT / pin.SigT
-
-    SUM_nonRes_sigPot = pin.U238.N*pin.U238.pot*1E-24 +\
-                        pin.O16.N*pin.O16.pot*1E-24
-    
-    tones_Numer += P_i_to_0 * SUM_nonRes_sigPot
-    tones_Denom += P_i_to_0 * pin.U235.N
-
-sig0_new = sum(tones_Numer/tones_Denom*1e24)/10.0
-print(sig0_new)
-print(sig0)
-   
-
-
-
-
-
-
-##############################################################################
-# Repeat
-##############################################################################
-
-
+import matplotlib.pyplot as plt
+plt.plot(sig0Vals)
+plt.show()

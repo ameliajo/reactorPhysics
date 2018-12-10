@@ -291,6 +291,10 @@ f.write('u238_all_pins = [u238_all_rxn_for_pin_0, u238_all_rxn_for_pin_1, u238_a
 f.write('o16_all_pins = [o16_all_rxn_for_pin_0, o16_all_rxn_for_pin_1, o16_all_rxn_for_pin_2, o16_all_rxn_for_pin_3, o16_all_rxn_for_pin_4, o16_all_rxn_for_pin_5, o16_all_rxn_for_pin_6, o16_all_rxn_for_pin_7, o16_all_rxn_for_pin_8]\n\n')
 
 f.write("\n\n")
+f.write('all_nuclides = [all_nuclides_pin_0, all_nuclides_pin_1, all_nuclides_pin_2, all_nuclides_pin_3, all_nuclides_pin_4, all_nuclides_pin_5, all_nuclides_pin_6, all_nuclides_pin_7, all_nuclides_pin_8]\n\n')
+
+
+f.write("\n\n")
 
 
 
