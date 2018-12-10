@@ -1,4 +1,7 @@
 from math import pi
+import matplotlib.pyplot as plt
+from numpy import ma
+
 import sys
 sys.path.append('./dilutionTables/')
 sys.path.append('./GettingXS/')
@@ -9,6 +12,9 @@ from import_XS_help import *
 from XS_nuclideSpecific import *
 from getCollisionProb import *
 from XS import modTotal0
+import matplotlib.colors as colors
+import matplotlib.cm as cmx
+
 
 
 class Pin:
@@ -26,10 +32,19 @@ class Pin:
 
 
 
+
+jet = cm = plt.get_cmap('hot')
+#jet = cm = plt.get_cmap('tab10')
+#jet = cm = plt.get_cmap('autumn')
+cNorm  = colors.Normalize(vmin=0, vmax=8)
+scalarMap = cmx.ScalarMappable(norm=cNorm, cmap=jet)
+
 # Define problem geometry
 pinRad = 0.39128;  pitch = 1.26
 l_bar  = 2*pinRad; C     = 0.15
 
+
+E_bounds = [1e-5,0.058,0.14,0.28,0.625,4.,1e1,4e1,5.53e3,8.21e5,2.e7]
 
 
 
@@ -77,31 +92,34 @@ sig0 = sum([nuclide.N*nuclide.pot for nuclide in nonRes])/pins[0].U235.N + \
        1.0 / (pins[0].U235.N*l_bar*(1.0-C))
 
 
+nGroups = len(groupsU235)
+sig0EnergyVec = [sig0]*nGroups
 
 converged = False
 counter = 0
 sig0Vals = [sig0]
 while not converged:
-    print(sig0)
+    print(sig0EnergyVec)
 
     ###########################################################################
     # Evaluate the effective cross sections of resonance nuclides using the 
     # conventional equivalence theory.
     ###########################################################################
 
-    nGroups = len(groupsU235)
-    boundingDilutions = None
-    for i in range(len(dilution)-1):
-        if dilution[i] > sig0 > dilution[i+1]:
-            boundingDilutions = [(i,dilution[i]),(i+1,dilution[i+1])]
-            break
+    boundingDilutionsVec = [None]*nGroups
+    for g in range(nGroups):
+        for i in range(len(dilution)-1):
+            if dilution[i] > sig0EnergyVec[g] > dilution[i+1]:
+                boundingDilutionsVec[g] = [(i,dilution[i]),(i+1,dilution[i+1])]
+                break
 
-    if boundingDilutions == None: raise ValueError('Ideal dilution value out of range')
+    if None in boundingDilutionsVec: raise ValueError('Ideal dilution value out of range')
 
     # Pulling cross sections from the dilution table
     for pin in pins:
         for g in range(nGroups):
-            pin.U235.addXS(getDataFromEqTable(boundingDilutions,groupsU235[g],sig0))
+            pin.U235.addXS(getDataFromEqTable(boundingDilutionsVec[g],\
+                           groupsU235[g],sig0EnergyVec[g]))
 
         # Making these microscopic cross sections into macroscropic cross sections
         pin.U235.convertToMacro()
@@ -125,7 +143,7 @@ while not converged:
     # For hi/lo enr. of fuel, use values we just pulled from dilution table
     # For moderator, use openMC values generated from grid_3x3.py
     collisionProbs = [                                                   \
-        getCollisionProb( pitch, pinRad, plot=False, numParticles=5000,   \
+        getCollisionProb( pitch, pinRad, plot=False, numParticles=1000,  \
           hole=False, fSigT_hi=SigT_hi[g], fSigT_lo=SigT_lo[g],          \
           mSigT=modTotal0[g], verbose=False, startNeutronsFrom=0 )       \
         for g in range(nGroups)]
@@ -158,20 +176,30 @@ while not converged:
         tones_Numer += P_i_to_0 * SUM_nonRes_sigPot
         tones_Denom += P_i_to_0 * pin.U235.N
 
-    sig0_new = sum(tones_Numer/tones_Denom*1e24)/10.0
-      
+    sig0_new = sum(tones_Numer/tones_Denom*1e24)/nGroups
+    plt.step(E_bounds,[1e24*tones_Numer[0]/tones_Denom[0]]+list(1e24*tones_Numer/tones_Denom),label='inter'+str(counter),color=scalarMap.to_rgba(counter))
 
 
     ###########################################################################
     # Repeat
     ###########################################################################
     sig0 = sig0_new 
-    sig0Vals.append(sig0)
+    sig0EnergyVec = tones_Numer/tones_Denom*1e24
 
     counter += 1
-    if counter > 10:
+    if counter > 5:
         break
 
-import matplotlib.pyplot as plt
-plt.plot(sig0Vals)
-plt.show()
+ax = plt.gca()
+ax.set_facecolor('xkcd:pale grey')
+ax.set_facecolor('xkcd:off white')
+plt.xscale('log')
+plt.xlabel('Energy (eV)')
+plt.ylabel('Sig0 approximation')
+plt.legend(loc='best')
+plt.savefig('sig0Estimations.png')
+#plt.show()
+
+
+
+
