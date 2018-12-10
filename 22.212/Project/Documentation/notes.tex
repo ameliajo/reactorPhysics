@@ -1,0 +1,117 @@
+\documentclass[10pt]{article}
+\usepackage{graphicx,tabularx,array,geometry,tikz,pgfplots,amsmath,bbding,framed,enumitem,graphicx,wrapfig,multicol,listings,empheq,biblatex}
+\usepackage{color} %red, green, blue, yellow, cyan, magenta, black, white
+\definecolor{mygreen}{RGB}{28,172,0} % color values Red, Green, Blue
+\definecolor{mylilas}{RGB}{170,55,241}
+\usepackage[makeroom]{cancel}
+\setlength{\parskip}{1ex} %--skip lines between paragraphs
+\setlength{\parindent}{0pt} %--don't indent paragraphs
+\lstset{language=Matlab,%
+  %basicstyle=\color{red},
+  breaklines=true,%
+  morekeywords={matlab2tikz},
+  keywordstyle=\color{blue},%
+  morekeywords=[2]{1}, keywordstyle=[2]{\color{black}},
+  identifierstyle=\color{black},%
+  stringstyle=\color{mylilas},
+  commentstyle=\color{mygreen},%
+  showstringspaces=false,%without this there will be a symbol in the places where there is a space
+  numbers=left,%
+  numberstyle={\tiny \color{black}},% size of the numbers
+  numbersep=9pt, % this defines how far the numbers are from the text
+  emph=[1]{for,end,break},emphstyle=[1]\color{red}, %some words to emphasise
+  %emph=[2]{word1,word2}, emphstyle=[2]{style},    
+}
+\geometry{
+ total={210mm,297mm},
+ left=15mm,
+ right=15mm,
+ top=10mm,
+ bottom=20mm,
+ }
+ \pgfplotsset{compat=1.12}
+%-- Commands for header
+\newcommand*\widefbox[1]{\fbox{\hspace{2em}#1\hspace{2em}}}
+\addbibresource{proposal.bib}
+
+\renewcommand{\title}[1]{\textbf{#1}\\}
+\renewcommand{\line}{\begin{tabularx}{\textwidth}{X>{\raggedleft}X}\hline\\\end{tabularx}\\[-0.5cm]}
+\newcommand{\leftright}[2]{\begin{tabularx}{\textwidth}{X>{\raggedleft}X}#1%
+\end{tabularx}\\[-0.5cm]}
+
+%\linespread{2} %-- Uncomment for Double Space
+\begin{document}
+
+\title{Notes/Derivations\qquad Amelia Trainer }
+\line\\
+\leftright{\today}{ }%-- left and right positions in the header
+~\par
+
+\subsection*{Narrow Resonance Model}
+We start with the Boltzmann Equation.
+\[\Sigma_{t}(E)\phi(E)=\int_{0}^{\infty}\Sigma_{s}\left(E^{\prime}\rightarrow E\right)\phi\left(E^{\prime}\right)\mathrm{d}E^{\prime}+\frac{\chi(E)}{k_{eff}}\int_{0}^{\infty}v\Sigma_{f}\left(E^{\prime}\right)\phi\left(E^{\prime}\right)\mathrm{d}E^{\prime}\]
+
+We're working in the resonance region, where scattering is the main form of neutrons slowing down. So we get rid of our fission term, and replace the scattering kernel with the kinematics represention, we get
+\[\left(\sum_{k}N_{k}\sigma_{t,k}(E)\right)\phi(E)=\sum_{k}\frac{1}{1-\alpha_{k}}\int_{E}^{E/\alpha_{k}}N_{k}\sigma_{s,k}\left(E^{\prime}\right)\phi\left(E^{\prime}\right)\frac{\mathrm{d}E^{\prime}}{E^{\prime}}\]
+
+Now, assume that the energy dependence of cross sections for nonresonant nuclides is constant, with no absorption. In other words, their total cross sections are equal to the potential scattering cross sections ($\sigma_{t,k}=\sigma_{s,k}=\sigma_{pot,k}$). This is justified, since this potential scattering, which is independent of the incident neutron energy, is dominant for nonresonant nuclides in the resonance energy range
+
+\[\begin{aligned}\left(N_{r}\sigma_{t,r}(E)+\sum_{k\neq r}N_{k}\sigma_{p,k}\right)\phi(E)=&\frac{1}{1-\alpha_{r}}\int_{E}^{E/\alpha_{r}}N_{r}\sigma_{s,r}\left(E^{\prime}\right)\phi\left(E^{\prime}\right)\frac{dE^{\prime}}{E^{\prime}}\\&+\sum_{k\neq r}\frac{1}{1-\alpha_{k}}\int_{E}^{E/\alpha_{k}}N_{k}\sigma_{p,k}\phi\left(E^{\prime}\right)\frac{dE^{\prime}}{E^{\prime}}\end{aligned}\]
+  
+
+  For the purpose of further simpli cation, the resonance width of nuclide $r$ (our resonant nuclide) is assumed to be narrow compared to the slowing down width.  is means that most neutrons that appear near the resonance peak energy come from outside of the resonance peak (i.e., the nonresonant energy range) due to much higher energies
+\begin{align*}\sum_{k\neq r}\frac{1}{1-\alpha_{k}}\int_{E}^{E/\alpha_{k}}N_{k}\sigma_{p,k}\phi\left(E^{\prime}\right)\frac{\mathrm{d}E^{\prime}}{E^{\prime}}=&\sum_{k\neq r}\frac{N_{k}\sigma_{p,k}}{1-\alpha_{k}}\int_{E}^{E/\alpha_{k}}\phi\left(E^{\prime}\right)\frac{\mathrm{d}E^{\prime}}{E^{\prime}}\\&{\approx\sum_{k\neq r}\frac{N_{k}\sigma_{p,k}}{1-\alpha_{k}}\int_{E}^{E/\alpha_{k}}\frac{1}{E^{\prime}}\frac{\mathrm{d}E^{\prime}}{E^{\prime}}}\\ &=\sum_{k\neq r}N_{k}\sigma_{p,k}\frac{1}{E}\end{align*}
+
+\[\sum_{k\neq r}\frac{1}{1-\alpha_{k}}\int_{E}^{E/\alpha_{k}}N_{k}\sigma_{p,k}\phi\left(E^{\prime}\right)\frac{\mathrm{d}E^{\prime}}{E^{\prime}}\approx\sum_{k\neq r}N_{k}\sigma_{p,k}\frac{1}{E}\]
+
+
+
+
+\subsection*{Neutron Slowing Down in Heterogeneous Isolated System}
+\[\begin{aligned}\Sigma_{t,f}(E)\phi_{f}(E)V_{f}=&P_{f\rightarrow f}(E)V_{f}\int_{0}^{\infty}dE^{\prime}\Sigma_{s,f}\left(E^{\prime}\rightarrow E\right)\phi_{f}\left(E^{\prime}\right)\\&+P_{m\rightarrow f}(E)V_{m}\int_{0}^{\infty}dE^{\prime}\Sigma_{s,m}\left(E^{\prime}\rightarrow E\right)\phi_{m}\left(E^{\prime}\right)\end{aligned}\]
+
+\[\begin{aligned}\Sigma_{t,f}(E)\phi_{f}(E)V_{f}=&P_{f\rightarrow f}(E)V_{f}\sum_{k\in f}\int_{E}^{E/\alpha_{k}}\frac{dE^{\prime}N_{k}\sigma_{es,k}\left(E^{\prime}\right)\phi_{f}\left(E^{\prime}\right)}{\left(1-\alpha_{k}\right)E^{\prime}}\\&+P_{m\rightarrow f}(E)V_{m}\sum_{k\in m}\int_{E}^{E/\alpha_{k}}\frac{dE^{\prime}N_{k}\sigma_{es,k}\left(E^{\prime}\right)\phi_{m}\left(E^{\prime}\right)}{\left(1-\alpha_{k}\right)E^{\prime}}\end{aligned}\]
+
+When we apply the NR model, we get that this simplifies to
+\[\Sigma_{t,f}(E)\phi_{f}(E)V_{f}=\frac{1}{E}\Big(P_{f\rightarrow f}(E)V_{f}\Sigma_{p,f}+P_{m\rightarrow f}(E)V_{m}\Sigma_{p,m}\Big)\]
+which mean that
+\[\frac{1}{E}P_{f\rightarrow f}(E)V_{f}\Sigma_{p,f}=P_{f\rightarrow f}(E)V_{f}\sum_{k\in f}\int_{E}^{E/\alpha_{k}}\frac{dE^{\prime}N_{k}\sigma_{es,k}\left(E^{\prime}\right)\phi_{f}\left(E^{\prime}\right)}{\left(1-\alpha_{k}\right)E^{\prime}}\]
+and
+\[\frac{1}{E}P_{m\rightarrow f}(E)V_{m}\Sigma_{p,m}=P_{m\rightarrow f}(E)V_{m}\sum_{k\in m}\int_{E}^{E/\alpha_{k}}\frac{dE^{\prime}N_{k}\sigma_{es,k}\left(E^{\prime}\right)\phi_{m}\left(E^{\prime}\right)}{\left(1-\alpha_{k}\right)E^{\prime}}\]
+according to the NR model. I'm wondering if this is actually what the NR model says. So let's take a look at that.
+\[~\]
+\[\frac{1}{E}P_{f\rightarrow f}(E)V_{f}\Sigma_{p,f}=P_{f\rightarrow f}(E)V_{f}\sum_{k\in f}\int_{E}^{E/\alpha_{k}}\frac{dE^{\prime}N_{k}\sigma_{es,k}\left(E^{\prime}\right)\phi_{f}\left(E^{\prime}\right)}{\left(1-\alpha_{k}\right)E^{\prime}}\]
+\[\frac{1}{E}\Sigma_{p,f}=\sum_{k\in f}\int_{E}^{E/\alpha_{k}}\frac{dE^{\prime}N_{k}\sigma_{es,k}\left(E^{\prime}\right)\phi_{f}\left(E^{\prime}\right)}{\left(1-\alpha_{k}\right)E^{\prime}}\]
+%\[\frac{1}{E}P_{m\rightarrow f}(E)V_{m}\Sigma_{p,m}=P_{m\rightarrow f}(E)V_{m}\sum_{k\in m}\int_{E}^{E/\alpha_{k}}\frac{dE^{\prime}N_{k}\sigma_{es,k}\left(E^{\prime}\right)\phi_{m}\left(E^{\prime}\right)}{\left(1-\alpha_{k}\right)E^{\prime}}\]
+
+
+
+
+\[~\]
+\[~\]
+\[~\]
+
+\[\phi_{i}(E)=\frac{1}{E}\sum_{j}\frac{P_{j\rightarrow i}(E)V_{j}\Sigma_{p,j}}{\sum_{t,i}(E)V_{i}}\]
+
+
+
+
+
+%\printbibliography
+
+\end{document}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
