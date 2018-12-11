@@ -47,52 +47,153 @@
 \leftright{\today}{ }%-- left and right positions in the header
 ~\par
 
-\subsection*{Narrow Resonance Model}
+\subsection*{Narrow Resonance Model (homogeneous geometry)}
 We start with the Boltzmann Equation.
-\[\Sigma_{t}(E)\phi(E)=\int_{0}^{\infty}\Sigma_{s}\left(E^{\prime}\rightarrow E\right)\phi\left(E^{\prime}\right)\mathrm{d}E^{\prime}+\frac{\chi(E)}{k_{eff}}\int_{0}^{\infty}v\Sigma_{f}\left(E^{\prime}\right)\phi\left(E^{\prime}\right)\mathrm{d}E^{\prime}\]
+\begin{equation}\Sigma_{t}(E)\phi(E)=\int_{0}^{\infty}\Sigma_{s}\left(E^{\prime}\rightarrow E\right)\phi\left(E^{\prime}\right)\mathrm{d}E^{\prime}+\frac{\chi(E)}{k_{eff}}\int_{0}^{\infty}v\Sigma_{f}\left(E^{\prime}\right)\phi\left(E^{\prime}\right)\mathrm{d}E^{\prime}\end{equation}
 
-We're working in the resonance region, where scattering is the main form of neutrons slowing down. So we get rid of our fission term, and replace the scattering kernel with the kinematics represention, we get
-\[\left(\sum_{k}N_{k}\sigma_{t,k}(E)\right)\phi(E)=\sum_{k}\frac{1}{1-\alpha_{k}}\int_{E}^{E/\alpha_{k}}N_{k}\sigma_{s,k}\left(E^{\prime}\right)\phi\left(E^{\prime}\right)\frac{\mathrm{d}E^{\prime}}{E^{\prime}}\]
+We're working in the resonance region, where scattering is the main form of neutrons slowing down, which allows us to get rid of our fission term, simplifying the Boltzmann Equation to
+\begin{equation}\Sigma_{t}(E)\phi(E)=\int_{0}^{\infty}\Sigma_{s}\left(E^{\prime}\rightarrow E\right)\phi\left(E^{\prime}\right)\mathrm{d}E^{\prime}.\end{equation}
 
-Now, assume that the energy dependence of cross sections for nonresonant nuclides is constant, with no absorption. In other words, their total cross sections are equal to the potential scattering cross sections ($\sigma_{t,k}=\sigma_{s,k}=\sigma_{pot,k}$). This is justified, since this potential scattering, which is independent of the incident neutron energy, is dominant for nonresonant nuclides in the resonance energy range
+Since this method prompts us to consider one nuclide to be resonant, while all other ``non-resonant'' nuclides are considered to be constant for the time being, we separate the macroscopic cross section into its number density $N$ and microscopic cross section $\sigma$ components\footnote{Note that this does not prevent us from considering multiple nuclides that have resonances. We simply focus on one resonant nuclide at a time.}.
 
-\[\begin{aligned}\left(N_{r}\sigma_{t,r}(E)+\sum_{k\neq r}N_{k}\sigma_{p,k}\right)\phi(E)=&\frac{1}{1-\alpha_{r}}\int_{E}^{E/\alpha_{r}}N_{r}\sigma_{s,r}\left(E^{\prime}\right)\phi\left(E^{\prime}\right)\frac{dE^{\prime}}{E^{\prime}}\\&+\sum_{k\neq r}\frac{1}{1-\alpha_{k}}\int_{E}^{E/\alpha_{k}}N_{k}\sigma_{p,k}\phi\left(E^{\prime}\right)\frac{dE^{\prime}}{E^{\prime}}\end{aligned}\]
+\begin{equation}\left(\sum\limits_{k}N_{k}\sigma_{t,k}(E)\right)\phi(E)=\sum\limits_{k}\int_{E}^{E/\alpha_{k}}N_{k}\sigma_{s,k}\left(E^{\prime}\right)\phi\left(E^{\prime}\right)P(E'\rightarrow E)\mathrm{d}E^{\prime}\end{equation}
+Recalling that 
+\begin{equation}P(E'\rightarrow E)dE'=\frac{1}{(1-\alpha_k)E'}dE',\end{equation}
+we can further simplify the scattering kernel, bringing the equation to
+\begin{equation}\left(\sum\limits_{k}N_{k}\sigma_{t,k}(E)\right)\phi(E)=\sum\limits_{k}\frac{1}{1-\alpha_{k}}\int_{E}^{E/\alpha_{k}}\frac{1}{E'}N_{k}\sigma_{s,k}\left(E^{\prime}\right)\phi\left(E^{\prime}\right)\mathrm{d}E^{\prime}\end{equation}
+
+
+The potential scattering cross section is independent of neutron energy. For neutrons with energy in the resonance region that interact with non-resonant nuclides, this is the dominant reaction. Thus, we assume that $\sigma_{t,k}(E')=\sigma_{s,k}=\sigma_{potot,k}$. In other words, we neglect energy dependence and non-scattering reactions, such as absorption, for non-resonant nuclides. 
+
+\begin{align} \left(N_{r}\sigma_{t,r}(E)+\sum\limits_{k\neq r}N_{k}\sigma_{pot,k}\right)\phi(E)=&\frac{1}{1-\alpha_{r}}\int_{E}^{E/\alpha_{r}}\frac{1}{E'}N_{r}\sigma_{s,r}\left(E^{\prime}\right)\phi\left(E^{\prime}\right)dE^{\prime}\\ + \sum\limits_{k\neq r}&\frac{1}{1-\alpha_{k}}\int_{E}^{E/\alpha_{k}}\frac{1}{E'}N_{k}\sigma_{pot,k}\phi\left(E^{\prime}\right)dE^{\prime}\end{align}
   
+  
+  
+We now need to simplify the latter integral, which represents non-resonant scattering. First, we remove all terms without energy dependence out of the integral, yielding
+\begin{equation}\sum\limits_{k\neq r}\frac{1}{1-\alpha_{k}}\int_{E}^{E/\alpha_{k}}\frac{1}{E'}N_{k}\sigma_{pot,k}\phi\left(E^{\prime}\right)\mathrm{d}E^{\prime}=\sum\limits_{k\neq r}\frac{N_{k}\sigma_{pot,k}}{1-\alpha_{k}}\int_{E}^{E/\alpha_{k}}\frac{1}{E'}\phi\left(E^{\prime}\right)\mathrm{d}E^{\prime}.\end{equation}
+It is clear that without an adequate approximation for $\phi(E')$, we are unable to further simplify this integral. In invoking the Narrow Resonance (NR) approxiamtion, the resonance width of our resonant nuclide $r$is assumed to be narrow compared to the neutron slowing down width. In other words, neutrons are not able to stay in the resonance (the only neutrons that ``see'' the resonance are those that come from higher energies, away from the resonance peak. Additionally, we assume the standard $\phi(E)=1/E$ shape. While it is true that the neutron spectrum surrounding the resonances is not a true $1/E$ shape, the error caused negligible due to the narrow resonance width.
 
-  For the purpose of further simpli cation, the resonance width of nuclide $r$ (our resonant nuclide) is assumed to be narrow compared to the slowing down width.  is means that most neutrons that appear near the resonance peak energy come from outside of the resonance peak (i.e., the nonresonant energy range) due to much higher energies
-\begin{align*}\sum_{k\neq r}\frac{1}{1-\alpha_{k}}\int_{E}^{E/\alpha_{k}}N_{k}\sigma_{p,k}\phi\left(E^{\prime}\right)\frac{\mathrm{d}E^{\prime}}{E^{\prime}}=&\sum_{k\neq r}\frac{N_{k}\sigma_{p,k}}{1-\alpha_{k}}\int_{E}^{E/\alpha_{k}}\phi\left(E^{\prime}\right)\frac{\mathrm{d}E^{\prime}}{E^{\prime}}\\&{\approx\sum_{k\neq r}\frac{N_{k}\sigma_{p,k}}{1-\alpha_{k}}\int_{E}^{E/\alpha_{k}}\frac{1}{E^{\prime}}\frac{\mathrm{d}E^{\prime}}{E^{\prime}}}\\ &=\sum_{k\neq r}N_{k}\sigma_{p,k}\frac{1}{E}\end{align*}
 
-\[\sum_{k\neq r}\frac{1}{1-\alpha_{k}}\int_{E}^{E/\alpha_{k}}N_{k}\sigma_{p,k}\phi\left(E^{\prime}\right)\frac{\mathrm{d}E^{\prime}}{E^{\prime}}\approx\sum_{k\neq r}N_{k}\sigma_{p,k}\frac{1}{E}\]
+\begin{align}
+  \sum\limits_{k\neq r}\frac{1}{1-\alpha_{k}}\int_{E}^{E/\alpha_{k}}\frac{1}{E'}N_{k}\sigma_{pot,k}\phi\left(E^{\prime}\right)\mathrm{d}E^{\prime} = &\sum\limits_{k\neq r}\frac{N_{k}\sigma_{pot,k}}{1-\alpha_{k}}\int_{E}^{E/\alpha_{k}}\frac{1}{(E')^2}\mathrm{d}E^{\prime}\\
+  = &\sum\limits_{k\neq r}\frac{N_{k}\sigma_{pot,k}}{1-\alpha_{k}}\left(\frac{1}{E}-\frac{\alpha_k}{E}\right)\\
+  = &\sum\limits_{k\neq r}\frac{N_{k}\sigma_{pot,k}}{E}
+\end{align}
+
+
+
+\begin{equation}\boxed{\sum\limits_{k\neq r}\frac{1}{1-\alpha_{k}}\int_{E}^{E/\alpha_{k}}\frac{1}{E'}N_{k}\sigma_{pot,k}\phi\left(E^{\prime}\right)\mathrm{d}E^{\prime}=\sum\limits_{k\neq r}N_{k}\sigma_{pot,k}\frac{1}{E}}\label{eq:NR-mainConclusion1}\end{equation}
+
+We now insert this approximation of the non-resonant nuclide moderation into our earlier equation, yielding,
+\begin{equation}\left(N_{r}\sigma_{t,r}(E)+\sum\limits_{k\neq r}N_{k}\sigma_{pot,k}\right)\phi(E) = \frac{1}{1-\alpha_{r}}\int_{E}^{E/\alpha_{r}}\frac{1}{E'}N_{r}\sigma_{s,r}\left(E^{\prime}\right)\phi\left(E^{\prime}\right)dE^{\prime} + \sum\limits_{k\neq r}\frac{N_{k}\sigma_{pot,k}}{E}\end{equation}
+which obviously requires approximations to be made for the remaining integral, which represents neutron moderation via colliding with the resonant nuclide.\par
+First, we assume that the resonant nuclide scattering cross section $\sigma_{s,r}(E')$ is adequarely represented using the potential scattering cross section $\sigma_{pot,r}$, which is not energy dependent. Similarly, we assume that the flux is $1/E$, as we assumed for the non-resonant nuclides. This results in
+
+\begin{align}\frac{1}{1-\alpha_{r}}\int_{E}^{E/\alpha_{r}}\frac{1}{E'}N_{r}\sigma_{s,r}\left(E^{\prime}\right)\phi\left(E^{\prime}\right)\mathrm{d}E^{\prime} = &\frac{N_{r}\sigma_{pot,r}}{1-\alpha_{r}}\int_{E}^{E/\alpha_{r}}\frac{1}{E'}\phi\left(E^{\prime}\right)\mathrm{d}E^{\prime} 
+  \\
+  =&\frac{N_{r}\sigma_{pot,r}}{1-\alpha_{r}}\int_{E}^{E/\alpha_{r}}\frac{1}{E^{\prime}}\frac{\mathrm{d}E^{\prime}}{E^{\prime}}
+  \\
+  =&N_{r}\sigma_{pot,r}\frac{1}{E}
+\end{align}
+
+\begin{equation}\boxed{\frac{1}{1-\alpha_{r}}\int_{E}^{E/\alpha_{r}}\frac{1}{E'}N_{r}\sigma_{s,r}\left(E^{\prime}\right)\phi\left(E^{\prime}\right)\mathrm{d}E^{\prime}=N_{r}\sigma_{pot,r}\frac{1}{E}}\label{eq:NR-mainConclusion2}\end{equation}
+
+These NR approximations to the scattering behavior greatly simplifies the energy dependence of the neutron flux, as shown below.
+\begin{equation}\left(N_{r}\sigma_{t,r}(E)+\sum\limits_{k\neq r}N_{k}\sigma_{pot,k}\right)\phi(E) = N_{r}\sigma_{pot,r}\frac{1}{E} + \sum\limits_{k\neq r}\frac{N_{k}\sigma_{pot,k}}{E}\end{equation}
+
+\begin{equation}\phi(E)=\frac{N_{r}\sigma_{pot,r}+\sum\limits_{k\neq r}N_{k}\sigma_{pot,k}}{N_{r}\sigma_{t,r}(E)+\sum\limits_{k\neq r}N_{k}\sigma_{pot,k}}\frac{1}{E}\end{equation}
+\begin{equation}\boxed{\phi(E)=\frac{\sigma_{pot,r}+\sigma_{0}}{\sigma_{t,r}(E)+\sigma_{0}}\frac{1}{E}~\mbox{where }\sigma_0=\frac{\sum\limits_{k\neq r}N_k\sigma_{pot,k}}{\Sigma_r}}\end{equation}
+
+
 
 
 
 
 \subsection*{Neutron Slowing Down in Heterogeneous Isolated System}
-\[\begin{aligned}\Sigma_{t,f}(E)\phi_{f}(E)V_{f}=&P_{f\rightarrow f}(E)V_{f}\int_{0}^{\infty}dE^{\prime}\Sigma_{s,f}\left(E^{\prime}\rightarrow E\right)\phi_{f}\left(E^{\prime}\right)\\&+P_{m\rightarrow f}(E)V_{m}\int_{0}^{\infty}dE^{\prime}\Sigma_{s,m}\left(E^{\prime}\rightarrow E\right)\phi_{m}\left(E^{\prime}\right)\end{aligned}\]
+Consider a neutron slowing down in a two-region heterogeneous problem, where $f,m$ represent fuel and moderator, respectively.
+\begin{align}\Sigma_{t,f}(E)\phi_{f}(E)V_{f}=P_{f\rightarrow f}(E)V_{f}&\int_{0}^{\infty}\Sigma_{s,f}\left(E^{\prime}\rightarrow E\right)\phi_{f}\left(E^{\prime}\right)dE^{\prime}\\ + P_{m\rightarrow f}(E)V_{m}&\int_{0}^{\infty}\Sigma_{s,m}\left(E^{\prime}\rightarrow E\right)\phi_{m}\left(E^{\prime}\right)dE^{\prime}\end{align}
 
-\[\begin{aligned}\Sigma_{t,f}(E)\phi_{f}(E)V_{f}=&P_{f\rightarrow f}(E)V_{f}\sum_{k\in f}\int_{E}^{E/\alpha_{k}}\frac{dE^{\prime}N_{k}\sigma_{es,k}\left(E^{\prime}\right)\phi_{f}\left(E^{\prime}\right)}{\left(1-\alpha_{k}\right)E^{\prime}}\\&+P_{m\rightarrow f}(E)V_{m}\sum_{k\in m}\int_{E}^{E/\alpha_{k}}\frac{dE^{\prime}N_{k}\sigma_{es,k}\left(E^{\prime}\right)\phi_{m}\left(E^{\prime}\right)}{\left(1-\alpha_{k}\right)E^{\prime}}\end{aligned}\]
+We separate the macroscopic cross section for scattering to energy $E$ into its number density $N$, microscopic cross section $\sigma_s$, and probability of energy change $P(E'\rightarrow E)$, to rewrite the balance equation as 
+\begin{align}\Sigma_{t,f}(E)\phi_{f}(E)V_{f}=P_{f\rightarrow f}(E)V_{f}&\int_{0}^{\infty}\sum\limits_{k\in f}N_k\sigma_{s,k}P(E'\rightarrow E)\phi_{f}\left(E^{\prime}\right)dE^{\prime}\\ + P_{m\rightarrow f}(E)V_{m}&\int_{0}^{\infty}\sum\limits_{k\in m}N_k\sigma_{s,k}P\left(E^{\prime}\rightarrow E\right)\phi_{m}\left(E^{\prime}\right)dE^{\prime}\end{align}
 
-When we apply the NR model, we get that this simplifies to
-\[\Sigma_{t,f}(E)\phi_{f}(E)V_{f}=\frac{1}{E}\Big(P_{f\rightarrow f}(E)V_{f}\Sigma_{p,f}+P_{m\rightarrow f}(E)V_{m}\Sigma_{p,m}\Big)\]
-which mean that
-\[\frac{1}{E}P_{f\rightarrow f}(E)V_{f}\Sigma_{p,f}=P_{f\rightarrow f}(E)V_{f}\sum_{k\in f}\int_{E}^{E/\alpha_{k}}\frac{dE^{\prime}N_{k}\sigma_{es,k}\left(E^{\prime}\right)\phi_{f}\left(E^{\prime}\right)}{\left(1-\alpha_{k}\right)E^{\prime}}\]
-and
-\[\frac{1}{E}P_{m\rightarrow f}(E)V_{m}\Sigma_{p,m}=P_{m\rightarrow f}(E)V_{m}\sum_{k\in m}\int_{E}^{E/\alpha_{k}}\frac{dE^{\prime}N_{k}\sigma_{es,k}\left(E^{\prime}\right)\phi_{m}\left(E^{\prime}\right)}{\left(1-\alpha_{k}\right)E^{\prime}}\]
-according to the NR model. I'm wondering if this is actually what the NR model says. So let's take a look at that.
-\[~\]
-\[\frac{1}{E}P_{f\rightarrow f}(E)V_{f}\Sigma_{p,f}=P_{f\rightarrow f}(E)V_{f}\sum_{k\in f}\int_{E}^{E/\alpha_{k}}\frac{dE^{\prime}N_{k}\sigma_{es,k}\left(E^{\prime}\right)\phi_{f}\left(E^{\prime}\right)}{\left(1-\alpha_{k}\right)E^{\prime}}\]
-\[\frac{1}{E}\Sigma_{p,f}=\sum_{k\in f}\int_{E}^{E/\alpha_{k}}\frac{dE^{\prime}N_{k}\sigma_{es,k}\left(E^{\prime}\right)\phi_{f}\left(E^{\prime}\right)}{\left(1-\alpha_{k}\right)E^{\prime}}\]
-%\[\frac{1}{E}P_{m\rightarrow f}(E)V_{m}\Sigma_{p,m}=P_{m\rightarrow f}(E)V_{m}\sum_{k\in m}\int_{E}^{E/\alpha_{k}}\frac{dE^{\prime}N_{k}\sigma_{es,k}\left(E^{\prime}\right)\phi_{m}\left(E^{\prime}\right)}{\left(1-\alpha_{k}\right)E^{\prime}}\]
+Recalling the energy distribution of a single neutron scattering collision is 
+\begin{equation}P(E'\rightarrow E)=\frac{1}{(1-\alpha)E}~\mbox{for }\alpha E\leq E'\leq E,\end{equation}
+we can further simplify the balance equation to be
+
+\begin{align}\Sigma_{t,f}(E)\phi_{f}(E)V_{f} = P_{f\rightarrow f}(E)V_{f}\sum\limits_{k\in f}&\int_{E}^{E/\alpha_{k}}\frac{N_{k}\sigma_{s,k}\left(E^{\prime}\right)\phi_{f}\left(E^{\prime}\right)}{\left(1-\alpha_{k}\right)E^{\prime}}dE^{\prime}  \\
++ P_{m\rightarrow f}(E)V_{m}\sum\limits_{k\in m}&\int_{E}^{E/\alpha_{k}}\frac{N_{k}\sigma_{s,k}\left(E^{\prime}\right)\phi_{m}\left(E^{\prime}\right)}{\left(1-\alpha_{k}\right)E^{\prime}}dE^{\prime}.\label{eq:hetero-balance}\end{align}
 
 
 
+ Recall Eq.~\ref{eq:NR-mainConclusion1} and Eq.~\ref{eq:NR-mainConclusion2}, where we defined the neutron moderation from non-resonant and resonant nuclides, respectively, as
 
-\[~\]
-\[~\]
-\[~\]
+\begin{equation*}\sum\limits_{k\neq r}\frac{1}{1-\alpha_{k}}\int_{E}^{E/\alpha_{k}}\frac{1}{E'}N_{k}\sigma_{s,k}\phi\left(E^{\prime}\right)\mathrm{d}E^{\prime}=\sum\limits_{k\neq r}N_{k}\sigma_{pot,k}\frac{1}{E}\tag{\ref{eq:NR-mainConclusion1}}\end{equation*}
+\begin{equation*}
+  \frac{1}{1-\alpha_r}\int_{E}^{E/\alpha_{r}}\frac{1}{E'}N_{r}\sigma_{s,r}(E')\phi\left(E'\right)\mathrm{d}E^{\prime}=N_{r}\sigma_{pot,r}\frac{1}{E}
+  \tag{\ref{eq:NR-mainConclusion2}}
+\end{equation*}
 
-\[\phi_{i}(E)=\frac{1}{E}\sum_{j}\frac{P_{j\rightarrow i}(E)V_{j}\Sigma_{p,j}}{\sum_{t,i}(E)V_{i}}\]
+which can be combined into
+\begin{equation}\sum\limits_{k}\frac{1}{1-\alpha_{k}}\int_{E}^{E/\alpha_{k}}\frac{1}{E'}N_{k}\sigma_{pot,k}\phi\left(E^{\prime}\right)\mathrm{d}E^{\prime}=\sum\limits_{k\neq r}\Sigma_{pot,k}\frac{1}{E}\end{equation}
+and subsequently plugged into Eq.~\ref{eq:hetero-balance} to yield
 
+
+\begin{equation}\Sigma_{t,f}(E)\phi_{f}(E)V_{f}=\frac{1}{E}\Big(P_{f\rightarrow f}(E)V_{f}\Sigma_{pot,f}+P_{m\rightarrow f}(E)V_{m}\Sigma_{pot,m}\Big)\end{equation}
+\begin{equation}\phi_{f}(E)=\frac{P_{f\rightarrow f}(E)V_f\Sigma_{pot,f}+P_{m\rightarrow f}(E)V_m\Sigma_{pot,m}}{E\Sigma_{t,f}(E)V_f}\end{equation}
+
+Note that while this result is derived using a two-region problem, it can be extended to solve for a flux in region $i\in N$, which is dependent on all $j\in N$ regions:
+
+\begin{equation}\phi_{i}(E)=\frac{1}{E}\Sigma_j\frac{P_{j\rightarrow i}(E)V_{j}\Sigma_{p,j}}{\Sigma_{t,i}(E)V_{i}}\label{eq:resultFromHetero}\end{equation}
+
+
+
+
+\subsection*{Tone's Method}
+We start with the result from Eq.~\ref{eq:resultFromHetero}, which represents the energy dependence of the neutron flux in region $i$ as it depends on the collision probabilities between itself and other $j$ regions.
+\begin{equation}\phi_{i}(E)=\frac{1}{E}\Sigma_j\frac{P_{j\rightarrow i}(E)V_{j}\Sigma_{p,j}}{\sum\limits_{t,i}(E)V_{i}}\end{equation}
+
+The basis of Tone's method lies in the following approximation:
+\begin{equation}\frac{P_{j\rightarrow i}(E)}{\Sigma_{t,i}(E)}=\alpha_{i}(E)\frac{P_{j\rightarrow i,g}}{\Sigma_{t,i,g}}\end{equation}
+Note what this is actually saying. We're approximating the collision probability and total cross section to be group constants. But to make it slightly better, we're adding in a fine energy term $\alpha_i(E)$, that is \textbf{only dependent on the region we're going into}. This is a major assumption, since in reality the actual collision probability is dependent on other regions (including the source region).
+
+\begin{equation}\phi_{i}(E)=\frac{1}{E}\alpha_{i}(E)\Sigma_j\frac{P_{j\rightarrow i,g}V_{j}\Sigma_{p,j}}{\Sigma_{t,i,g}V_{i}}\end{equation}
+
+\begin{equation}~\end{equation}
+Another tool that we're going to use is the reciprocity theorem
+\begin{equation}P_{j\rightarrow i}(E)V_{j}\Sigma_{t,j}(E)=P_{i\rightarrow j}(E)V_{i}\Sigma_{t,i}(E)\end{equation}
+
+Finally, normalization requirement for collision probabilities is also considered.
+\begin{equation}\Sigma_{j}P_{i\rightarrow j}(E)=1\end{equation}
+
+
+\begin{equation}1=\Sigma_{j}P_{i\rightarrow j}(E)\end{equation}
+
+\begin{equation}1=\Sigma_j\frac{P_{j\rightarrow i}(E)V_{j}\sum\limits_{t,j}(E)}{V_{i}\sum\limits_{t,i}(E)}\end{equation}
+
+\begin{equation}1=\Sigma_j\alpha_{i}(E)\frac{P_{j\rightarrow i,g}}{\sum\limits_{t,i,g}}\frac{V_{j}\sum\limits_{t,j}(E)}{V_{i}}\end{equation}
+
+
+
+\begin{equation}1=\alpha_{i}(E)\frac{1}{\sum\limits_{t,i,g}V_{i}}\Sigma_jP_{j\rightarrow i,g}V_{j}\Sigma_{t,j}(E)\end{equation}
+
+\begin{equation}\alpha_{i}(E)=\frac{\sum\limits_{t,i,g}V_{i}}{\Sigma_jP_{j\rightarrow i,g}V_{j}\Sigma_{t,j}(E)}\end{equation}
+
+\begin{equation}\phi_{i}(E)=\frac{1}{E}\alpha_{i}(E)\Sigma_j\frac{P_{j\rightarrow i,g}V_{j}\sum\limits_{p,j}}{\sum\limits_{t,i,g}V_{i}}\end{equation}
+
+\begin{equation}=\frac{1}{E}\frac{\sum\limits_{t,i,g}V_{i}}{\Sigma_jP_{j-i,g}V_{t,j}(E)}\Sigma_j\frac{P_{j-i,g}V_{j}\Sigma_{p,j}}{\sum\limits_{t,i,g}V_{i}}\end{equation}
+
+\begin{equation}=\frac{1}{E}\frac{\Sigma_jP_{j\rightarrow i,g}V_{j}\Sigma_{p,j}}{\Sigma_jP_{j\rightarrow i,g}V_{j}\Sigma_{t,j}(E)}\end{equation}
+
+\begin{equation}\cong\frac{\Sigma_jP_{j\rightarrow i,g}V_{j}\cdot\left(N_{r,j}\sigma_{pot,r}+\sum\limits_{k\neq r}N_{k,j}\sigma_{pot,k}\right)}{\Sigma_jP_{j\rightarrow i,g}V_{j}\cdot\left(N_{r,j}\sigma_{t,r}(E)+\sum\limits_{k\neq r}N_{k,j}\sigma_{pot,k}\right)}\end{equation}
+
+\begin{equation}=\frac{1}{E}\frac{\sigma_{pot,r}\Sigma_jP_{j\rightarrow i,g}V_{j}N_{r,j}+\Sigma_jP_{j\rightarrow i,g}V_{j}\sum\limits_{k\neq r}N_{k,j}\sigma_{pot,k}}{\sigma_{t,r}(E)\Sigma_jP_{j\rightarrow i,g}V_{j}N_{r,j}+\Sigma_jP_{j\rightarrow i,g}V_{j}\sum\limits_{k\neq r}N_{k,j}\sigma_{pot,k}}\end{equation}
+
+\begin{equation}=\frac{1}{E}\frac{\sigma_{pot,r}+\left(\sum\limits_j P_{j\rightarrow i,g}V_{j}\sum\limits_{k\neq r}N_{k,j}\sigma_{pot,k}\right)/\left(\sum\limits_jP_{j\rightarrow i,g}V_{j}N_{r,j}\right)}{\sigma_{t,r}(E)+\left(\sum\limits_j P_{j\rightarrow i,g}V_{j}\sum\limits_{k\neq r}N_{k,j}\sigma_{pot,k}\right)/\left(\Sigma_jP_{j\rightarrow i,g}V_{j}N_{r,j}\right)}\end{equation}
+
+\begin{equation}=\frac{1}{E}\frac{\sigma_{pot,r}+\sigma_{0}}{\sigma_{t,r}(E)+\sigma_{0}}\end{equation}
+
+
+\begin{equation}\sigma_{0}=\frac{\Sigma_j\sum\limits_{k\neq r}P_{j\rightarrow i,g}V_{j}N_{k,j}\sigma_{pot,k}}{\Sigma_jP_{j\rightarrow i,g}V_{j}N_{r,j}}\end{equation}
 
 
 
