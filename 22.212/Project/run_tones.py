@@ -33,11 +33,11 @@ class Pin:
 
 
 
-jet = cm = plt.get_cmap('hot')
+#jet = cm = plt.get_cmap('hot')
 #jet = cm = plt.get_cmap('tab10')
 #jet = cm = plt.get_cmap('autumn')
-cNorm  = colors.Normalize(vmin=0, vmax=8)
-scalarMap = cmx.ScalarMappable(norm=cNorm, cmap=jet)
+#cNorm  = colors.Normalize(vmin=0, vmax=8)
+#scalarMap = cmx.ScalarMappable(norm=cNorm, cmap=jet)
 
 # Define problem geometry
 pinRad = 0.39128;  pitch = 1.26
@@ -75,7 +75,6 @@ radius = { 'U234': 8.930000E-1, 'U235': 9.602000E-1, \
 pins = [Pin([N_dict_Hi,N_dict_Lo][i%2],radius,all_nuclides[i]) for i in range(9)]
 
 
-
 ###############################################################################
 # Assume initial background cross sections for resonance nuclides.  
 # They can be evaluated using the conventional equivalence method with the 
@@ -99,7 +98,8 @@ converged = False
 counter = 0
 sig0Vals = [sig0]
 while not converged:
-    print(sig0EnergyVec)
+    print(counter)
+    #print(sig0EnergyVec)
 
     ###########################################################################
     # Evaluate the effective cross sections of resonance nuclides using the 
@@ -117,6 +117,7 @@ while not converged:
 
     # Pulling cross sections from the dilution table
     for pin in pins:
+        pin.U235.resetXS()
         for g in range(nGroups):
             pin.U235.addXS(getDataFromEqTable(boundingDilutionsVec[g],\
                            groupsU235[g],sig0EnergyVec[g]))
@@ -139,11 +140,10 @@ while not converged:
     SigT_lo = [ sum([nucl.openMC_SigT[g] for nucl in nonRes]) + \
                 pins[1].U235.SigT[g] for g in range(nGroups) ]
 
-
     # For hi/lo enr. of fuel, use values we just pulled from dilution table
     # For moderator, use openMC values generated from grid_3x3.py
     collisionProbs = [                                                   \
-        getCollisionProb( pitch, pinRad, plot=False, numParticles=1000,  \
+        getCollisionProb( pitch, pinRad, plot=False, numParticles=2000,  \
           hole=False, fSigT_hi=SigT_hi[g], fSigT_lo=SigT_lo[g],          \
           mSigT=modTotal0[g], verbose=False, startNeutronsFrom=0 )       \
         for g in range(nGroups)]
@@ -177,7 +177,7 @@ while not converged:
         tones_Denom += P_i_to_0 * pin.U235.N
 
     sig0_new = sum(tones_Numer/tones_Denom*1e24)/nGroups
-    plt.step(E_bounds,[1e24*tones_Numer[0]/tones_Denom[0]]+list(1e24*tones_Numer/tones_Denom),label='inter'+str(counter),color=scalarMap.to_rgba(counter))
+    #plt.step(E_bounds,[1e24*tones_Numer[0]/tones_Denom[0]]+list(1e24*tones_Numer/tones_Denom),label='inter'+str(counter),color=scalarMap.to_rgba(counter))
 
 
     ###########################################################################
@@ -188,8 +188,35 @@ while not converged:
 
     counter += 1
     if counter > 5:
+        print(counter)
+        SigT_hi = [ sum([nucl.openMC_SigT[g] for nucl in nonRes]) + \
+                    pins[0].U235.SigT[g] for g in range(nGroups) ]
+        SigT_lo = [ sum([nucl.openMC_SigT[g] for nucl in nonRes]) + \
+                    pins[1].U235.SigT[g] for g in range(nGroups) ]
+        SigA_hi = [ sum([nucl.openMC_SigA[g] for nucl in nonRes]) + \
+                    pins[0].U235.SigA[g] for g in range(nGroups) ]
+        SigA_lo = [ sum([nucl.openMC_SigA[g] for nucl in nonRes]) + \
+                    pins[1].U235.SigA[g] for g in range(nGroups) ]
+        nuSigF_hi = [ sum([nucl.openMC_nuSigF[g] for nucl in nonRes]) + \
+                    pins[0].U235.SigF[g]*pins[0].U235.nuBar[g] for g in range(nGroups) ]
+        nuSigF_lo = [ sum([nucl.openMC_nuSigF[g] for nucl in nonRes]) + \
+                    pins[1].U235.SigF[g]*pins[0].U235.nuBar[g] for g in range(nGroups) ]
+
+        f = open("XS-tones.py","a")
+        for i in range(9):
+            f.write("fuelTotal"+str(i)+"  = "+str([float("%.8f"%[SigT_hi,SigT_lo][i%2][g]) for g in range(nGroups)])+"\n")
+            f.write("fuelAbsorption"+str(i)+"  = "+str([float("%.8f"%[SigA_hi,SigA_lo][i%2][g]) for g in range(nGroups)])+"\n")
+            f.write("fuelNuFission"+str(i)+"  = "+str([float("%.8f"%[nuSigF_hi,nuSigF_lo][i%2][g]) for g in range(nGroups)])+"\n")
+
+            f.write("\n\n")
+        f.close()
+
+        phi = (np.array([sig0EnergyVec]) + pins[0].U235.pot)/(np.array([pins[0].U235.sigT]) + sig0EnergyVec)
+        print(phi)
+
         break
 
+"""
 ax = plt.gca()
 ax.set_facecolor('xkcd:pale grey')
 ax.set_facecolor('xkcd:off white')
@@ -197,9 +224,10 @@ plt.xscale('log')
 plt.xlabel('Energy (eV)')
 plt.ylabel('Sig0 approximation')
 plt.legend(loc='best')
-plt.savefig('sig0Estimations.png')
-#plt.show()
+#plt.savefig('sig0Estimations.png')
+plt.show()
 
+"""
 
 
 

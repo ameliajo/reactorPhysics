@@ -10,6 +10,12 @@ class Nuclide:
         self.nuBar = []
         self.importFromOpenMC(openMC_vals)
 
+    def resetXS(self):
+        self.sigT = []
+        self.sigF = []
+        self.sigA = []
+        self.nuBar = []
+
     def addXS(self,xsVals):
         self.sigT.append(xsVals[0])
         self.sigF.append(xsVals[1])
@@ -25,6 +31,8 @@ class Nuclide:
         self.openMC_nuSigF = openMC_vals[0]
         self.openMC_SigT   = openMC_vals[1]
         self.openMC_Chi    = openMC_vals[2]
+        self.openMC_SigA   = openMC_vals[3]
+        self.openMC_SigS   = openMC_vals[4]
 
 
 

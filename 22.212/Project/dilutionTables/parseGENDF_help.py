@@ -7,6 +7,7 @@ class Group:
         self.dilutionVals = Sig0
         self.sigT = None; self.sigF  = None
         self.sigA = None; self.nuBar = None
+        self.sigS = None
 
 def convertToExpPos(x):
     split = x.split('+')

@@ -11,7 +11,8 @@ class Material:
         self.name = name
 
 modClass  = Material(modTotal0,modNuFission0,modScatter0,modChi0,'mod')
-fuelClass = Material(fuelTotal0,fuelNuFission0,fuelScatter0,fuelChi0,'fuel')
+fuelClassHi = Material(fuelTotal0,fuelNuFission0,fuelScatter0,fuelChi0,'fuel')
+fuelClassLo = Material(fuelTotal1,fuelNuFission1,fuelScatter1,fuelChi1,'fuel')
 
 
 

@@ -16,21 +16,19 @@ pitch = 1.26
 
 # Basic materials
 uo2_hi = openmc.Material(name='fuel')
-uo2_hi.add_nuclide('U235', 0.05)
-uo2_hi.add_nuclide('U238', 0.95)
+uo2_hi.add_nuclide('U235', 0.09)
+uo2_hi.add_nuclide('U238', 0.91)
 uo2_hi.add_nuclide('O16', 2.0)
+#uo2_hi.add_nuclide('B10', 3.0)
 #uo2_hi.add_element('Gd', 0.0007)
 uo2_hi.set_density('g/cc', 10.0)
 
 uo2_lo = openmc.Material(name='fuel')
-uo2_lo.add_nuclide('U235', 0.03)
-uo2_lo.add_nuclide('U238', 0.97)
+uo2_lo.add_nuclide('U235', 0.04)
+uo2_lo.add_nuclide('U238', 0.96)
 uo2_lo.add_nuclide('O16', 2.0)
 #uo2_lo.add_element('Gd', 0.0007)
 uo2_lo.set_density('g/cc', 10.0)
-
-
-
 
 
 water = openmc.Material(3, "h2o")
@@ -92,7 +90,7 @@ geometry.export_to_xml()
 settings = openmc.Settings()
 settings.batches = 100
 settings.inactive = 25
-settings.particles = 500
+settings.particles = 5000
 
 
 
@@ -145,8 +143,9 @@ for cell in openmc_cells:
     xs_library[cell.id]['total'] = openmc.mgxs.TotalXS(groups=mgxs_lib.energy_groups)
     xs_library[cell.id]['fission'] = openmc.mgxs.FissionXS(groups=mgxs_lib.energy_groups)
     xs_library[cell.id]['nu-fission'] = openmc.mgxs.FissionXS(groups=mgxs_lib.energy_groups, nu=True)
-    xs_library[cell.id]['scatter'] = openmc.mgxs.ScatterMatrixXS(groups=mgxs_lib.energy_groups)
     xs_library[cell.id]['chi'] = openmc.mgxs.Chi(groups=mgxs_lib.energy_groups)
+    xs_library[cell.id]['absorption'] = openmc.mgxs.AbsorptionXS(groups=mgxs_lib.energy_groups)
+    xs_library[cell.id]['scatter'] = openmc.mgxs.ScatterMatrixXS(groups=mgxs_lib.energy_groups)
 
 
 # Iterate over all cells and cross section types
@@ -254,6 +253,22 @@ u238_chi_to_write = [float('%.8E'%x) for x in u238_chi]
 o16_chi = chi.get_xs(xs_type='macro', nuclides=['O16'])
 o16_chi_to_write = [float('%.8E'%x) for x in o16_chi]
 
+absorption= xs_library[fCells[0].id]['absorption']
+u235_absorption = absorption.get_xs(xs_type='macro', nuclides=['U235'])
+u235_absorption_to_write = [float('%.8E'%x) for x in u235_absorption]
+u238_absorption = absorption.get_xs(xs_type='macro', nuclides=['U238'])
+u238_absorption_to_write = [float('%.8E'%x) for x in u238_absorption]
+o16_absorption = absorption.get_xs(xs_type='macro', nuclides=['O16'])
+o16_absorption_to_write = [float('%.8E'%x) for x in o16_absorption]
+
+scatter= xs_library[fCells[0].id]['scatter']
+u235_scatter = scatter.get_xs(xs_type='macro', nuclides=['U235'])
+u235_scatter_to_write = [[float('%.8E'%x) for x in y] for y in u235_scatter]
+u238_scatter = scatter.get_xs(xs_type='macro', nuclides=['U238'])
+u238_scatter_to_write = [[float('%.8E'%x) for x in y] for y in u238_scatter]
+o16_scatter = scatter.get_xs(xs_type='macro', nuclides=['O16'])
+o16_scatter_to_write = [[float('%.8E'%x) for x in y] for y in o16_scatter]
+
 
 
 ###############################################################################
@@ -276,10 +291,21 @@ for i in range(9):
     f.write("u238_chi"+str(i)+" = "+str(u238_chi_to_write)+"\n")
     f.write("o16_chi"+str(i)+" = "+str(o16_chi_to_write)+"\n")
     f.write("\n\n")
+    f.write("u235_absorption"+str(i)+" = "+str(u235_absorption_to_write)+"\n")
+    f.write("u238_absorption"+str(i)+" = "+str(u238_absorption_to_write)+"\n")
+    f.write("o16_absorption"+str(i)+" = "+str(o16_absorption_to_write)+"\n")
+    f.write("\n\n")
+    f.write("u235_scatter"+str(i)+" = "+str(u235_scatter_to_write)+"\n")
+    f.write("u238_scatter"+str(i)+" = "+str(u238_scatter_to_write)+"\n")
+    f.write("o16_scatter"+str(i)+" = "+str(o16_scatter_to_write)+"\n")
+    f.write("\n\n")
 
-    f.write("u235_all_rxn_for_pin_"+str(i)+" = [u235_nuFission"+str(i)+",u235_total"+str(i)+",u235_chi"+str(i)+"]\n")
-    f.write("u238_all_rxn_for_pin_"+str(i)+" = [u238_nuFission"+str(i)+",u238_total"+str(i)+",u238_chi"+str(i)+"]\n")
-    f.write("o16_all_rxn_for_pin_"+str(i)+" = [o16_nuFission"+str(i)+",o16_total"+str(i)+",o16_chi"+str(i)+"]\n")
+
+
+
+    f.write("u235_all_rxn_for_pin_"+str(i)+" = [u235_nuFission"+str(i)+",u235_total"+str(i)+",u235_chi"+str(i)+",u235_absorption"+str(i)+",u235_scatter"+str(i)+"]\n")
+    f.write("u238_all_rxn_for_pin_"+str(i)+" = [u238_nuFission"+str(i)+",u238_total"+str(i)+",u238_chi"+str(i)+",u238_absorption"+str(i)+",u238_scatter"+str(i)+"]\n")
+    f.write("o16_all_rxn_for_pin_"+str(i)+" = [o16_nuFission"+str(i)+",o16_total"+str(i)+",o16_chi"+str(i)+",o16_absorption"+str(i)+",o16_scatter"+str(i)+"]\n")
     f.write("\n\n")
     f.write("all_nuclides_pin_"+str(i)+" = [u235_all_rxn_for_pin_"+str(i)+",u238_all_rxn_for_pin_"+str(i)+",o16_all_rxn_for_pin_"+str(i)+"]\n")
     f.write("\n\n")
@@ -308,6 +334,51 @@ for i in hi_N:
 
 
 f.close()
+
+
+f = open("XS.py","w+")
+
+for i in range(9):
+    fData = fDatas[i]
+    mData = mDatas[i]
+    coeff = fCells[i].region.surface.coefficients
+    x0 = str("%.5f" % coeff['x0'])
+    y0 = str("%.5f" % coeff['y0'])
+
+    f.write("# CELL "+str(i+1)+", with center at ("+x0+","+y0+")\n")
+    f.write("# -----------------------------------------------------------------------------\n\n")
+
+    f.write("fuelTotal"+str(i)+" = "+str([float("%.8f"%f) for f in fData.total[0]])+"\n")
+    f.write("fuelAbsorption"+str(i)+" = "+str([float("%.8f"%f) for f in fData.absorption[0]])+"\n")
+    f.write("fuelNuFission"+str(i)+" = "+str([float("%.8f"%f) for f in fData.nu_fission[0]])+"\n")
+    f.write("fuelChi"+str(i)+" = "+str([float("%.8f"%f) for f in fData.chi[0]])+"\n")
+    f.write("fuelScatter"+str(i)+" = "+str([[float("%.8f"%fData.scatter_matrix[0][gp][g][0]) for gp in range(nGroups)] for g in range(nGroups)])+"\n")
+
+    f.write("\n")
+
+    f.write("modTotal"+str(i)+" = "+str([float("%.8f"%m) for m in mData.total[0]])+"\n")
+    f.write("modAbsorption"+str(i)+" = "+str([float("%.8f"%m) for m in mData.absorption[0]])+"\n")
+    f.write("modNuFission"+str(i)+" = "+str([float("%.8f"%m) for m in mData.nu_fission[0]])+"\n")
+    f.write("modChi"+str(i)+" = "+str([float("%.8f"%m) for m in mData.chi[0]])+"\n")
+    f.write("modScatter"+str(i)+" = "+str([[float("%.8f"%mData.scatter_matrix[0][gp][g][0]) for gp in range(nGroups)] for g in range(nGroups)])+"\n")
+
+    f.write("\n\n")
+
+
+
+f.close()
+
+
+
+f = open("fluxMC.py","w+")
+for i in range(9):
+    fuelFlux = flux_tally.get_slice(filters=[openmc.CellFilter], filter_bins=[((fCells[i]).id,)])
+    f.write("MC_fuelFlux"+str(i)+" = "+str([float("%.8f"%flux[0][0]) for flux in fuelFlux.mean])+"\n")
+    f.write("\n\n")
+
+
+f.close()
+
 
 
 
