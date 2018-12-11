@@ -33,6 +33,14 @@ class Nuclide:
         self.openMC_Chi    = openMC_vals[2]
         self.openMC_SigA   = openMC_vals[3]
         self.openMC_SigS   = openMC_vals[4]
+        #self.openMC_nuSigF.reverse()
+        #self.openMC_SigT.reverse()
+        #self.openMC_Chi.reverse()
+        #self.openMC_SigA.reverse()
+        #self.openMC_SigS.reverse()
+
+
+
 
 
 

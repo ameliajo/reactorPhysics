@@ -1,117 +1,43 @@
 import matplotlib.pyplot as plt
-"""
-
-########################################################################
-# 6 % Enrichment in high pin. 4 % in low pin
-########################################################################
-# MC
-# mc = [0.05627205, 0.04522832, 0.01901171, 0.01913341, 0.04762022, 0.02118881, 0.03418096, 0.15094522, 0.318804, 0.29161574]
-MC_fuelFlux0 = [0.055448, 0.04487209, 0.01875088, 0.01928183, 0.04722538, 0.02137325, 0.03567234, 0.15209708, 0.32118123, 0.29461401]
-
-sum_MC_fuelFlux0 = sum(MC_fuelFlux0)
-MC_fuelFlux0 = [x / sum_MC_fuelFlux0 for x in MC_fuelFlux0]
-# MC_fuelFlux0.reverse()
-
-MOC_fuelFlux0 = [10.09771892, 10.89388971, 4.93458145, 1.13330597, 0.66698134, 1.53610706, 0.6059869, 0.60868883, 1.50008976, 1.86237245]
-sum_MOC_fuelFlux0 = sum(MOC_fuelFlux0)
-MOC_fuelFlux0 = [x / sum_MOC_fuelFlux0 for x in MOC_fuelFlux0]
-MOC_fuelFlux0.reverse()
-
-
-tonesTheory = [ 1.01394269, 0.99758961, 0.93844619, 0.84925338, 0.8755602, 0.87954041, 0.70281634, 0.58765548, 0.50331242, 0.11789354]
-sum_tonesTheory = sum(tonesTheory)
-tonesTheory.reverse()
-tonesTheory = [x / sum_tonesTheory for x in tonesTheory]
 E_bounds = [1e-5,0.058,0.14,0.28,0.625,4.,1e1,4e1,5.53e3,8.21e5,2.e7]
-for i in range(10):
-	tonesTheory[i] /= (E_bounds[i+1]+E_bounds[i])
-tonesTheory.reverse()
+E_midpoints = [(E_bounds[i]+E_bounds[i+1])/2.0 for i in range(10)]
+E_diffs = [(E_bounds[i+1]-E_bounds[i]) for i in range(10)]
+def normalize(vec):
+	invSum = 1.0/max(vec)
+	return [x*invSum for x in vec]
+def calcReactionRate(E_diffs,flux,XS):
+	RR_denom = sum([E_diffs[i]*flux[i] for i in range(10)])
+	RR_numer = sum([XS[i]*flux[i]*E_diffs[i] for i in range(10)])
+	return RR_numer/RR_denom
+
+MC_flux = [0.03847132, 0.03439647, 0.01607827, 0.01763081, 0.0445492, 0.01992007, 0.03361357, 0.14907025, 0.32105566, 0.29663482]
+MC_flux = normalize(MC_flux)
+MC_total = [0.26478544, 0.41821932, 0.56141494, 0.68498781, 0.67487499, 0.48041564, 0.68013205, 0.85794872, 1.07142635, 1.76805619][::-1]
+MC_absor = [0.01168467, 0.00893124, 0.07430822, 0.23759845, 0.28911195, 0.10094141, 0.2921717, 0.4682297, 0.67964114, 1.37114701][::-1]
+MC_RR_T = calcReactionRate(E_diffs,MC_flux,MC_total)
+MC_RR_A = calcReactionRate(E_diffs,MC_flux,MC_absor)
 
 
+MOC_flux = [13.56930373, 14.40632005, 6.3872181, 1.403151, 0.84202675, 1.89571062, 0.73176022, 0.68137302, 1.48970192, 1.70304391][::-1]
+MOC_flux = normalize(MOC_flux)
+MOC_total = [0.26478544, 0.41821932, 0.56141494, 0.68498781, 0.67487499, 0.48041564, 0.68013205, 0.85794872, 1.07142635, 1.76805619][::-1]
+MOC_absor = [0.01168467, 0.00893124, 0.07430822, 0.23759845, 0.28911195, 0.10094141, 0.2921717, 0.4682297, 0.67964114, 1.37114701][::-1]
+MOC_RR_T = calcReactionRate(E_diffs,MOC_flux,MOC_total)
+MOC_RR_A = calcReactionRate(E_diffs,MOC_flux,MOC_absor)
 
-tonesMOC = [21.05819301, 22.77673383, 10.39519434, 2.42790356, 1.43375061, 3.27890329, 1.29671076, 1.21592632, 2.46986688, 1.2869658 ]
-sum_tonesMOC = sum(tonesMOC)
-tonesMOC = [x / sum_tonesMOC for x in tonesMOC]
+MOC_tones_flux = [27.61267839, 29.66454511, 13.42243859, 3.02199575, 1.82631201, 4.06239555, 1.57222825, 1.39002337, 2.61078589, 1.12811979][::-1]
+MOC_tones_flux = normalize(MOC_tones_flux)
+tones_total  = [0.26402023, 0.42107671, 0.55836669, 0.65528308, 0.64502773, 0.47569187, 0.66881908, 0.86016566, 1.05419221, 5.04548983][::-1]
+tones_absor  = [0.00959068, 0.00600729, 0.0435695, 0.14318842, 0.21172985, 0.02872196, 0.05342193, 0.09899989, 0.11983258, 0.77415291][::-1]
+MOC_tones_RR_T = calcReactionRate(E_diffs,MOC_tones_flux,tones_total)
+MOC_tones_RR_A = calcReactionRate(E_diffs,MOC_tones_flux,tones_absor)
 
-print(MC_fuelFlux0)
-print(MOC_fuelFlux0)
-print(tonesMOC)
-print(tonesTheory)
-tonesMOC.reverse()
 
-# MOC_fuelFlux0.reverse()
-# plt.plot(MC_fuelFlux0,label='MC')
-# plt.plot(MOC_fuelFlux0,label='MOC using MC-generated XS')
-# plt.plot(tonesMOC,label='MOC using Tones XS')
-# plt.plot(tonesTheory,label='Tones Eq. Solution')
-# plt.title('Neutron flux in 6% enr. fuel pin using different methods')
-# plt.xlabel('Energy (eV)')
-# plt.ylabel('Scalar Flux (normalized)')
-# plt.legend(loc='best')
-# plt.show()
 
 E_bounds = [1e-5,0.058,0.14,0.28,0.625,4.,1e1,4e1,5.53e3,8.21e5,2.e7]
-plt.step(E_bounds,[MC_fuelFlux0[0]]+MC_fuelFlux0,label='MC')
-plt.step(E_bounds,[MOC_fuelFlux0[0]]+MOC_fuelFlux0,label='MOC using MC-generated XS')
-plt.step(E_bounds,[tonesMOC[0]]+tonesMOC,label='MOC using Tones XS')
-plt.step(E_bounds,[tonesTheory[0]]+tonesTheory,label='Tones Eq. Solution')
-plt.ylabel('Scalar Flux (normalized)')
-plt.xlabel('Energy (eV)')
-plt.xscale('log')
-plt.title('Neutron flux in 6% enr. fuel pin using different methods')
-plt.legend(loc='best')
-plt.show()
-
-
-"""
-
-
-########################################################################
-# 9 % Enrichment in high pin. 4 % in low pin
-########################################################################
-# MC
-MC_fuelFlux0 = [0.03824895, 0.03413355, 0.01628323, 0.01757013, 0.04479519, 0.01995093, 0.03380981, 0.14810622, 0.32018227, 0.29649381]
-sum_MC_fuelFlux0 = sum(MC_fuelFlux0)
-MC_fuelFlux0 = [x / sum_MC_fuelFlux0 for x in MC_fuelFlux0]
-# MC_fuelFlux0.reverse()
-
-MOC_fuelFlux0 = [13.5196022, 14.40633473, 6.46404503, 1.42415558, 0.84707415, 1.90625945, 0.73329303, 0.68103082, 1.51879883, 1.71886332]
-sum_MOC_fuelFlux0 = sum(MOC_fuelFlux0)
-MOC_fuelFlux0 = [x / sum_MOC_fuelFlux0 for x in MOC_fuelFlux0]
-MOC_fuelFlux0.reverse()
-
-
-tonesTheory = [ 1.01999297, 0.99650289, 0.91326466, 0.80437664, 0.83822861, 0.83392992, 0.61710356, 0.49083038, 0.40640608, 0.08524643]
-sum_tonesTheory = sum(tonesTheory)
-tonesTheory = [x / sum_tonesTheory for x in tonesTheory]
-tonesTheory.reverse()
-E_bounds = [1e-5,0.058,0.14,0.28,0.625,4.,1e1,4e1,5.53e3,8.21e5,2.e7]
-for i in range(10):
-	tonesTheory[i] /= (E_bounds[i+1]+E_bounds[i])
-tonesTheory.reverse()
-
-
-tonesMOC = [27.54297667, 29.67489576, 13.500035, 3.04042113, 1.8155832, 4.03846653, 1.55388277, 1.37043008, 2.63352521, 1.1251432]
-sum_tonesMOC = sum(tonesMOC)
-tonesMOC = [x / sum_tonesMOC for x in tonesMOC]
-tonesMOC.reverse()
-
-# MOC_fuelFlux0.reverse()
-# plt.plot(MC_fuelFlux0,label='MC')
-# plt.plot(MOC_fuelFlux0,label='MOC using MC-generated XS')
-# plt.plot(tonesMOC,label='MOC using Tones XS')
-# plt.plot(tonesTheory,label='Tones Eq. Solution')
-# plt.title('Neutron flux in 6% enr. fuel pin using different methods')
-# plt.xlabel('Energy (eV)')
-# plt.ylabel('Scalar Flux (normalized)')
-# plt.legend(loc='best')
-# plt.show()
-
-E_bounds = [1e-5,0.058,0.14,0.28,0.625,4.,1e1,4e1,5.53e3,8.21e5,2.e7]
-plt.step(E_bounds,[MC_fuelFlux0[0]]+MC_fuelFlux0,label='MC')
-plt.step(E_bounds,[MOC_fuelFlux0[0]]+MOC_fuelFlux0,label='MOC using MC-generated XS')
-plt.step(E_bounds,[tonesMOC[0]]+tonesMOC,label='MOC using Tones XS')
-plt.step(E_bounds,[tonesTheory[0]]+tonesTheory,label='Tones Eq. Solution')
+plt.step(E_bounds,[MC_flux[0]]+MC_flux,label='MC')
+plt.step(E_bounds,[MOC_flux[0]]+MOC_flux,label='MOC using MC-generated XS')
+plt.step(E_bounds,[MOC_tones_flux[0]]+MOC_tones_flux,label='MOC using Tones XS')
 plt.ylabel('Scalar Flux (normalized)')
 plt.xlabel('Energy (eV)')
 plt.xscale('log')
@@ -120,6 +46,66 @@ plt.legend(loc='best')
 plt.show()
 
 
+
+
+
+
+
+
+
+import matplotlib.pyplot as plt
+E_bounds = [1e-5,0.058,0.14,0.28,0.625,4.,1e1,4e1,5.53e3,8.21e5,2.e7]
+E_midpoints = [(E_bounds[i]+E_bounds[i+1])/2.0 for i in range(10)]
+E_diffs = [(E_bounds[i+1]-E_bounds[i]) for i in range(10)]
+def normalize(vec):
+	invSum = 1.0/max(vec)
+	return [x*invSum for x in vec]
+
+def calcReactionRate(E_diffs,flux,XS):
+	RR_denom = sum([E_diffs[i]*flux[i] for i in range(10)])
+	RR_numer = sum([XS[i]*flux[i]*E_diffs[i] for i in range(10)])
+	return RR_numer/RR_denom
+
+
+MC_k = 1.60629
+MC_flux = [0.02879449, 0.02778762, 0.0140252, 0.01609068, 0.04363773, 0.01945098, 0.03246101, 0.14740258, 0.32073465, 0.29916951]
+MC_flux = normalize(MC_flux)
+MC_total = [0.26482608, 0.41782873, 0.5797005, 0.72601689, 0.70774452, 0.51290634, 0.77004306, 1.00974167, 1.28751244, 2.18380972][::-1]
+MC_absor = [0.01209566, 0.01013866, 0.08950889, 0.27487643, 0.32051569, 0.13075438, 0.37871566, 0.61644707, 0.89190662, 1.78308371][::-1]
+MC_RR_T = calcReactionRate(E_diffs,MC_flux,MC_total)
+MC_RR_A = calcReactionRate(E_diffs,MC_flux,MC_absor)
+
+MOC_k = 1.60706049226
+MOC_flux = [16.94125253, 17.8739986, 7.80542238, 1.68968712, 1.00322899, 2.26142942, 0.82319294, 0.72828042, 1.48691383, 1.57564102][::-1]
+MOC_flux = normalize(MOC_flux)
+MOC_total = [0.26482608, 0.41782873, 0.5797005, 0.72601689, 0.70774452, 0.51290634, 0.77004306, 1.00974167, 1.28751244, 2.18380972][::-1]
+MOC_absor = [0.01209566, 0.01013866, 0.08950889, 0.27487643, 0.32051569, 0.13075438, 0.37871566, 0.61644707, 0.89190662, 1.78308371][::-1]
+MOC_RR_T = calcReactionRate(E_diffs,MOC_flux,MOC_total)
+MOC_RR_A = calcReactionRate(E_diffs,MOC_flux,MOC_absor)
+
+MOC_tones_k = 1.7629326
+MOC_tones_flux = [34.04768914, 36.68243303, 16.61561472, 3.73428848, 2.2341029, 4.97787129, 1.82204522, 1.53810266, 2.77921125, 1.03687844][::-1]
+MOC_tones_flux = normalize(MOC_tones_flux)
+tones_total  = [0.26379803, 0.42145659, 0.57197067, 0.68110208, 0.66157794, 0.5003477, 0.7547992, 1.01321759, 1.26616191, 6.41545478][::-1]
+tones_absor  = [0.00928902, 0.00620524, 0.04754651, 0.15140082, 0.2179899, 0.0332696, 0.06470017, 0.12455949, 0.14860541, 0.98589298][::-1]
+MOC_tones_RR_T = calcReactionRate(E_diffs,MOC_tones_flux,tones_total)
+MOC_tones_RR_A = calcReactionRate(E_diffs,MOC_tones_flux,tones_absor)
+
+
+# print(MC_RR_T,MOC_RR_T,MOC_tones_RR_T)
+# print(MC_RR_A,MOC_RR_A,MOC_tones_RR_A)
+
+# E_bounds = [1e-5,0.058,0.14,0.28,0.625,4.,1e1,4e1,5.53e3,8.21e5,2.e7]
+# plt.step(E_bounds,[MC_flux[0]]+MC_flux,label='MC')
+# plt.step(E_bounds,[MOC_flux[0]]+MOC_flux,label='MOC using MC-generated XS')
+# plt.step(E_bounds,[MOC_tones_flux[0]]+MOC_tones_flux,label='MOC using Tones XS')
+# # plt.step(E_bounds,[tonesTheory[0]]+tonesTheory,label='Tones Eq. Solution')
+# plt.ylabel('Scalar Flux (normalized)')
+# plt.xlabel('Energy (eV)')
+# plt.xscale('log')
+# plt.title('Neutron flux in 12% enr. fuel pin using different methods')
+# plt.legend(loc='best')
+# plt.show()
 
 
 

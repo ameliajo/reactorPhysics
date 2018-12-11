@@ -211,8 +211,16 @@ while not converged:
             f.write("\n\n")
         f.close()
 
-        phi = (np.array([sig0EnergyVec]) + pins[0].U235.pot)/(np.array([pins[0].U235.sigT]) + sig0EnergyVec)
-        print(phi)
+        frac = []
+        for i in range(10):
+            print(sig0EnergyVec[i])
+            print(pins[0].U235.pot)
+            print(pins[0].U235.pot)
+            numer = sig0EnergyVec[i]+pins[0].U235.pot
+            denom = sig0EnergyVec[i]+pins[0].U235.sigT[i]
+            frac.append(numer/denom)
+
+        print(frac)
 
         break
 
