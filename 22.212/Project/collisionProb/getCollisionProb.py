@@ -41,6 +41,8 @@ def getCollisionProb(pitch,radius,plot,numParticles,hole,fSigT_hi, \
             if plot:
                 ax.plot(n.r[0],n.r[1],color=colors[counter%len(colors)],marker='o')
                 ax.plot([oldr[0],n.r[0]],[oldr[1],n.r[1]],colors[counter%len(colors)]) 
+                print(oldr[0],oldr[1])
+                print(n.r[0],n.r[1])
                 counter += 1
 
             if regions[regionID].name == 'mod':
@@ -70,10 +72,10 @@ def getCollisionProb(pitch,radius,plot,numParticles,hole,fSigT_hi, \
 
 
 if __name__ == "__main__":
-    plot          = False
+    plot          = True
     pitch         = 1.26
     radius        = 0.39218
-    numParticles  = 10000
+    numParticles  = 100
     hole          = True       # Pin Labels
     startNeutronsFrom = 0      #  6  7  8
     fSigT_lo = 0.27413873      #  3  4  5 

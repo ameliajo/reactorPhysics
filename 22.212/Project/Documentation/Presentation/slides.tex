@@ -177,6 +177,7 @@ which helps us simplify the heterogeneous balance equation into
 
 
 \section{Tone's Method}
+\subsection{Derivation}
   \begin{frame}{Tone's Method}
 
     \begin{equation*}\phi_{i}(E)=\frac{1}{E\Sigma_{t,i(E)}V_i}\sum\limits_j\Big(P_{j\rightarrow i}(E)V_{j}\Sigma_{p,j}\Big)\end{equation*}
@@ -251,17 +252,204 @@ Plug reciprocity relation into probabilities requirement
 
 
     \begin{frame}
-
-
 \begin{equation*}\phi_i(E)=\frac{1}{E}\frac{\sigma_{pot,r}+\sigma_{0}}{\sigma_{t,r}(E)+\sigma_{0}}\end{equation*}
 
+\begin{equation*}\sigma_{0}=\frac{\sum\limits_j\sum\limits_{k\neq r}P_{j\rightarrow i,g}V_{j}N_{k,j}\sigma_{pot,k}}{\sum\limits_jP_{j\rightarrow i,g}V_{j}N_{r,j}}\end{equation*}
+
+\end{frame}
+
+\subsection{Recipe}
+    \begin{frame}{Tone's Method}
+      \begin{enumerate}
+        \item Assume initial background cross sections for resonance nuclides, using conventional equivalence methods
+        \item Evaluate the effective cross sections of resonance nuclides using the conventional equivalence theory
+        \item Evaluate group-wise collision probability using effective cross sections 
+        \item Update the background cross section using
+\begin{equation*}\phi_i(E)=\frac{1}{E}\frac{\sigma_{pot,r}+\sigma_{0}}{\sigma_{t,r}(E)+\sigma_{0}}\end{equation*}
 
 \begin{equation*}\sigma_{0}=\frac{\sum\limits_j\sum\limits_{k\neq r}P_{j\rightarrow i,g}V_{j}N_{k,j}\sigma_{pot,k}}{\sum\limits_jP_{j\rightarrow i,g}V_{j}N_{r,j}}\end{equation*}
 
 
+        \item Repeat until convergence. A few iterations are usually sufficient to obtain the converged result.
+      \end{enumerate}
+\end{frame}
+
+    \begin{frame}
+      \begin{enumerate}
+        \item \textbf{Assume initial background cross sections for resonance nuclides, using conventional equivalence methods}
+        \item Evaluate the effective cross sections of resonance nuclides using the conventional equivalence theory
+        \item Evaluate group-wise collision probability using effective cross sections 
+        \item Update the background cross section using
+\begin{equation*}\phi_i(E)=\frac{1}{E}\frac{\sigma_{pot,r}+\sigma_{0}}{\sigma_{t,r}(E)+\sigma_{0}}\end{equation*}
+
+\begin{equation*}\sigma_{0}=\frac{\sum\limits_j\sum\limits_{k\neq r}P_{j\rightarrow i,g}V_{j}N_{k,j}\sigma_{pot,k}}{\sum\limits_jP_{j\rightarrow i,g}V_{j}N_{r,j}}\end{equation*}
+
+
+        \item Repeat until convergence. A few iterations are usually sufficient to obtain the converged result.
+      \end{enumerate}
+\end{frame}
+
+
+\begin{frame}
+  For a heterogeneous system, our background cross section is comprised of a material-component and a geometry-component.
+  \[\sigma_{0,r}=\sigma_{0,f}+\frac{\Sigma_e}{N_r}=\sum_{k\neq r}\frac{N_k\sigma_{s,k}}{N_r}+\frac{\Sigma_e}{N_r}\]
+Note that for Tone's method, the initial estimate for background cross section is not too important since it'll iterate out anyway.
+\end{frame}
+
+    \begin{frame}
+      \begin{enumerate}
+        \item Assume initial background cross sections for resonance nuclides, using conventional equivalence methods
+        \item \textbf{Evaluate the effective cross sections of resonance nuclides using the conventional equivalence theory}
+        \item Evaluate group-wise collision probability using effective cross sections 
+        \item Update the background cross section using
+\begin{equation*}\phi_i(E)=\frac{1}{E}\frac{\sigma_{pot,r}+\sigma_{0}}{\sigma_{t,r}(E)+\sigma_{0}}\end{equation*}
+
+\begin{equation*}\sigma_{0}=\frac{\sum\limits_j\sum\limits_{k\neq r}P_{j\rightarrow i,g}V_{j}N_{k,j}\sigma_{pot,k}}{\sum\limits_jP_{j\rightarrow i,g}V_{j}N_{r,j}}\end{equation*}
+
+
+        \item Repeat until convergence. A few iterations are usually sufficient to obtain the converged result.
+      \end{enumerate}
+\end{frame}
+
+
+
+\begin{frame}
+  Use GROUPR to create a table of cross sections vs. dilution for my resonant nuclides.
+\begin{figure}
+
+\includegraphics[width=0.75\textwidth]{gendf}
+\end{figure}
 
 
 \end{frame}
+
+    \begin{frame}
+      \begin{enumerate}
+        \item Assume initial background cross sections for resonance nuclides, using conventional equivalence methods
+        \item Evaluate the effective cross sections of resonance nuclides using the conventional equivalence theory
+        \item \textbf{Evaluate group-wise collision probability using effective cross sections }
+        \item Update the background cross section using
+\begin{equation*}\phi_i(E)=\frac{1}{E}\frac{\sigma_{pot,r}+\sigma_{0}}{\sigma_{t,r}(E)+\sigma_{0}}\end{equation*}
+
+\begin{equation*}\sigma_{0}=\frac{\sum\limits_j\sum\limits_{k\neq r}P_{j\rightarrow i,g}V_{j}N_{k,j}\sigma_{pot,k}}{\sum\limits_jP_{j\rightarrow i,g}V_{j}N_{r,j}}\end{equation*}
+
+
+        \item Repeat until convergence. A few iterations are usually sufficient to obtain the converged result.
+      \end{enumerate}
+\end{frame}
+
+
+
+
+
+\begin{frame}
+  Created a quick Monte Carlo script that solves for 1 group collision probabilities 
+\begin{figure}
+\includegraphics[width=0.7\textwidth]{collisionProb1}
+\end{figure}
+  Geometry: 3x3 grid, with and without a center hole. Reflective bounds
+
+
+
+\end{frame}
+
+
+
+    \begin{frame}
+      \begin{enumerate}
+        \item Assume initial background cross sections for resonance nuclides, using conventional equivalence methods
+        \item Evaluate the effective cross sections of resonance nuclides using the conventional equivalence theory
+        \item Evaluate group-wise collision probability using effective cross sections 
+        \item \textbf{Update the background cross section using}
+\begin{equation*}\phi_i(E)=\frac{1}{E}\frac{\sigma_{pot,r}+\sigma_{0}}{\sigma_{t,r}(E)+\sigma_{0}}\end{equation*}
+
+\begin{equation*}\sigma_{0}=\frac{\sum\limits_j\sum\limits_{k\neq r}P_{j\rightarrow i,g}V_{j}N_{k,j}\sigma_{pot,k}}{\sum\limits_jP_{j\rightarrow i,g}V_{j}N_{r,j}}\end{equation*}
+
+
+        \item Repeat until convergence. A few iterations are usually sufficient to obtain the converged result.
+      \end{enumerate}
+\end{frame}
+
+
+
+\section{Results}
+\begin{frame}
+\begin{figure}
+\includegraphics[width=0.7\textwidth]{sig0Estimations}
+  \caption{Tone's method evolving background cross section $\sigma_0$ across iterations}
+\end{figure}
+
+\end{frame}
+
+
+
+\begin{frame}
+\begin{figure}
+\includegraphics[width=0.8\textwidth]{final_3x3}
+\end{figure}
+\end{frame}
+
+
+\begin{frame}
+\begin{figure}
+\includegraphics[width=0.8\textwidth]{final_3x3_with_hole}
+\end{figure}
+\end{frame}
+
+\begin{frame}
+\begin{figure}
+\includegraphics[width=0.8\textwidth]{error_3x3}
+\end{figure}
+\end{frame}
+
+
+\begin{frame}
+\begin{figure}
+\includegraphics[width=0.8\textwidth]{error_3x3_with_hole}
+\end{figure}
+\end{frame}
+
+\begin{frame}
+\begin{figure}
+\includegraphics[width=0.8\textwidth]{error_3x3_with_without_hole}
+\end{figure}
+\end{frame}
+
+
+
+
+\begin{frame}
+\end{frame}
+
+
+
+
+
+
+\begin{frame}
+\end{frame}
+
+
+
+
+
+
+\begin{frame}
+\end{frame}
+
+
+
+
+
+\begin{frame}
+\end{frame}
+
+
+
+
+
+
+
 
 
 \end{document}

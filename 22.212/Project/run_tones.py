@@ -41,7 +41,7 @@ class Pin:
 
 # Define problem geometry
 pinRad = 0.39128;  pitch = 1.26
-l_bar  = 2*pinRad; C     = 0.15
+l_bar  = 2*pinRad; C     = 0.14
 
 
 E_bounds = [1e-5,0.058,0.14,0.28,0.625,4.,1e1,4e1,5.53e3,8.21e5,2.e7]
@@ -97,6 +97,7 @@ sig0EnergyVec = [sig0]*nGroups
 converged = False
 counter = 0
 while not converged:
+    print(sig0EnergyVec)
 
     ###########################################################################
     # Evaluate the effective cross sections of resonance nuclides using the 
@@ -140,8 +141,8 @@ while not converged:
     # For hi/lo enr. of fuel, use values we just pulled from dilution table
     # For moderator, use openMC values generated from grid_3x3.py
     collisionProbs = [                                                   \
-        getCollisionProb( pitch, pinRad, plot=False, numParticles=1000,  \
-          hole=False, fSigT_hi=SigT_hi[g], fSigT_lo=SigT_lo[g],          \
+        getCollisionProb( pitch, pinRad, plot=False, numParticles=5000,  \
+          hole=True, fSigT_hi=SigT_hi[g], fSigT_lo=SigT_lo[g],          \
           mSigT=modTotal0[g], verbose=False, startNeutronsFrom=0 )       \
         for g in range(nGroups)]
 
@@ -181,7 +182,7 @@ while not converged:
     ###########################################################################
 
     counter += 1
-    if counter > 5:
+    if counter > 10:
         print(counter)
         SigT_hi = [ sum([nucl.openMC_SigT[g] for nucl in nonRes]) + \
                     pins[0].U235.SigT[g] for g in range(nGroups) ]
