@@ -98,8 +98,6 @@ converged = False
 counter = 0
 sig0Vals = [sig0]
 while not converged:
-    print(counter)
-    #print(sig0EnergyVec)
 
     ###########################################################################
     # Evaluate the effective cross sections of resonance nuclides using the 
@@ -143,7 +141,7 @@ while not converged:
     # For hi/lo enr. of fuel, use values we just pulled from dilution table
     # For moderator, use openMC values generated from grid_3x3.py
     collisionProbs = [                                                   \
-        getCollisionProb( pitch, pinRad, plot=False, numParticles=2000,  \
+        getCollisionProb( pitch, pinRad, plot=False, numParticles=1000,  \
           hole=False, fSigT_hi=SigT_hi[g], fSigT_lo=SigT_lo[g],          \
           mSigT=modTotal0[g], verbose=False, startNeutronsFrom=0 )       \
         for g in range(nGroups)]
@@ -169,22 +167,19 @@ while not converged:
         # RECIPROCITY RELATION
         # P(i->0) = P(0->i) * SigT_0 / SigT_i
         P_i_to_0 = P_0_to_i * pins[0].SigT / pin.SigT
-
         SUM_nonRes_sigPot = pin.U238.N*pin.U238.pot*1E-24 +\
                             pin.O16.N*pin.O16.pot*1E-24
         
         tones_Numer += P_i_to_0 * SUM_nonRes_sigPot
-        tones_Denom += P_i_to_0 * pin.U235.N
+        tones_Denom += P_i_to_0 * pin.U235.N * 1e-24
 
-    sig0_new = sum(tones_Numer/tones_Denom*1e24)/nGroups
+
     #plt.step(E_bounds,[1e24*tones_Numer[0]/tones_Denom[0]]+list(1e24*tones_Numer/tones_Denom),label='inter'+str(counter),color=scalarMap.to_rgba(counter))
 
-
+    sig0EnergyVec = tones_Numer/tones_Denom
     ###########################################################################
     # Repeat
     ###########################################################################
-    sig0 = sig0_new 
-    sig0EnergyVec = tones_Numer/tones_Denom*1e24
 
     counter += 1
     if counter > 5:
@@ -213,9 +208,6 @@ while not converged:
 
         frac = []
         for i in range(10):
-            print(sig0EnergyVec[i])
-            print(pins[0].U235.pot)
-            print(pins[0].U235.pot)
             numer = sig0EnergyVec[i]+pins[0].U235.pot
             denom = sig0EnergyVec[i]+pins[0].U235.sigT[i]
             frac.append(numer/denom)

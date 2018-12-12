@@ -16,18 +16,18 @@ pitch = 1.26
 
 # Basic materials
 uo2_hi = openmc.Material(name='fuel')
-uo2_hi.add_nuclide('U235', 0.09)
-uo2_hi.add_nuclide('U238', 0.91)
+uo2_hi.add_nuclide('U235', 0.04)
+uo2_hi.add_nuclide('U238', 0.96)
 uo2_hi.add_nuclide('O16', 2.0)
-#uo2_hi.add_nuclide('B10', 3.0)
-#uo2_hi.add_element('Gd', 0.0007)
+uo2_hi.add_element('Gd', 0.0007)
 uo2_hi.set_density('g/cc', 10.0)
 
 uo2_lo = openmc.Material(name='fuel')
 uo2_lo.add_nuclide('U235', 0.04)
 uo2_lo.add_nuclide('U238', 0.96)
 uo2_lo.add_nuclide('O16', 2.0)
-#uo2_lo.add_element('Gd', 0.0007)
+uo2_lo.add_element('Gd', 0.000)
+
 uo2_lo.set_density('g/cc', 10.0)
 
 
@@ -66,6 +66,7 @@ waterReg = +x1 & -x4 & +y1 & -y4 &                              \
            +fCylinders[6] &  +fCylinders[7] &  +fCylinders[8] 
 
 fCells = [openmc.Cell(name='fuel'+str(i), fill=[uo2_hi,uo2_lo][i%2], region=-fCylinders[i]) for i in range(9)]
+fCells[4].fill = water
 
 mCells = []
 count = 0
@@ -221,7 +222,7 @@ if (len(sys.argv) > 1):
         p.width = (3*pitch, 3*pitch)
         p.pixels = (200, 200)
         p.color_by = 'material'
-        p.colors = {uo2_hi:'red',uo2_lo:'yellow',water:'blue'}
+        p.colors = {uo2_hi:'green',uo2_lo:'yellow',water:'blue'}
         p.origin = (3*pitch/2,3*pitch/2,0.0)
         plots = openmc.Plots([p])
         plots.export_to_xml()

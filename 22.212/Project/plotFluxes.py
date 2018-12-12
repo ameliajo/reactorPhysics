@@ -2,6 +2,8 @@ import matplotlib.pyplot as plt
 E_bounds = [1e-5,0.058,0.14,0.28,0.625,4.,1e1,4e1,5.53e3,8.21e5,2.e7]
 E_midpoints = [(E_bounds[i]+E_bounds[i+1])/2.0 for i in range(10)]
 E_diffs = [(E_bounds[i+1]-E_bounds[i]) for i in range(10)]
+
+
 def normalize(vec):
 	invSum = 1.0/max(vec)
 	return [x*invSum for x in vec]
@@ -44,6 +46,10 @@ plt.xscale('log')
 plt.title('Neutron flux in 9% enr. fuel pin using different methods')
 plt.legend(loc='best')
 plt.show()
+
+
+
+
 
 
 
