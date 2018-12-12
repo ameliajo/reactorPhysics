@@ -16,8 +16,8 @@ pitch = 1.26
 
 # Basic materials
 uo2_hi = openmc.Material(name='fuel')
-uo2_hi.add_nuclide('U235', 0.04)
-uo2_hi.add_nuclide('U238', 0.96)
+uo2_hi.add_nuclide('U235', 0.09)
+uo2_hi.add_nuclide('U238', 0.91)
 uo2_hi.add_nuclide('O16', 2.0)
 uo2_hi.add_element('Gd', 0.0007)
 uo2_hi.set_density('g/cc', 10.0)

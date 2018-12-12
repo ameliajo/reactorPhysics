@@ -48,7 +48,7 @@ def runRays(n_rays, surfaces, regions, sideLen, ngroup, plot=False,
         diffK       = abs((kVals[-1]-k)/kVals[-1])
         oldFissSrc = newFissSrc
 
-        converged = (diffK < 1e-5 and diffFissSrc < 1e-7) or (counter > 100)
+        converged = (diffK < 1e-5 and diffFissSrc < 1e-7) or (counter > 500)
         kVals.append(k)
         
     if verbose: print('k = ', k, ' after ', counter, 'iterations')

@@ -47,6 +47,13 @@
 \leftright{\today}{ }%-- left and right positions in the header
 ~\par
 
+\subsection*{Introduction}
+Due to the overwhelming size and number of necessary nuclear cross section data files needed for a reactor calculation, adopting a multigroup cross section approach is extremely popular for determinisitc neutronics calculations. Cross section resonances greatly impact the flux by creating depressions, since neutrons with energy equal to that of the resonance are highly likely to experience the resonance's corresponding reaction. In most reactors where neutrons are born fast and are slowed down through the resonance range, this effect relating to neutron flux depressions (i.e. self-shielding) is extremely important to characterize.
+
+The generation of accurate multigroup cross sections is central to the success of deterministic reactor physics neutronics calculations. Because of the complexity of nuclear cross section data, which contains large resonances, this process is difficult to perform accurately. The neutron flux exhibits depressions in energy near the resonances, an effect that has both spatial and energy implications known as self-shielding. This self-shielding effect is typically accounted for using an approximate model, such as equivalence in dilution [1, 2] or the subgroup method [3–5]. Recent work has sought to improve the self-shielding approximations and has resulted in new techniques such as the Embedded Self-Shielding Method 
+
+
+
 \subsection*{Narrow Resonance Model (homogeneous geometry)}
 We start with the Boltzmann Equation.
 \begin{equation}\Sigma_{t}(E)\phi(E)=\int_{0}^{\infty}\Sigma_{s}\left(E^{\prime}\rightarrow E\right)\phi\left(E^{\prime}\right)\mathrm{d}E^{\prime}+\frac{\chi(E)}{k_{eff}}\int_{0}^{\infty}v\Sigma_{f}\left(E^{\prime}\right)\phi\left(E^{\prime}\right)\mathrm{d}E^{\prime}\end{equation}
@@ -54,16 +61,15 @@ We start with the Boltzmann Equation.
 We're working in the resonance region, where scattering is the main form of neutrons slowing down, which allows us to get rid of our fission term, simplifying the Boltzmann Equation to
 \begin{equation}\Sigma_{t}(E)\phi(E)=\int_{0}^{\infty}\Sigma_{s}\left(E^{\prime}\rightarrow E\right)\phi\left(E^{\prime}\right)\mathrm{d}E^{\prime}.\end{equation}
 
-Since this method prompts us to consider one nuclide to be resonant, while all other ``non-resonant'' nuclides are considered to be constant for the time being, we separate the macroscopic cross section into its number density $N$ and microscopic cross section $\sigma$ components\footnote{Note that this does not prevent us from considering multiple nuclides that have resonances. We simply focus on one resonant nuclide at a time.}.
-
+We represent the macroscopic cross sections as their constituents: number density $N$, microscopic cross section $\sigma$, and probability $P(E'\rightarrow E)$ of a scattering event resulting in energy transition to $E$ from $E'$.
 \begin{equation}\left(\sum\limits_{k}N_{k}\sigma_{t,k}(E)\right)\phi(E)=\sum\limits_{k}\int_{E}^{E/\alpha_{k}}N_{k}\sigma_{s,k}\left(E^{\prime}\right)\phi\left(E^{\prime}\right)P(E'\rightarrow E)\mathrm{d}E^{\prime}\end{equation}
 Recalling that 
 \begin{equation}P(E'\rightarrow E)dE'=\frac{1}{(1-\alpha_k)E'}dE',\end{equation}
 we can further simplify the scattering kernel, bringing the equation to
 \begin{equation}\left(\sum\limits_{k}N_{k}\sigma_{t,k}(E)\right)\phi(E)=\sum\limits_{k}\frac{1}{1-\alpha_{k}}\int_{E}^{E/\alpha_{k}}\frac{1}{E'}N_{k}\sigma_{s,k}\left(E^{\prime}\right)\phi\left(E^{\prime}\right)\mathrm{d}E^{\prime}\end{equation}
 
+We now intend to isolate one nuclide as ``resonant'', and letting all others be considered ``non-resonant''\footnote{Note that this does not prevent us from considering multiple nuclides that have resonances. We simply focus on one resonant nuclide at a time.}. The potential scattering cross section is independent of neutron energy. For neutrons with energy in the resonance region that interact with non-resonant nuclides, this is the dominant reaction. Thus, we assume that $\sigma_{t,k\neq r}(E')=\sigma_{s,k\neq r}=\sigma_{pot,k\neq r}$. In other words, we neglect energy dependence and non-scattering reactions, such as absorption, for non-resonant nuclides. 
 
-The potential scattering cross section is independent of neutron energy. For neutrons with energy in the resonance region that interact with non-resonant nuclides, this is the dominant reaction. Thus, we assume that $\sigma_{t,k}(E')=\sigma_{s,k}=\sigma_{potot,k}$. In other words, we neglect energy dependence and non-scattering reactions, such as absorption, for non-resonant nuclides. 
 
 \begin{align} \left(N_{r}\sigma_{t,r}(E)+\sum\limits_{k\neq r}N_{k}\sigma_{pot,k}\right)\phi(E)=&\frac{1}{1-\alpha_{r}}\int_{E}^{E/\alpha_{r}}\frac{1}{E'}N_{r}\sigma_{s,r}\left(E^{\prime}\right)\phi\left(E^{\prime}\right)dE^{\prime}\\ + \sum\limits_{k\neq r}&\frac{1}{1-\alpha_{k}}\int_{E}^{E/\alpha_{k}}\frac{1}{E'}N_{k}\sigma_{pot,k}\phi\left(E^{\prime}\right)dE^{\prime}\end{align}
   
@@ -110,7 +116,7 @@ These NR approximations to the scattering behavior greatly simplifies the energy
 
 
 \subsection*{Neutron Slowing Down in Heterogeneous Isolated System}
-Consider a neutron slowing down in a two-region heterogeneous problem, where $f,m$ represent fuel and moderator, respectively.
+Consider a neutron slowing down in a two-region heterogeneous problem, where $f,m$ represent fuel and moderator, respectively. Note that while the following discussion is based on a two region problem, it can be extended to accommodate more complicated geometries.
 \begin{align}\Sigma_{t,f}(E)\phi_{f}(E)V_{f}=P_{f\rightarrow f}(E)V_{f}&\int_{0}^{\infty}\Sigma_{s,f}\left(E^{\prime}\rightarrow E\right)\phi_{f}\left(E^{\prime}\right)dE^{\prime}\\ + P_{m\rightarrow f}(E)V_{m}&\int_{0}^{\infty}\Sigma_{s,m}\left(E^{\prime}\rightarrow E\right)\phi_{m}\left(E^{\prime}\right)dE^{\prime}\end{align}
 
 We separate the macroscopic cross section for scattering to energy $E$ into its number density $N$, microscopic cross section $\sigma_s$, and probability of energy change $P(E'\rightarrow E)$, to rewrite the balance equation as 
@@ -150,37 +156,68 @@ Note that while this result is derived using a two-region problem, it can be ext
 
 \subsection*{Tone's Method}
 We start with the result from Eq.~\ref{eq:resultFromHetero}, which represents the energy dependence of the neutron flux in region $i$ as it depends on the collision probabilities between itself and other $j$ regions.
-\begin{equation}\phi_{i}(E)=\frac{1}{E}\Sigma_j\frac{P_{j\rightarrow i}(E)V_{j}\Sigma_{p,j}}{\sum\limits_{t,i}(E)V_{i}}\end{equation}
+\begin{equation}\phi_{i}(E)=\frac{1}{E}\Sigma_j\frac{P_{j\rightarrow i}(E)V_{j}\Sigma_{p,j}}{\Sigma_{t,i}(E)V_{i}}\end{equation}
 
 The basis of Tone's method lies in the following approximation:
 \begin{equation}\frac{P_{j\rightarrow i}(E)}{\Sigma_{t,i}(E)}=\alpha_{i}(E)\frac{P_{j\rightarrow i,g}}{\Sigma_{t,i,g}}\end{equation}
 Note what this is actually saying. We're approximating the collision probability and total cross section to be group constants. But to make it slightly better, we're adding in a fine energy term $\alpha_i(E)$, that is \textbf{only dependent on the region we're going into}. This is a major assumption, since in reality the actual collision probability is dependent on other regions (including the source region).
 
-\begin{equation}\phi_{i}(E)=\frac{1}{E}\alpha_{i}(E)\Sigma_j\frac{P_{j\rightarrow i,g}V_{j}\Sigma_{p,j}}{\Sigma_{t,i,g}V_{i}}\end{equation}
-
-\begin{equation}~\end{equation}
-Another tool that we're going to use is the reciprocity theorem
-\begin{equation}P_{j\rightarrow i}(E)V_{j}\Sigma_{t,j}(E)=P_{i\rightarrow j}(E)V_{i}\Sigma_{t,i}(E)\end{equation}
-
-Finally, normalization requirement for collision probabilities is also considered.
-\begin{equation}\Sigma_{j}P_{i\rightarrow j}(E)=1\end{equation}
-
-
-\begin{equation}1=\Sigma_{j}P_{i\rightarrow j}(E)\end{equation}
-
-\begin{equation}1=\Sigma_j\frac{P_{j\rightarrow i}(E)V_{j}\sum\limits_{t,j}(E)}{V_{i}\sum\limits_{t,i}(E)}\end{equation}
-
-\begin{equation}1=\Sigma_j\alpha_{i}(E)\frac{P_{j\rightarrow i,g}}{\sum\limits_{t,i,g}}\frac{V_{j}\sum\limits_{t,j}(E)}{V_{i}}\end{equation}
+\begin{equation*}\phi_{i}(E)=\frac{1}{E}\alpha_{i}(E)\Sigma_j\frac{P_{j\rightarrow i,g}V_{j}\Sigma_{p,j}}{\Sigma_{t,i,g}V_{i}}\end{equation*}
+To achieve a cleaner representation for $\phi_i(E)$, we need a way to better describe $\alpha_i(E)$. To do this, we use two tools:
+% We'll use two tools to aid us in the derivation
+  \begin{enumerate}
+    \item Reciprocity relation
+      \begin{equation*}P_{j\rightarrow i}(E)V_{j}\Sigma_{t,j}(E)=P_{i\rightarrow j}(E)V_{i}\Sigma_{t,i}(E)\end{equation*}
+        \begin{equation*}P_{i\rightarrow j}(E)=\frac{P_{j\rightarrow i}(E)V_{j}\Sigma_{t,j}(E)}{V_{i}\Sigma_{t,i}(E)}\end{equation*}
+    \item Probabilities normalize to 1
+      \begin{equation*}\sum\limits_{j}P_{i\rightarrow j}(E)=1\end{equation*}
+  \end{enumerate}
 
 
+Plug reciprocity relation into probabilities requirement
+      \begin{equation*}\sum\limits_{j}\left(\frac{P_{j\rightarrow i}(E)V_{j}\Sigma_{t,j}(E)}{V_{i}\Sigma_{t,i}(E)}\right)=1\end{equation*}
 
-\begin{equation}1=\alpha_{i}(E)\frac{1}{\sum\limits_{t,i,g}V_{i}}\Sigma_jP_{j\rightarrow i,g}V_{j}\Sigma_{t,j}(E)\end{equation}
+      \begin{equation*}\sum\limits_{j}\left(\frac{P_{j\rightarrow i}(E)V_{j}\Sigma_{t,j}(E)}{V_{i}\Sigma_{t,i}(E)}\right)=1\end{equation*}
 
-\begin{equation}\alpha_{i}(E)=\frac{\sum\limits_{t,i,g}V_{i}}{\Sigma_jP_{j\rightarrow i,g}V_{j}\Sigma_{t,j}(E)}\end{equation}
+    Plug in the Tone's approximation
+    \begin{equation*}\frac{P_{j\rightarrow i}(E)}{\Sigma_{t,i}(E)}=\alpha_{i}(E)\frac{P_{j\rightarrow i,g}}{\Sigma_{t,i,g}}\end{equation*}
+      to yield
+      \begin{equation*}\frac{\alpha_i(E)}{V_i\Sigma_{t,i,g}}\sum\limits_{j}\Big(P_{j\rightarrow i,g}V_{j}\Sigma_{t,j}(E)\Big)=1\end{equation*}
+        \begin{equation*}\alpha_i(E)=\frac{V_i\Sigma_{t,i,g}}{\sum\limits_{j}\Big(P_{j\rightarrow i,g}V_{j}\Sigma_{t,j}(E)\Big)}\end{equation*}
 
-\begin{equation}\phi_{i}(E)=\frac{1}{E}\alpha_{i}(E)\Sigma_j\frac{P_{j\rightarrow i,g}V_{j}\sum\limits_{p,j}}{\sum\limits_{t,i,g}V_{i}}\end{equation}
+          We can now plug this definition of $\alpha_i(E)$ into our earlier equation for $\phi_i(E)$.
 
-\begin{equation}=\frac{1}{E}\frac{\sum\limits_{t,i,g}V_{i}}{\Sigma_jP_{j-i,g}V_{t,j}(E)}\Sigma_j\frac{P_{j-i,g}V_{j}\Sigma_{p,j}}{\sum\limits_{t,i,g}V_{i}}\end{equation}
+                \begin{equation*}\phi_{i}(E)=\frac{\alpha_i(E)}{E\Sigma_{t,i,g}V_i}\sum\limits_j\Big(P_{j\rightarrow i,g}V_{j}\Sigma_{p,j}\Big)\end{equation*}
+
+        \begin{equation*}\phi_{i}(E)=\frac{1}{E\Sigma_{t,i,g}V_i}\frac{V_i\Sigma_{t,i,g}}{\sum\limits_{j}\left(P_{j\rightarrow i,g}V_{j}\Sigma_{t,j}(E)\right)}\sum\limits_j\Big(P_{j\rightarrow i,g}V_{j}\Sigma_{p,j}\Big)\end{equation*}
+          \begin{equation*}\phi_{i}(E)=\frac{1}{E}\frac{\sum\limits_j\Big(P_{j\rightarrow i,g}V_{j}\Sigma_{p,j}\Big)}{\sum\limits_{j}\left(P_{j\rightarrow i,g}V_{j}\Sigma_{t,j}(E)\right)}\end{equation*}
+            \begin{equation*}\phi_{i}(E)\approx\frac{1}{E}\frac{\sum\limits_j\left(P_{j\rightarrow i,g}V_{j}\left(N_{r,j}\sigma_{pot,r}+\sum\limits_{k\neq r}N_{k,j}\sigma_{pot,k}\right)\right)}{\sum\limits_{j}\left(P_{j\rightarrow i,g}V_{j}\left(N_{r,j}\sigma_{r,t}(E)+\sum\limits_{k\neq r}N_{k,j}\sigma_{pot,k}\right)\right)}\end{equation*}
+            Note the approximation made above: that the only recognized interaction between neutrons and non-resonant nuclides is potential scattering.
+% \begin{equation}\phi_{i}(E)=\frac{1}{E}\alpha_{i}(E)\Sigma_j\frac{P_{j\rightarrow i,g}V_{j}\Sigma_{p,j}}{\Sigma_{t,i,g}V_{i}}\end{equation}
+
+% \begin{equation}~\end{equation}
+% Another tool that we're going to use is the reciprocity theorem
+% \begin{equation}P_{j\rightarrow i}(E)V_{j}\Sigma_{t,j}(E)=P_{i\rightarrow j}(E)V_{i}\Sigma_{t,i}(E)\end{equation}
+
+% Finally, normalization requirement for collision probabilities is also considered.
+% \begin{equation}\Sigma_{j}P_{i\rightarrow j}(E)=1\end{equation}
+
+
+% \begin{equation}1=\Sigma_{j}P_{i\rightarrow j}(E)\end{equation}
+
+% \begin{equation}1=\Sigma_j\frac{P_{j\rightarrow i}(E)V_{j}\Sigma_{t,j}(E)}{V_{i}\Sigma_{t,i}(E)}\end{equation}
+
+% \begin{equation}1=\Sigma_j\alpha_{i}(E)\frac{P_{j\rightarrow i,g}}{\Sigma_{t,i,g}}\frac{V_{j}\Sigma_{t,j}(E)}{V_{i}}\end{equation}
+
+
+
+% \begin{equation}1=\alpha_{i}(E)\frac{1}{\Sigma_{t,i,g}V_{i}}\Sigma_jP_{j\rightarrow i,g}V_{j}\Sigma_{t,j}(E)\end{equation}
+
+% \begin{equation}\alpha_{i}(E)=\frac{\Sigma_{t,i,g}V_{i}}{\Sigma_jP_{j\rightarrow i,g}V_{j}\Sigma_{t,j}(E)}\end{equation}
+
+\begin{equation}\phi_{i}(E)=\frac{1}{E}\alpha_{i}(E)\Sigma_j\frac{P_{j\rightarrow i,g}V_{j}\sum\limits_{p,j}}{\Sigma_{t,i,g}V_{i}}\end{equation}
+
+\begin{equation}=\frac{1}{E}\frac{\Sigma_{t,i,g}V_{i}}{\Sigma_jP_{j-i,g}V_{t,j}(E)}\Sigma_j\frac{P_{j-i,g}V_{j}\Sigma_{p,j}}{\Sigma_{t,i,g}V_{i}}\end{equation}
 
 \begin{equation}=\frac{1}{E}\frac{\Sigma_jP_{j\rightarrow i,g}V_{j}\Sigma_{p,j}}{\Sigma_jP_{j\rightarrow i,g}V_{j}\Sigma_{t,j}(E)}\end{equation}
 

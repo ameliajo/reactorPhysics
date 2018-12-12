@@ -96,7 +96,6 @@ sig0EnergyVec = [sig0]*nGroups
 
 converged = False
 counter = 0
-sig0Vals = [sig0]
 while not converged:
 
     ###########################################################################
