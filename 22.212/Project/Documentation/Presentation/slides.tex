@@ -45,7 +45,8 @@
 
 \begin{frame}{Introduction}
 \begin{figure}
-\includegraphics[width=0.8\textwidth]{f1}
+\includegraphics[width=0.7\textwidth]{f1}
+  \caption{[Prof. Forget's slides]}
 \end{figure}
 \end{frame}
 
@@ -323,6 +324,19 @@ Note that for Tone's method, the initial estimate for background cross section i
 
 \end{frame}
 
+
+
+
+\begin{frame}
+\begin{figure}
+\includegraphics[width=0.75\textwidth]{njoyGroupr}
+  \caption{[njoy2016 manual]}
+\end{figure}
+\end{frame}
+
+
+
+
     \begin{frame}
       \begin{enumerate}
         \item Assume initial background cross sections for resonance nuclides, using conventional equivalence methods
@@ -371,6 +385,19 @@ Note that for Tone's method, the initial estimate for background cross section i
 \end{frame}
 
 
+\section{Problem}
+\begin{frame}
+\begin{figure}
+\includegraphics[width=0.4\textwidth]{full_3x3}
+  ~\quad~
+\includegraphics[width=0.4\textwidth]{hole_3x3}
+\end{figure}
+Low = 4\%, High = 9\%\\
+Water = H1 and O16\qquad Fuel = U235,U238,O16
+\end{frame}
+
+
+
 
 \section{Results}
 \begin{frame}
@@ -378,8 +405,15 @@ Note that for Tone's method, the initial estimate for background cross section i
 \includegraphics[width=0.7\textwidth]{sig0Estimations}
   \caption{Tone's method evolving background cross section $\sigma_0$ across iterations}
 \end{figure}
-
 \end{frame}
+
+\begin{frame}
+\begin{figure}
+\includegraphics[width=0.8\textwidth]{convergenceOfSig0}
+  \caption{Tone's method evolving background cross section $\sigma_0$ across iterations}
+\end{figure}
+\end{frame}
+
 
 
 
@@ -419,14 +453,46 @@ Note that for Tone's method, the initial estimate for background cross section i
 
 
 \begin{frame}
+  \begin{table}[]
+    \textbf{Total Reaction Rates}\\
+\begin{tabular}{|l|l|l|l|}\hline
+  & MC & MOC w/ MC XS & MOC w/ Tone XS\\\hline
+3x3 & 0.2716422& 0.2715326& 0.270986\\\hline
+3x3 w/ hole  & 0.271132& 0.2720591& 0.271357\\\hline
+\end{tabular}
+\end{table}
+
+  \begin{table}[]
+    \textbf{Absorption Reaction Rates}\\
+\begin{tabular}{|l|l|l|l|}\hline
+  & MC & MOC w/ MC XS & MOC w/ Tone XS\\\hline
+3x3  & 0.0114941& 0.01149558& 0.0094423\\\hline
+3x3 w/ hole & 0.01159694& 0.0114882& 0.0115930\\\hline
+\end{tabular}
+\end{table}
 \end{frame}
 
 
 
 
 
+\section{Conclusion}
+\subsection*{}
+\begin{frame}{Concluding Remarks}
+  \begin{enumerate}
+    \item By calculating the collision probability iteratively while changing the background cross section, geometry dependence is embedded into the model (no Dancoff needed)
+   % \item Contributions to a background cross section from other regions are taken into account approximately through region-wise and group-wise collision probabilities.
+    \item Is very similar in appearance to conventional equivalence theory. Dilution tables and libraries used in normal equivalence can also be used in Tone's
+   % \item Its a nity to the conventional equivalence theory is high. Cross section libraries and self-shielding factors prepared for the conventional method with equivalence theory can be directly used in Tone’s method.
+   % \item The ``gray regions'' from the viewpoint of the resonance calculation can be approximately treated. Thus the space-dependent self-shielding e ect in a fuel lump could be evaluated approximately.
+    \item NR approximation is used in the derivation, which hurts its accuracy in low energy region. 
+%    \item The NR approximation is used. Note that this method is primarily intended for fast reactor calculations, in which the NR approximation displays a high degree of accuracy. In this context, this method can be accurately applied to resonances in a higher energy range in LWR calculations, in which the NR approximation is valid.
+    \item Assumed that fine energy dependence, $\alpha_i(E)$, is only dependent on target pin cell.
+%    \item The energy dependence of collision probabilities among regions are approximated using
+    \item Not many iterations are necessary. If your pin cells are similar enough, no iterations may be necessary.
+    %\item Iteration calculations are required for the ective cross sections, in which calculation of the collision probabilities is included, though only a few iterations are needed to obtain converged results. If one’s initial rough predictions for e ective cross sections is reasonably good, no iteration may be necessary.
+  \end{enumerate}
 
-\begin{frame}
 \end{frame}
 
 
