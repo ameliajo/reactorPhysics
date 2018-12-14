@@ -1,10 +1,4 @@
 
-class Material:
-    def __init__(self,SigT,name):
-        self.SigT = SigT
-        self.name = name
-
-
 
 def makeGeometry(pitch,radius,hole):
     circX = [pitch*(i+0.5) for i in range(3)]
@@ -20,9 +14,8 @@ def makeGeometry(pitch,radius,hole):
 
     mRegs = [Region([ (XPlanes[i],True), (XPlanes[i+1],False),        \
                       (YPlanes[j],True), (YPlanes[j+1],False),        \
-                      (circles[-1],True) ],                           \
-                      'mod')                                     \
-                     for j in range(3) for i in range(3) ]
+                      (circles[-1],True) ], 'mod') for j in range(3)  \
+                                                   for i in range(3) ]
 
     regions  = fRegs + mRegs
     

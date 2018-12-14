@@ -17,16 +17,22 @@ broadr
  0/
 unresr
  -21 -23 -24/
- 9237 1 10 1/
+ 9237 1 31 1/
  300 /
- 1.e10 1.e5 1.e4 1.e3 8.e2 6.e2 4.e2 2.e2 1.e1 1.e0/
+ 1e10 5e5 2e5 1e5 5e4 2e4 1e4 
+ 8000 5000 2500 2000 1500 1200 1000 
+ 800 600 400 200 100 
+ 80 60 40 20 14 10 8 5 1 .1 1e-3 1e-5 /
  0/
 groupr
  -21 -24 0 -25                  / nendf npend ngout1 ngout2
- 9237 1 0 3 0 1 10 1             / matb ign igg iwt lord ntemp nsigz iprint
+ 9237 1 0 3 0 1 31 1             / matb ign igg iwt lord ntemp nsigz iprint
  '92-u-238'                     / title              card 3
  300                            / temp               card 4
- 1.e10 1.e5 1.e4 1.e3 8.e2 6.e2 4.e2 2.e2 1.e1 1.e0 / sig0 values    card 5
+ 1e10 5e5 2e5 1e5 5e4 2e4 1e4 
+ 8000 5000 2500 2000 1500 1200 1000 
+ 800 600 400 200 100 
+ 80 60 40 20 14 10 8 5 1 .1 1e-3 1e-5 /
  9                             / #groups            card 6a
  1e-5 4. 10 18 25 34 45 5530 821e3 2.e7 / E groups card 6b
  3 1 'total'                    / reaction 1         card 9

@@ -33,10 +33,10 @@ class Pin:
 def run_tones():
 
         #jet = cm = plt.get_cmap('hot')
-        #jet = cm = plt.get_cmap('tab10')
+        jet = cm = plt.get_cmap('tab10')
         #jet = cm = plt.get_cmap('autumn')
-        #cNorm  = colors.Normalize(vmin=0, vmax=8)
-        #scalarMap = cmx.ScalarMappable(norm=cNorm, cmap=jet)
+        cNorm  = colors.Normalize(vmin=0, vmax=10)
+        scalarMap = cmx.ScalarMappable(norm=cNorm, cmap=jet)
 
         # Define problem geometry
         pinRad = 0.39128;  pitch = 1.26
@@ -56,11 +56,12 @@ def run_tones():
         ###############################################################################
 
         # groupsU235[g].sigT[d] will give you sigT for group g for dilution index d
-        dilutionDataU238_byGroup = interpretGENDF('u238',False,'dilutionTables/u238_tape26')
-        dilutionDataU238_byGroup.reverse() # Because NJOY does groups in inverse order (low -> high)
-        dilution = dilutionDataU238_byGroup[0].dilutionVals # All dilution values are the same, it
+        grouprDataU8 = interpretGENDF('u238',False,'dilutionTables/u238_tape26')
+        grouprDataU8.reverse() # Because NJOY does groups in inverse order (low -> high)
+        dilution = grouprDataU8[0].dilutionVals # All dilution values are the same, it
                                               # doesn't matter I'm pulling this from 
                                               # energy group 0
+        nGroups = len(grouprDataU8)
 
         # Gotten from OpenMC input, using uo2.get_nuclide_atom_densities and multiplying
         # by 1E24 bc the number densities are provided in atoms / b cm
@@ -77,6 +78,20 @@ def run_tones():
         # Load in openMC data in for all materials. 
         pins = [Pin([N_dict_Hi,N_dict_Lo][i%2],radius,all_nuclides[i]) for i in range(9)]
 
+        
+        """
+        for g in resonanceGroups:
+            plt.plot(grouprDataU8[g].dilutionVals,grouprDataU8[g].sigT,label=str(int(grouprDataU8[g].E_low))+" - "+str(int(grouprDataU8[g].E_high))+' eV',color=scalarMap.to_rgba(g))
+
+        plt.xscale('log')
+        plt.xlabel('background XS (b)')
+        plt.ylabel('absorption XS (b)')
+        plt.ylabel('total XS (b)')
+        plt.legend(loc='best')
+        plt.title('U-238 sigT dependency on background XS')
+        plt.show()
+        return
+        """
 
 
 
@@ -92,19 +107,31 @@ def run_tones():
         nonRes = [pins[0].U235,pins[0].O16]
 
         # background = sum_nonRes [N_nonRes * sig_potNonRes / N_res] + 1/(N_res*l_bar)
+        #sig0 = sum([nuclide.N*nuclide.pot for nuclide in nonRes])/pins[0].U238.N + \
+        #       1.0 / (pins[0].U238.N*l_bar*(1.0-C))
         sig0 = sum([nuclide.N*nuclide.pot for nuclide in nonRes])/pins[0].U238.N + \
-               1.0 / (pins[0].U238.N*l_bar*(1.0-C))
+               1.0 / (pins[0].U238.N*l_bar)
 
-        print(sig0)
 
-        nGroups = len(dilutionDataU238_byGroup)
+
         sig0EnergyVec = [sig0]*nGroups
 
         converged = False
         counter = 0
+
+            
+        absorptionXS_g0 = []
+        absorptionXS_g1 = []
+        absorptionXS_g2 = []
+        absorptionXS_g3 = []
+        absorptionXS_g4 = []
+        absorptionXS_g5 = []
+        absorptionXS_g6 = []
+        absorptionXS_g7 = []
+        absorptionXS_g8 = []
+
+
         while not converged:
-            #print(sig0EnergyVec)
-            #print()
 
             ###########################################################################
             # Evaluate the effective cross sections of resonance nuclides using the 
@@ -131,13 +158,22 @@ def run_tones():
                 for g in resonanceGroups:
                     # Returns sigT, sigF, sigA, nuBar
                     pin.U238.addXS(getDataFromEqTable(boundingDilutionsVec[g],\
-                                   dilutionDataU238_byGroup[g],sig0EnergyVec[g]),g)
+                                   grouprDataU8[g],sig0EnergyVec[g]),g)
 
                 # Making these microscopic cross sections into macroscropic cross sections
                 pin.U238.convertToMacro(nGroups)
 
             
-            
+            absorptionXS_g0.append(pins[0].U238.SigA[0])
+            absorptionXS_g1.append(pins[0].U238.SigA[1])
+            absorptionXS_g2.append(pins[0].U238.SigA[2])
+            absorptionXS_g3.append(pins[0].U238.SigA[3])
+            absorptionXS_g4.append(pins[0].U238.SigA[4])
+            absorptionXS_g5.append(pins[0].U238.SigA[5])
+            absorptionXS_g6.append(pins[0].U238.SigA[6])
+            absorptionXS_g7.append(pins[0].U238.SigA[7])
+            absorptionXS_g8.append(pins[0].U238.SigA[8])
+
             
 
             ###########################################################################
@@ -160,7 +196,6 @@ def run_tones():
                 for g in range(nGroups)]
 
 
-            return
 
 
 
@@ -181,11 +216,11 @@ def run_tones():
                 # RECIPROCITY RELATION
                 # P(i->0) = P(0->i) * SigT_0 / SigT_i
                 P_i_to_0 = P_0_to_i * pins[0].SigT / pin.SigT
-                SUM_nonRes_sigPot = pin.U238.N*pin.U238.pot*1E-24 +\
-                                    pin.O16.N*pin.O16.pot*1E-24
+                SUM_nonRes_sigPot = pin.U235.N * pin.U235.pot * 1E-24 + \
+                                    pin.O16.N  * pin.O16.pot  * 1E-24
                 
                 tones_Numer += P_i_to_0 * SUM_nonRes_sigPot
-                tones_Denom += P_i_to_0 * pin.U235.N * 1e-24
+                tones_Denom += P_i_to_0 * pin.U238.N * 1e-24
 
 
             #plt.step(E_bounds,[1e24*tones_Numer[0]/tones_Denom[0]]+list(1e24*tones_Numer/tones_Denom),label='inter'+str(counter),color=scalarMap.to_rgba(counter))
@@ -196,21 +231,29 @@ def run_tones():
             ###########################################################################
 
             counter += 1
-            if counter > 10:
+            if counter > 3:
                 print(counter)
-                SigT_hi = [ sum([nucl.openMC_SigT[g] for nucl in nonRes]) + \
-                            pins[0].U235.SigT[g] for g in range(nGroups) ]
-                SigT_lo = [ sum([nucl.openMC_SigT[g] for nucl in nonRes]) + \
-                            pins[1].U235.SigT[g] for g in range(nGroups) ]
-                SigA_hi = [ sum([nucl.openMC_SigA[g] for nucl in nonRes]) + \
-                            pins[0].U235.SigA[g] for g in range(nGroups) ]
-                SigA_lo = [ sum([nucl.openMC_SigA[g] for nucl in nonRes]) + \
-                            pins[1].U235.SigA[g] for g in range(nGroups) ]
-                nuSigF_hi = [ sum([nucl.openMC_nuSigF[g] for nucl in nonRes]) + \
-                            pins[0].U235.SigF[g]*pins[0].U235.nuBar[g] for g in range(nGroups) ]
-                nuSigF_lo = [ sum([nucl.openMC_nuSigF[g] for nucl in nonRes]) + \
-                            pins[1].U235.SigF[g]*pins[0].U235.nuBar[g] for g in range(nGroups) ]
+                plt.plot(absorptionXS_g0)
+                plt.plot(absorptionXS_g1)
+                plt.plot(absorptionXS_g2)
+                plt.plot(absorptionXS_g3)
+                plt.plot(absorptionXS_g4)
+                plt.plot(absorptionXS_g5)
+                plt.plot(absorptionXS_g6)
+                plt.plot(absorptionXS_g7)
+                plt.plot(absorptionXS_g8)
+                SigT_hi = [ sum(nucl.SigT[g] for nucl in pins[0].nuclides) for g in range(nGroups) ]
+                SigT_lo = [ sum(nucl.SigT[g] for nucl in pins[1].nuclides) for g in range(nGroups) ]
+                SigA_hi = [ sum(nucl.SigA[g] for nucl in pins[0].nuclides) for g in range(nGroups) ]
+                SigA_lo = [ sum(nucl.SigA[g] for nucl in pins[1].nuclides) for g in range(nGroups) ]
+                nuSigF_hi = [ sum(nucl.nuSigF[g] for nucl in pins[0].nuclides) for g in range(nGroups) ]
+                nuSigF_lo = [ sum(nucl.nuSigF[g] for nucl in pins[1].nuclides) for g in range(nGroups) ]
+                plt.show()
 
+                return
+
+
+                """
                 f = open("XS-tones.py","a")
                 for i in range(9):
                     f.write("fuelTotal"+str(i)+"  = "+str([float("%.8f"%[SigT_hi,SigT_lo][i%2][g]) for g in range(nGroups)])+"\n")
@@ -229,6 +272,7 @@ def run_tones():
                 print(frac)
 
                 break
+                """
 
         """
         ax = plt.gca()
