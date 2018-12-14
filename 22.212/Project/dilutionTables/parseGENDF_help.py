@@ -9,6 +9,12 @@ class Group:
         self.sigA = None; self.nuBar = None
         self.sigS = None
 
+    def __str__(self):
+        l1 = 'E range: '+str(int(self.E_low))+' - '+str(int(self.E_high))+'\n'
+        l2 = 'dil vals '+str(self.dilutionVals)+'\n'
+        l3 = 'sigT     '+str(self.sigT)+'\n'
+        return l1+l2+l3
+
 def convertToExpPos(x):
     split = x.split('+')
     return float(split[0])*10.0**float(split[1])

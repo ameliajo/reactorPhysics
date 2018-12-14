@@ -5,11 +5,24 @@ import matplotlib.pyplot as plt
 np.random.seed(42)
 
 
+class Neutron():
+    def __init__(self,sideLen,reg):
+        l, r = reg.x0 - reg.r, reg.x0 + reg.r
+        d, u = reg.y0 - reg.r, reg.y0 + reg.r
+        inCircle = False
+        while not inCircle:
+           self.r = np.array([l+rand()*(r-l),d+rand()*(u-d)])
+           inCircle = (self.r[0]-reg.x0)**2 + (self.r[1]-reg.y0)**2 < reg.r**2
+
+        self.mu = np.cos((2.0*rand()-1.0)*pi*0.5)
+        theta = rand()*2*pi
+        self.u = np.array([np.cos(theta), np.sin(theta)])
+
+
 def getCollisionProb(pitch,radius,plot,numParticles,hole,fSigT_hi, \
+
     fSigT_lo,mSigT,verbose,startNeutronsFrom):
-
     sideLen  = pitch*3
-
     regions,surfaces = makeGeometry(pitch,radius,hole)
 
     start = time.perf_counter()
@@ -30,19 +43,27 @@ def getCollisionProb(pitch,radius,plot,numParticles,hole,fSigT_hi, \
 
 
     counter = 0
+    l, r = startRegion.x0 - startRegion.r, startRegion.x0 + startRegion.r
+    d, u = startRegion.y0 - startRegion.r, startRegion.y0 + startRegion.r
     for i in range(numParticles):
-        n = Neutron(sideLen,startRegion)
-        if plot: ax.plot(n.r[0],n.r[1],'bo')
+        inCircle = False
+        while not inCircle:
+           x, y = l+rand()*(r-l), d+rand()*(u-d)
+           inCircle = (x-startRegion.x0)**2 + (y-startRegion.y0)**2 < startRegion.r**2
+
+        mu = np.cos((2.0*rand()-1.0)*pi*0.5)
+        theta = rand()*2*pi
+        ux, uy = np.cos(theta), np.sin(theta)
+
+        if plot: ax.plot(x,y,'bo')
 
         collided = False
         while not collided:
-            if plot: oldr = n.r
-            distTraveled,regionID = advance(n,surfaces,regions)
+            if plot: old_x, old_y = x, y
+            distTraveled,regionID,x,y,ux,uy = advance(x,y,ux,uy,mu,surfaces,regions)
             if plot:
-                ax.plot(n.r[0],n.r[1],color=colors[counter%len(colors)],marker='o')
-                ax.plot([oldr[0],n.r[0]],[oldr[1],n.r[1]],colors[counter%len(colors)]) 
-                print(oldr[0],oldr[1])
-                print(n.r[0],n.r[1])
+                ax.plot(x,y,color=colors[counter%len(colors)],marker='o')
+                ax.plot([old_x,x],[old_y,y],colors[counter%len(colors)]) 
                 counter += 1
 
             if regions[regionID].name == 'mod':
@@ -72,10 +93,10 @@ def getCollisionProb(pitch,radius,plot,numParticles,hole,fSigT_hi, \
 
 
 if __name__ == "__main__":
-    plot          = True
+    plot          = False
     pitch         = 1.26
     radius        = 0.39218
-    numParticles  = 100
+    numParticles  = 10000
     hole          = True       # Pin Labels
     startNeutronsFrom = 0      #  6  7  8
     fSigT_lo = 0.27413873      #  3  4  5 

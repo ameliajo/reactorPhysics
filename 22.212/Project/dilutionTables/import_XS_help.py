@@ -4,28 +4,24 @@ class Nuclide:
     def __init__(self,N,r,openMC_vals):
         self.N   = N
         self.pot = 4.0*pi*r*r
-        self.sigT = []
-        self.sigF = []
-        self.sigA = []
-        self.nuBar = []
         self.importFromOpenMC(openMC_vals)
 
-    def resetXS(self):
-        self.sigT = []
-        self.sigF = []
-        self.sigA = []
-        self.nuBar = []
+    def resetXS(self,nGroups):
+        self.sigT = [None]*nGroups
+        self.sigF = [None]*nGroups
+        self.sigA = [None]*nGroups
+        self.nuBar = [None]*nGroups
 
-    def addXS(self,xsVals):
-        self.sigT.append(xsVals[0])
-        self.sigF.append(xsVals[1])
-        self.sigA.append(xsVals[2])
-        self.nuBar.append(xsVals[3])
+    def addXS(self,xsVals,g):
+        self.sigT[g] = (xsVals[0])
+        self.sigF[g] = (xsVals[1])
+        self.sigA[g] = (xsVals[2])
+        self.nuBar[g] = (xsVals[3])
 
-    def convertToMacro(self):
-        self.SigT = [sig*1E-24*self.N  for sig in self.sigT]
-        self.SigF = [sig*1E-24*self.N  for sig in self.sigF]
-        self.SigA = [sig*1E-24*self.N  for sig in self.sigA]
+    def convertToMacro(self,nGroups):
+        self.SigT = [self.sigT[g]*1E-24*self.N if self.sigT[g] else self.openMC_SigT[g] for g in range(nGroups)]
+        self.SigA = [self.sigA[g]*1E-24*self.N if self.sigA[g] else self.openMC_SigA[g] for g in range(nGroups)]
+        self.nuSigF = [self.nuBar[g]*self.sigF[g]*1E-24*self.N if self.sigF[g] else self.openMC_nuSigF[g] for g in range(nGroups)]
 
     def importFromOpenMC(self,openMC_vals):
         self.openMC_nuSigF = openMC_vals[0]
@@ -33,12 +29,12 @@ class Nuclide:
         self.openMC_Chi    = openMC_vals[2]
         self.openMC_SigA   = openMC_vals[3]
         self.openMC_SigS   = openMC_vals[4]
-        #self.openMC_nuSigF.reverse()
-        #self.openMC_SigT.reverse()
-        #self.openMC_Chi.reverse()
-        #self.openMC_SigA.reverse()
-        #self.openMC_SigS.reverse()
 
+        self.nuSigF = openMC_vals[0]
+        self.SigT   = openMC_vals[1]
+        self.Chi    = openMC_vals[2]
+        self.SigA   = openMC_vals[3]
+        self.SigS   = openMC_vals[4]
 
 
 

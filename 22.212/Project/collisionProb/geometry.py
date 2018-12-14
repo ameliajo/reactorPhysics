@@ -61,10 +61,10 @@ class Region():
         self.surfaces     = surfacesTHENsides[0]
         self.orientations = surfacesTHENsides[1]
 
-    def evaluate(self, r):
+    def evaluate(self, x,y):
         for i, surface in enumerate(self.surfaces):
             onPosSide = self.orientations[i]
-            if not surface.areWeInHere(r[0],r[1],onPosSide): return False
+            if not surface.areWeInHere(x,y,onPosSide): return False
         return True
 
 

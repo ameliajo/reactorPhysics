@@ -103,6 +103,8 @@ groups = [0.0, 4, 10, 20e6]
 groups = [0.0, 0.058, 4, 10, 20e6]
 groups = [0.0, 20e6]
 groups = [0.0, 0.058, 0.14, 0.28, 0.625, 4, 10, 40, 5.53e3, 821e3, 20e6]
+groups = [0.0, 0.058, 0.14, 0.28, 0.625, 4, 10, 18, 25, 34, 45, 5.53e3, 821e3, 20e6]
+groups = [1e-5, 4, 10, 18, 25, 34, 45, 5.53e3, 821e3, 20e6]
 nGroups = len(groups)-1
 
 mgxs_lib = openmc.mgxs.Library(geometry)
