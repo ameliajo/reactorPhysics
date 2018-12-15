@@ -9,7 +9,7 @@
 \usepackage[nottoc]{tocbibind}
 
 \setlength{\parskip}{2ex} %--skip lines between paragraphs
-\setlength{\parindent}{10pt} %--don't indent paragraphs
+\setlength{\parindent}{0pt} %--don't indent paragraphs
 \lstset{language=Matlab,%
   %basicstyle=\color{red},
   breaklines=true,%
@@ -28,9 +28,9 @@
 }
 \geometry{
  total={210mm,297mm},
- left=15mm,
- right=15mm,
- top=10mm,
+ left=20mm,
+ right=20mm,
+ top=20mm,
  bottom=20mm,
  }
  \pgfplotsset{compat=1.12}
@@ -159,7 +159,7 @@ Attaining a cleaner representation of $\phi_i(E)$ requires getting a better desc
 
 
 The reciprocity relation (Eq.~\ref{eq:reciprocity}) can be combined with the normalization statement (Eq.~\ref{eq:probSum}) to get
-\begin{equation}\sum\limits_{j}\left(\frac{P_{j\rightarrow i}(E)V_{j}\Sigma_{t,j}(E)}{V_{i}\Sigma_{t,i}(E)}\right)=1.\end{equation}
+\begin{equation}\sum\limits_{j}\left(\frac{P_{j\rightarrow i}(E)V_{j}\Sigma_{t,j}(E)}{V_{i}\Sigma_{t,i}(E)}\right)=1.\label{eq:endOfReciprocity}\end{equation}
 The fine energy dependence of the collision probabilities and the total cross sections can be approximated using Eq.~\ref{eq:tonesApprox}, which can be used to isolate $\alpha_i(E)$,
 \begin{equation}\frac{\alpha_i(E)}{V_i\Sigma_{t,i,g}}\sum\limits_{j}\Big(P_{j\rightarrow i,g}V_{j}\Sigma_{t,j}(E)\Big)=1\end{equation}
 \begin{equation}\alpha_i(E)=\frac{V_i\Sigma_{t,i,g}}{\sum\limits_{j}\Big(P_{j\rightarrow i,g}V_{j}\Sigma_{t,j}(E)\Big)}.\end{equation}
@@ -229,12 +229,12 @@ Effective cross sections for U-238 capture is plotted in Fig.~\ref{fig:njoyDil} 
 
 \begin{figure}[H]
   \begin{center}
-\includegraphics[width=0.5\textwidth]{njoyGroupr}
+\includegraphics[width=0.6\textwidth]{njoyGroupr}
   \caption{The self-shielding effect on the first three U-238 capture resonance at room temperature in the 5-50 eV energy range. The multigroup boundaries are from the Los Alamos 187-grioup structure~\cite{njoy16}. Note that the cross sections over the resonances can change by over an order of magnitude, when calcualted using different background cross sections $\sigma_0$.}
   \label{fig:njoyDil}
   \end{center}
 \end{figure}
-9
+
   \begin{figure}[H]
     \begin{center}
 %    \includegraphics[width=0.55\textwidth]{U238_sigT_dependency_on_background}
@@ -293,7 +293,7 @@ Recall Eq.~\ref{eq:Tones}, which defines the flux and background cross section $
 
   \section{Results}
   The procedure describing Tone's method presented in Sec.~\ref{recipe} was performed for the problem specifications described in Sec.~\ref{enrichment}, and the macroscopic cross sections $\Sigma_T,\Sigma_A$ are presented in Fig.~\ref{fig:results1}. Both the Tone's-generated cross section values as well as their corresponding OpenMC-generated values are plotted for each energy group, across six iterations of Tone's method. Note that not only do all cros section values approach their corresponding OpenMC values, but they do so very quickly (within approximately two iterations).
-  \begin{figure}
+  \begin{figure}[H]
     \begin{center}
     \includegraphics[width=0.6\textwidth]{convergence_of_tones_sigT}
     \includegraphics[width=0.6\textwidth]{convergence_of_tones_sigA}
@@ -301,6 +301,15 @@ Recall Eq.~\ref{eq:Tones}, which defines the flux and background cross section $
       \label{fig:results1}
     \end{center}
   \end{figure}
+  Note that this comparison was also repeated, with the only difference in geometry being the creation of a hole in the center of the 3x3 grid. The geometry thus changed to what is shown in Fig.~\ref{hole}
+
+ \begin{figure}
+    \begin{center}
+      \includegraphics[width=0.3\textwidth]{hole_3x3}
+      \caption{In addition to the system presented in Fig.~\ref{fig:geometry}, a 3x3 pin system with a hole in the center was considered. The enrichments and pin sizes all were held constant. This case is not presented further because its results are so close to those presented in Fig.~\ref{fig:results1} that any additional discussion would be repetitive.}
+      \label{fig:hole}
+    \end{center}
+\end{figure}
 
 
 
@@ -313,24 +322,66 @@ Recall Eq.~\ref{eq:Tones}, which defines the flux and background cross section $
 ~\newpage
 
 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Tone's Method Backwards?}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+In Eq.~\ref{eq:tonesApprox}, we assumed that the fine energy term $\alpha$ was only dependent on region $i$. Let's consider the case that, instead of $\alpha=\alpha_i(E)$, the assumptions is instead $\alpha=\alpha_j(E)$. In that case, Eq.~\ref{eq:tonesApprox} turns into
+\begin{equation}\frac{P_{j\rightarrow i}(E)}{\Sigma_{t,i}(E)}=\alpha_{j}(E)\frac{P_{j\rightarrow i,g}}{\Sigma_{t,i,g}}\label{eq:tonesApprox2}.\end{equation}
+Recall Eq.~\ref{eq:resultFromHetero},
+\begin{equation*}\phi_{i}(E)=\frac{1}{E}\sum\limits_j\frac{P_{j\rightarrow i}(E)V_{j}\Sigma_{pot,j}}{\Sigma_{t,i}(E)V_{i}}\tag{\ref{eq:resultFromHetero}}.\end{equation*}
+  Using Eq.~\ref{eq:tonesApprox2}, we can remove the energy dependence from $P_{j\rightarrow i}(E)$ and $\Sigma_{t,i}(E)$ in Eq.~\ref{eq:resultFromHetero},
+\begin{equation}\phi_{i}(E)=\frac{1}{E}\sum\limits_j\frac{\alpha_j(E)P_{j\rightarrow i,g}V_{j}\Sigma_{pot,j}}{\Sigma_{t,i,g}V_{i}}.\label{eq:phiWithalphaj}\end{equation}
+The problem here, however, is that since $\alpha_j(E)$ is dependent on $j$, we cannot remove it from the summation like we had done with the original Tone's derivation.So we must try to represent $\alpha_j(E)$ in terms of $\alpha_i(E)$.
+
+Since we had assumed Eq.~\ref{eq:tonesApprox2} to be true, then we can reverse the indices to get
+\begin{equation}\frac{P_{i\rightarrow j}(E)}{\Sigma_{t,j}(E)}=\alpha_{i}(E)\frac{P_{i\rightarrow j,g}}{\Sigma_{t,j,g}}\label{eq:something}.\end{equation}
+
+Using the reciprocity relation from Eq.~\ref{eq:reciprocity}, we can rewrite the left side of Eq.~\ref{eq:something} to contain similar terms to those in Eq.~\ref{eq:tonesApprox2},
+\begin{equation}P_{i\rightarrow j}(E)=\frac{P_{j\rightarrow i}(E)V_{j}\Sigma_{t,j}(E)}{V_{i}\Sigma_{t,i}(E)}\tag{\ref{eq:reciprocity}}\end{equation}
 
 
-  Created a quick Monte Carlo script that solves for 1 group collision probabilities 
-\begin{figure}
-\includegraphics[width=0.7\textwidth]{collisionProb1}
-\end{figure}
-  Geometry: 3x3 grid, with and without a center hole. Reflective bounds
+\begin{equation}\frac{P_{j\rightarrow i}(E)V_{j}\Sigma_{t,j}(E)}{V_{i}\Sigma_{t,i}(E)}\times\frac{1}{\Sigma_{t,j}(E)}=\alpha_{i}(E)\frac{P_{i\rightarrow j,g}}{\Sigma_{t,j,g}}\end{equation}
+
+\begin{equation}\frac{P_{j\rightarrow i}(E)V_{j}}{V_{i}\Sigma_{t,i}(E)}=\alpha_{i}(E)\frac{P_{i\rightarrow j,g}}{\Sigma_{t,j,g}}\end{equation}
+  Now we can plug $\alpha_j(E)$ into the above equation
+
+\begin{equation}\frac{V_{j}}{V_{i}}\alpha_{j}(E)\frac{P_{j\rightarrow i,g}}{\Sigma_{t,i,g}}=\alpha_{i}(E)\frac{P_{i\rightarrow j,g}}{\Sigma_{t,j,g}}\end{equation}
+  
+\begin{equation}\alpha_{j}(E)=\alpha_{i}(E)\frac{P_{i\rightarrow j,g}}{\Sigma_{t,j,g}}\frac{\Sigma_{t,i,g}}{P_{j\rightarrow i,g}}\frac{V_{i}}{V_{j}}\end{equation}
+
+  Now that we have $\alpha_j(E)$ in terms of $\alpha_i(E)$, we can plug this definition into Eq.~\ref{eq:phiWithalphaj} to get 
+
+\begin{equation}\phi_{i}(E)=\frac{1}{E}\sum\limits_j\alpha_{i}(E)\frac{P_{i\rightarrow j,g}}{\Sigma_{t,j,g}}\frac{\Sigma_{t,i,g}}{P_{j\rightarrow i,g}}\frac{V_{i}}{V_{j}}\frac{P_{j\rightarrow i,g}V_{j}\Sigma_{pot,j}}{\Sigma_{t,i,g}V_{i}}\end{equation}
+  \begin{equation}\phi_{i}(E)=\frac{1}{E}\sum\limits_j\alpha_{i}(E)\frac{P_{i\rightarrow j,g}\Sigma_{pot,j}}{\Sigma_{t,j,g}}\label{eq:again}\end{equation}
 
 
-\begin{figure}
-\includegraphics[width=0.4\textwidth]{full_3x3}
-  ~\quad~
-\includegraphics[width=0.4\textwidth]{hole_3x3}
-\end{figure}
+Now, just as in the original Tone's derivation, we need a better representation for $\alpha_i(E)$. We can attain this using the reciprocity relation and requirement for probabilities normalization, as had been done before.
+
+  \begin{equation}\sum\limits_{j}\left(\frac{P_{j\rightarrow i}(E)V_{j}\Sigma_{t,j}(E)}{V_{i}\Sigma_{t,i}(E)}\right)=1\tag{\ref{eq:endOfReciprocity}}\end{equation}
+
+    
+    \begin{equation}\sum\limits_{j}\left(\alpha_j(E)\frac{P_{j\rightarrow i,g}V_{j}\Sigma_{t,j}(E)}{V_{i}\Sigma_{t,i,g}}\right)=1\end{equation}
+
+      and we can use our definition of $\alpha_j(E)$ in terms of $\alpha_i(E)$ to get 
+    \begin{equation}\sum\limits_{j}\left(\alpha_{i}(E)\frac{P_{i\rightarrow j,g}}{\Sigma_{t,j,g}}\frac{\Sigma_{t,i,g}}{P_{j\rightarrow i,g}}\frac{V_{i}}{V_{j}}\frac{P_{j\rightarrow i,g}V_{j}\Sigma_{t,j}(E)}{V_{i}\Sigma_{t,i,g}}\right)=1\end{equation}
+    \begin{equation}\sum\limits_{j}\left(\alpha_{i}(E)\frac{P_{i\rightarrow j,g}\Sigma_{t,j}(E)}{\Sigma_{t,j,g}}\right)=1\end{equation}
+      \begin{equation}\alpha_i(E)=\frac{1}{\sum\limits_{j}\frac{P_{i\rightarrow j,g}\Sigma_{t,j}(E)}{\Sigma_{t,j,g}}}\end{equation}
+        Now we have an approxpriate definition of $\alpha_i(E)$ that we can use in Eq.~\ref{eq:again}
+  \begin{equation}\phi_{i}(E)=\frac{1}{E}\frac{\sum\limits_j\left(P_{i\rightarrow j,g}\Sigma_{pot,j}\Big/\Sigma_{t,j,g}\right)}{\sum\limits_{j}\left(P_{i\rightarrow j,g}\Sigma_{t,j}(E)\Big/\Sigma_{t,j,g}\right)}\end{equation}
+    \begin{equation}\phi_{i}(E)=\frac{1}{E}\frac{\sum\limits_j\left(P_{i\rightarrow j,g}N_{r,j}\sigma_{pot,r}\Big/\Sigma_{t,j,g}\right) +\sum\limits_j\left(P_{i\rightarrow j,g}\sum\limits_{k\neq r}N_{k,j}\sigma_{pot,k}\Big/\Sigma_{t,j,g}\right) }{
+    \sum\limits_{j}\left(P_{i\rightarrow j,g}N_{r,j}\sigma_{t,r}(E)\Big/\Sigma_{t,j,g}\right) + \sum\limits_{j}\left(P_{i\rightarrow j,g}\sum\limits_{k\neq r}N_{k,j}\sigma_{t,k}(E)\Big/\Sigma_{t,j,g}\right)}\end{equation}
+assuming that non-resonant nuclides only contribute potential scattering simlifies this to 
+    \begin{equation}\phi_{i}(E)=\frac{1}{E}\frac{\sigma_{pot,r}\sum\limits_j\left(P_{i\rightarrow j,g}N_{r,j}\Big/\Sigma_{t,j,g}\right) +\sum\limits_j\left(P_{i\rightarrow j,g}\sum\limits_{k\neq r}N_{k,j}\sigma_{pot,k}\Big/\Sigma_{t,j,g}\right) }{
+    \sigma_{t,r}(E)\sum\limits_{j}\left(P_{i\rightarrow j,g}N_{r,j}\Big/\Sigma_{t,j,g}\right) + \sum\limits_{j}\left(P_{i\rightarrow j,g}\sum\limits_{k\neq r}N_{k,j}\sigma_{pot,k}\Big/\Sigma_{t,j,g}\right)}\end{equation}
 
 
 
-\newpage
+
+  \begin{equation}\phi_i(E)=\frac{1}{E}\frac{\sigma_{pot,r}+\sigma_{0}}{\sigma_{t,r}(E)+\sigma_{0}}~\mbox{where }\sigma_{0}=\frac{\sum\limits_j\left(P_{i\rightarrow j,g}\sum\limits_{k\neq r}N_{k,j}\sigma_{pot,k}\Big/\Sigma_{t,j,g}\right) }{\sum\limits_j\left(P_{i\rightarrow j,g}N_{r,j}\Big/\Sigma_{t,j,g}\right)}\end{equation}
+
+
+  \newpage
+  \newpage
 
 
 
@@ -346,6 +397,7 @@ Recall Eq.~\ref{eq:Tones}, which defines the flux and background cross section $
   \bibliographystyle{unsrt}
 \bibliography{notes}
 \end{document}
+
 
 
 

@@ -26,7 +26,7 @@ boundaries = ['reflection', 'transmission', 'transmission', 'reflection']
 XPlanes = [XPlane(i*pitch, boundaries[i]) for i in range(4)]
 YPlanes = [YPlane(i*pitch, boundaries[i]) for i in range(4)]
 
-ngroup = 10
+ngroup = 9
 phiInitF = np.ones([ngroup,])
 phiInitM = np.ones([ngroup,])*0.1
 
