@@ -114,7 +114,6 @@ def run_tones():
                1.0 / (pins[0].U238.N*l_bar)
 
 
-        print(sig0)
 
         sig0EnergyVec = [sig0]*nGroups
 
@@ -138,7 +137,8 @@ def run_tones():
         
 
         while not converged:
-            print(sig0EnergyVec)
+            print(counter,sig0EnergyVec[3])
+            #print(sig0EnergyVec)
 
             ###########################################################################
             # Evaluate the effective cross sections of resonance nuclides using the 
@@ -227,8 +227,9 @@ def run_tones():
                 SUM_nonRes_sigPot = pin.U235.N * pin.U235.pot * 1E-24 + \
                                     pin.O16.N  * pin.O16.pot  * 1E-24
                 
-                tones_Numer += P_i_to_0 * SUM_nonRes_sigPot
-                tones_Denom += P_i_to_0 * pin.U238.N * 1e-24
+                tones_Numer += P_i_to_0 * SUM_nonRes_sigPot / [SigT_hi,SigT_lo][pinID%2]
+                tones_Denom += P_i_to_0 * pin.U238.N * 1e-24 / [SigT_hi,SigT_lo][pinID%2]
+
 
 
             #plt.step(E_bounds,[1e24*tones_Numer[0]/tones_Denom[0]]+list(1e24*tones_Numer/tones_Denom),label='inter'+str(counter),color=scalarMap.to_rgba(counter))
@@ -239,14 +240,13 @@ def run_tones():
             ###########################################################################
 
             counter += 1
-            if counter > 6:
+            if counter > 9:
 
-                absorptionXS_good_g3 = [pins[0].U238.SigA[3]]*len(absorptionXS_g3)
-                absorptionXS_good_g4 = [pins[0].U238.SigA[4]]*len(absorptionXS_g4)
-                absorptionXS_good_g5 = [pins[0].U238.SigA[5]]*len(absorptionXS_g5)
-                absorptionXS_good_g6 = [pins[0].U238.SigA[6]]*len(absorptionXS_g6)
-                absorptionXS_good_g7 = [pins[0].U238.SigA[7]]*len(absorptionXS_g7)
-                """
+                absorptionXS_good_g3 = [pins[0].U238.openMC_SigA[3]]*len(absorptionXS_g3)
+                absorptionXS_good_g4 = [pins[0].U238.openMC_SigA[4]]*len(absorptionXS_g4)
+                absorptionXS_good_g5 = [pins[0].U238.openMC_SigA[5]]*len(absorptionXS_g5)
+                absorptionXS_good_g6 = [pins[0].U238.openMC_SigA[6]]*len(absorptionXS_g6)
+                absorptionXS_good_g7 = [pins[0].U238.openMC_SigA[7]]*len(absorptionXS_g7)
                 plt.plot(absorptionXS_g3,label='34-45 eV',color=scalarMap.to_rgba(0))
                 plt.plot(absorptionXS_g4,label='25-34 eV',color=scalarMap.to_rgba(1))
                 plt.plot(absorptionXS_g5,label='18-25 eV',color=scalarMap.to_rgba(2))
@@ -257,19 +257,18 @@ def run_tones():
                 plt.plot(absorptionXS_good_g5,color=scalarMap.to_rgba(2),linestyle='--')
                 plt.plot(absorptionXS_good_g6,color=scalarMap.to_rgba(3),linestyle='--')
                 plt.plot(absorptionXS_good_g7,color=scalarMap.to_rgba(4),linestyle='--')
-                plt.title('Convergence of Tones-generated SigA to OpenMC-generated SigA')
+                plt.title('Convergence of TonesB-generated SigA to OpenMC-generated SigA')
                 plt.xlabel('Iteration #')
-                plt.legend(loc='lower right')
+                plt.legend(loc='best')
                 plt.ylabel('Absorption XS (cm-1)')
-                plt.xticks([0,1,2,3,4,5,6])
+                plt.xticks([0,1,2,3,4,5,6,7,8,9])
                 plt.show()
-                """
 
-                totalXS_good_g3 = [pins[0].U238.SigT[3]]*len(totalXS_g3)
-                totalXS_good_g4 = [pins[0].U238.SigT[4]]*len(totalXS_g4)
-                totalXS_good_g5 = [pins[0].U238.SigT[5]]*len(totalXS_g5)
-                totalXS_good_g6 = [pins[0].U238.SigT[6]]*len(totalXS_g6)
-                totalXS_good_g7 = [pins[0].U238.SigT[7]]*len(totalXS_g7)
+                totalXS_good_g3 = [pins[0].U238.openMC_SigT[3]]*len(totalXS_g3)
+                totalXS_good_g4 = [pins[0].U238.openMC_SigT[4]]*len(totalXS_g4)
+                totalXS_good_g5 = [pins[0].U238.openMC_SigT[5]]*len(totalXS_g5)
+                totalXS_good_g6 = [pins[0].U238.openMC_SigT[6]]*len(totalXS_g6)
+                totalXS_good_g7 = [pins[0].U238.openMC_SigT[7]]*len(totalXS_g7)
 
                 plt.plot(totalXS_g3,label='34-45 eV',color=scalarMap.to_rgba(0))
                 plt.plot(totalXS_g4,label='25-34 eV',color=scalarMap.to_rgba(1))
@@ -281,18 +280,64 @@ def run_tones():
                 plt.plot(totalXS_good_g5,color=scalarMap.to_rgba(2),linestyle='--')
                 plt.plot(totalXS_good_g6,color=scalarMap.to_rgba(3),linestyle='--')
                 plt.plot(totalXS_good_g7,color=scalarMap.to_rgba(4),linestyle='--')
-                plt.title('Convergence of Tones-generated SigT to OpenMC-generated SigT')
+                plt.title('Convergence of TonesB-generated SigT to OpenMC-generated SigT')
                 plt.xlabel('Iteration #')
-                plt.legend(loc='lower right')
+                plt.legend(loc='best')
                 plt.ylabel('Total XS (cm-1)')
-                plt.xticks([0,1,2,3,4,5,6])
+                plt.xticks([0,1,2,3,4,5,6,7,8,9])
                 plt.show()
 
+
+                error_total_g3 = [(totalXS_g3[i] - totalXS_good_g3[i])/totalXS_good_g3[i] for i in range(len(totalXS_g3))]
+                error_total_g4 = [(totalXS_g4[i] - totalXS_good_g4[i])/totalXS_good_g4[i] for i in range(len(totalXS_g3))]
+                error_total_g5 = [(totalXS_g5[i] - totalXS_good_g5[i])/totalXS_good_g5[i] for i in range(len(totalXS_g3))]
+                error_total_g6 = [(totalXS_g6[i] - totalXS_good_g6[i])/totalXS_good_g6[i] for i in range(len(totalXS_g3))]
+                error_total_g7 = [(totalXS_g7[i] - totalXS_good_g7[i])/totalXS_good_g7[i] for i in range(len(totalXS_g3))]
+
+                error_absorption_g3 = [(absorptionXS_g3[i] - absorptionXS_good_g3[i])/absorptionXS_good_g3[i] for i in range(len(totalXS_g3))]
+                error_absorption_g4 = [(absorptionXS_g4[i] - absorptionXS_good_g4[i])/absorptionXS_good_g4[i] for i in range(len(totalXS_g3))]
+                error_absorption_g5 = [(absorptionXS_g5[i] - absorptionXS_good_g5[i])/absorptionXS_good_g5[i] for i in range(len(totalXS_g3))]
+                error_absorption_g6 = [(absorptionXS_g6[i] - absorptionXS_good_g6[i])/absorptionXS_good_g6[i] for i in range(len(totalXS_g3))]
+                error_absorption_g7 = [(absorptionXS_g7[i] - absorptionXS_good_g7[i])/absorptionXS_good_g7[i] for i in range(len(totalXS_g3))]
+               
+
+
+
+                plt.plot(error_total_g3,color=scalarMap.to_rgba(0),label='34-45 eV')
+                plt.plot(error_total_g4,color=scalarMap.to_rgba(1),label='25-34 eV')
+                plt.plot(error_total_g5,color=scalarMap.to_rgba(2),label='18-25 eV')
+                plt.plot(error_total_g6,color=scalarMap.to_rgba(3),label='10-18 eV')
+                plt.plot(error_total_g7,color=scalarMap.to_rgba(4),label=' 4-10 eV')
+                plt.title('% Error of TonesB-generated SigT when compared to OpenMC-generated SigT')
+                plt.xlabel('Iteration #')
+                plt.legend(loc='best')
+                plt.ylabel('% Error')
+                plt.xticks([0,1,2,3,4,5,6,7,8,9])
+                plt.show()
+
+                plt.plot(error_absorption_g3,color=scalarMap.to_rgba(0),label='34-45 eV')
+                plt.plot(error_absorption_g4,color=scalarMap.to_rgba(1),label='25-34 eV')
+                plt.plot(error_absorption_g5,color=scalarMap.to_rgba(2),label='18-25 eV')
+                plt.plot(error_absorption_g6,color=scalarMap.to_rgba(3),label='10-18 eV')
+                plt.plot(error_absorption_g7,color=scalarMap.to_rgba(4),label=' 4-10 eV')
+                plt.title('% Error of TonesB-generated SigA when compared to OpenMC-generated SigA')
+                plt.xlabel('Iteration #')
+                plt.legend(loc='best')
+                plt.ylabel('% Error')
+                plt.xticks([0,1,2,3,4,5,6,7,8,9])
+                plt.show()
+
+
+
+
+                """
                 print(absorptionXS_good_g3)
                 print(absorptionXS_good_g4)
                 print(absorptionXS_good_g5)
                 print(absorptionXS_good_g6)
                 print(absorptionXS_good_g7)
+
+                print()
                 print(absorptionXS_g3)
                 print(absorptionXS_g4)
                 print(absorptionXS_g5)
@@ -300,6 +345,31 @@ def run_tones():
                 print(absorptionXS_g7)
 
 
+                """
+                print(totalXS_g3)
+                print(totalXS_g4)
+                print(totalXS_g5)
+                print(totalXS_g6)
+                print(totalXS_g7)
+
+                """
+                print()
+                
+                print(error_total_g3)
+                print(error_total_g4)
+                print(error_total_g5)
+                print(error_total_g6)
+                print(error_total_g7)
+
+                print()
+
+                print(error_absorption_g3)
+                print(error_absorption_g4)
+                print(error_absorption_g5)
+                print(error_absorption_g6)
+                print(error_absorption_g7)
+                """
+ 
 
 
                 SigT_hi = [ sum(nucl.SigT[g] for nucl in pins[0].nuclides) for g in range(nGroups) ]

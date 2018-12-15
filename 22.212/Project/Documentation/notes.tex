@@ -138,7 +138,7 @@ Note that while this result is derived using a two-region problem, it can be ext
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\subsection{Tone's Method}
+  \subsection{Tone's Method}\label{sec:tone}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 We start with the result from Eq.~\ref{eq:resultFromHetero}, which defines the energy dependent neutron flux in region $i$ on the collision probabilities of going from all regions $j$ to region $i$. Tone's method approximates the energy dependence of $P_{j\rightarrow i}(E)$ and $\Sigma_{t,i}(E)$ to be group constant, such that 
 \begin{equation}\frac{P_{j\rightarrow i}(E)}{\Sigma_{t,i}(E)}=\alpha_{i}(E)\frac{P_{j\rightarrow i,g}}{\Sigma_{t,i,g}}.\label{eq:tonesApprox}\end{equation}
@@ -291,41 +291,46 @@ Recall Eq.~\ref{eq:Tones}, which defines the flux and background cross section $
 
 
 
-  \section{Results}
-  The procedure describing Tone's method presented in Sec.~\ref{recipe} was performed for the problem specifications described in Sec.~\ref{enrichment}, and the macroscopic cross sections $\Sigma_T,\Sigma_A$ are presented in Fig.~\ref{fig:results1}. Both the Tone's-generated cross section values as well as their corresponding OpenMC-generated values are plotted for each energy group, across six iterations of Tone's method. Note that not only do all cros section values approach their corresponding OpenMC values, but they do so very quickly (within approximately two iterations).
+  \section{Results of Tone's Method}
+  The procedure describing Tone's method presented in Sec.~\ref{recipe} was performed for the problem specifications described in Sec.~\ref{enrichment}, and the macroscopic cross sections $\Sigma_T,\Sigma_A$ are presented in Fig.~\ref{fig:results1}. Both the Tone's-generated cross section values as well as their corresponding OpenMC-generated values are plotted for each energy group, across nine iterations of Tone's method. Note that although the cross section values do not entirely approach their corresponding OpenMC values, they do converge very quickly (within approximately two iterations). %The percent error of the cross section values calculated in Tone's Method are also presented in Fig.~\ref{fig:results2}. 
   \begin{figure}[H]
     \begin{center}
-    \includegraphics[width=0.6\textwidth]{convergence_of_tones_sigT}
-    \includegraphics[width=0.6\textwidth]{convergence_of_tones_sigA}
-      \caption{Shown above are the changes in $\Sigma_t,\Sigma_a$ over 6 iterations of Tone's method, plotted for 5 energy groups in the low resonance region. The solid lines represent values represented by Tone's method, while the dotted lines represent the values calculated by OpenMC. The values above were calculated using the problem specifications described in Sec.~\ref{enrichment}.}
+    %\includegraphics[width=0.6\textwidth]{convergence_of_tones_sigT}
+    %\includegraphics[width=0.6\textwidth]{convergence_of_tones_sigA}
+    \includegraphics[width=0.6\textwidth]{tonesA_sigT}
+    \includegraphics[width=0.6\textwidth]{tonesA_sigA}
+      \caption{Shown above are the changes in $\Sigma_t,\Sigma_a$ over 9 iterations of Tone's method, plotted for 5 energy groups in the low resonance region. The solid lines represent values represented by Tone's method, while the dotted lines represent the values calculated by OpenMC. The values above were calculated using the problem specifications described in Sec.~\ref{enrichment}.}
       \label{fig:results1}
     \end{center}
   \end{figure}
-  Note that this comparison was also repeated, with the only difference in geometry being the creation of a hole in the center of the 3x3 grid. The geometry thus changed to what is shown in Fig.~\ref{hole}
 
- \begin{figure}
-    \begin{center}
-      \includegraphics[width=0.3\textwidth]{hole_3x3}
-      \caption{In addition to the system presented in Fig.~\ref{fig:geometry}, a 3x3 pin system with a hole in the center was considered. The enrichments and pin sizes all were held constant. This case is not presented further because its results are so close to those presented in Fig.~\ref{fig:results1} that any additional discussion would be repetitive.}
-      \label{fig:hole}
-    \end{center}
-\end{figure}
+  
+%  \begin{figure}[H]
+%    \begin{center}
+%    \includegraphics[width=0.6\textwidth]{tonesA_sigT_ERROR}
+%    \includegraphics[width=0.6\textwidth]{tonesA_sigA_ERROR}
+%      \caption{Shown above are the percent errors for $\Sigma_t,\Sigma_a$ over 9 iteraiton of Tone's method, plotted for 5 energy groups in the low resonance region. The geometry is that described in Sec.~\ref{enrichment}.}
+%      \label{fig:results2}
+%    \end{center}
+%  \end{figure}
+
+ % Note that this comparison was also repeated, with the only difference in geometry being the creation of a hole in the center of the 3x3 grid. The geometry thus changed to what is shown in Fig.~\ref{fig:hole}
+
+ %\begin{figure}
+ %   \begin{center}
+ %     \includegraphics[width=0.3\textwidth]{hole_3x3}
+ %     \caption{In addition to the system presented in Fig.~\ref{fig:geometry}, a 3x3 pin system with a hole in the center was considered. The enrichments and pin sizes all were held constant. This case is not presented further because its results are so close to those presented in Fig.~\ref{fig:results1} and Fig.~\ref{fig:results2} that any additional discussion would be repetitive.}
+ %     \label{fig:hole}
+ %   \end{center}
+%\end{figure}
 
 
-
-\newpage
-
-
-
-
-
-~\newpage
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\subsection{Tone's Method Backwards?}
+\section{Alternate Version of Tone's Method}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-In Eq.~\ref{eq:tonesApprox}, we assumed that the fine energy term $\alpha$ was only dependent on region $i$. Let's consider the case that, instead of $\alpha=\alpha_i(E)$, the assumptions is instead $\alpha=\alpha_j(E)$. In that case, Eq.~\ref{eq:tonesApprox} turns into
+In Eq.~\ref{eq:tonesApprox}, we assumed that the fine energy term $\alpha$ was dependent on region $i$. Let's consider the case that, instead of $\alpha=\alpha_i(E)$, the assumptions is instead $\alpha=\alpha_j(E)$. In that case, Eq.~\ref{eq:tonesApprox} turns into
 \begin{equation}\frac{P_{j\rightarrow i}(E)}{\Sigma_{t,i}(E)}=\alpha_{j}(E)\frac{P_{j\rightarrow i,g}}{\Sigma_{t,i,g}}\label{eq:tonesApprox2}.\end{equation}
 Recall Eq.~\ref{eq:resultFromHetero},
 \begin{equation*}\phi_{i}(E)=\frac{1}{E}\sum\limits_j\frac{P_{j\rightarrow i}(E)V_{j}\Sigma_{pot,j}}{\Sigma_{t,i}(E)V_{i}}\tag{\ref{eq:resultFromHetero}}.\end{equation*}
@@ -377,22 +382,52 @@ assuming that non-resonant nuclides only contribute potential scattering simlifi
 
 
 
-  \begin{equation}\phi_i(E)=\frac{1}{E}\frac{\sigma_{pot,r}+\sigma_{0}}{\sigma_{t,r}(E)+\sigma_{0}}~\mbox{where }\sigma_{0}=\frac{\sum\limits_j\left(P_{i\rightarrow j,g}\sum\limits_{k\neq r}N_{k,j}\sigma_{pot,k}\Big/\Sigma_{t,j,g}\right) }{\sum\limits_j\left(P_{i\rightarrow j,g}N_{r,j}\Big/\Sigma_{t,j,g}\right)}\end{equation}
+  \begin{equation}\phi_i(E)=\frac{1}{E}\frac{\sigma_{pot,r}+\sigma_{0}}{\sigma_{t,r}(E)+\sigma_{0}}~\mbox{where }\sigma_{0}=\frac{\sum\limits_j\sum\limits_{k\neq r}P_{i\rightarrow j,g}N_{k,j}\sigma_{pot,k}\Big/\Sigma_{t,j,g} }{\sum\limits_jP_{i\rightarrow j,g}N_{r,j}\Big/\Sigma_{t,j,g}}\label{eq:TonesB}\end{equation}
+Note that Eq.~\ref{eq:TonesB} is very similar in form to Eq.~\ref{eq:Tones} (provided below). 
+\begin{equation}\phi_i(E)=\frac{1}{E}\frac{\sigma_{pot,r}+\sigma_{0}}{\sigma_{t,r}(E)+\sigma_{0}}~\mbox{where }\sigma_{0}=\frac{\sum\limits_j\sum\limits_{k\neq r}P_{j\rightarrow i,g}V_{j}N_{k,j}\sigma_{pot,k}}{\sum\limits_jP_{j\rightarrow i,g}V_{j}N_{r,j}}\tag{\ref{eq:Tones}}\end{equation}
+As mentioned in Sec.~\ref{sec:tone}, it is expected that the standard Tone's Method which uses the $\alpha_i(E)$ approximation is likely more accurate, since perserving information about the places of neutron absorption is so important for neutronics.
 
 
-  \newpage
-  \newpage
-
-
-
-  \section{Results}
-  \begin{figure}
+  \begin{figure}[H]
     \begin{center}
-    \includegraphics[width=0.49\textwidth]{convergence_of_tones_sigT}
-    \includegraphics[width=0.49\textwidth]{convergence_of_tones_sigA}
-    \caption{Shown above are the changes in $\Sigma_t,\Sigma_a$ over 6 iterations of Tone's method, plotted for 5 energy groups in the low resonance region. The solid lines represent values represented by Tone's method, while the dotted lines represent the values calculated by OpenMC. The abo }
+    %\includegraphics[width=0.6\textwidth]{convergence_of_tones_sigT}
+    %\includegraphics[width=0.6\textwidth]{convergence_of_tones_sigA}
+    \includegraphics[width=0.49\textwidth]{tonesA_sigT}
+    \includegraphics[width=0.49\textwidth]{tonesB_sigT}
+    \includegraphics[width=0.49\textwidth]{tonesA_sigA}
+    \includegraphics[width=0.49\textwidth]{tonesB_sigA}
+
+    %\includegraphics[width=0.6\textwidth]{tonesA_sigA}
+      \caption{Shown above are the changes in $\Sigma_t,\Sigma_a$ over 9 iterations of Tone's method, plotted for 5 energy groups in the low resonance region. The solid lines represent values represented by Tone's method, while the dotted lines represent the values calculated by OpenMC. The values above were calculated using the problem specifications described in Sec.~\ref{enrichment}.}
+      \label{fig:results1}
     \end{center}
   \end{figure}
+
+Surprisingly, both the standard and alternative form of the Tone's Method seem to perform very similarly for the test problem defined in Sec.~\ref{enrichment}. 
+
+\begin{table}[H]
+  \begin{center}
+\begin{tabular}{|l|l|l|l|l|l|}\hline
+  \multicolumn{6}{|c|}{$\Sigma_A [1/cm]$ values for various $E_g$, generated using standard and alternative Tone's Method} \\\hline
+           &34-45 eV& 25-34 eV   & 18-25 eV   & 10-18 eV & 4-10 eV \\\hline
+  Standard   & 0.0222826 & 0.00138918 & 0.0325555 & 0.00117075 & 0.02633830 \\\hline
+  Alternative& 0.0232309 & 0.00138892 & 0.0337358 & 0.00117093 & 0.02757813\\\hline&&&&&\\[1pt]\hline
+  \multicolumn{6}{|c|}{$\Sigma_T [1/cm]$ values for various $E_g$, generated using standard and alternative Tone's Method} \\\hline
+           &34-45 eV& 25-34 eV   & 18-25 eV   & 10-18 eV & 4-10 eV \\\hline
+  Standard $\alpha_i(E)$ approx.  & 0.0808003 & 0.01870110& 0.0653392& 0.01971423 &  0.04761292\\\hline
+  Alternative $\alpha_j(E)$ approx.& 0.0832751& 0.01870265& 0.0670886& 0.01971482&0.04893870\\\hline
+
+
+\end{tabular}
+    \caption{$\sigma_0$ values (in barns)  uesd for generating dilution table. Note that increased fineness in grid for values in the 10's to 1000's region. The choice to do so was due to the behavior observed in Fig.~\ref{fig:dependencyOnBackground}.}
+  \end{center}
+\end{table}
+
+
+  \newpage
+
+
+
 
   \bibliographystyle{unsrt}
 \bibliography{notes}
