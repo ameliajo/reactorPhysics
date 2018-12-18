@@ -28,10 +28,10 @@
 }
 \geometry{
  total={210mm,297mm},
- left=20mm,
- right=20mm,
- top=20mm,
- bottom=20mm,
+ left=22mm,
+ right=22mm,
+ top=25mm,
+ bottom=25mm,
  }
  \pgfplotsset{compat=1.12}
 %-- Commands for header
@@ -44,18 +44,25 @@
 %\linespread{2} %-- Uncomment for Double Space
 \begin{document}
 
-\title{Final 22.212 Report\qquad Amelia Trainer }
-\line\\
-\leftright{\today}{ }%-- left and right positions in the header
-~\par
+%\title{Final 22.212 Report\qquad Amelia Trainer }
+%\line\\
+%\leftright{\today}{ }%-- left and right positions in the header
+%~\par
 
+\begin{center}\section*{Tone's Method for Resonance Self-Shielding}
+
+  Amelia Trainer \\
+  22.212 Final Report, \today
+\end{center}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Introduction}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-Due to the overwhelming size and number of necessary nuclear cross section data files needed for a reactor calculation, adopting a multigroup cross section approach is extremely popular for determinisitc neutronics calculations. Cross section resonances greatly impact the flux by creating depressions, since neutrons with energy equal to that of the resonance are highly likely to experience the resonance's corresponding reaction. In most reactors where neutrons are born fast and are slowed down through the resonance range, this effect relating to neutron flux depressions near resonances (i.e. self-shielding) is extremely important to characterize.\par
-One approach to modeling the problem of resonance self-shielding is called equivalence in dilution, which requires the construction of a dilution table. Important parameters (e.g. cross sections, resonance integrals) are tabulated against dilution or background cross sections. In doing so, a homogeneous geometry can be treated identically to a heterogeneous problem if they both have the same background cross section $\sigma_0$ used to look up the tabulated values. Wigner, Bell-Wigner, Carlvik and Roman are a few well-known types of approximations that can be used to achieve an equivalence in dilution relationship. When considering a lattice system, where pins ``shadow'' each other and complicate the pin-to-pin collision probabilities, a Dancoff factor can be used. The goal of this paper is to discuss an alternative to the aforementioned equivalence methods, called Tone's method. Tone's method is an alternate way of calculating a heterogeneous system's background cross section, but does so in a way that iteratively calculates the pin-to-pin collision probabilities, thus eliminating the need for a separately defined Dancoff factor. 
+Due to the overwhelming size and number of necessary nuclear cross section data files needed for a reactor calculation, adopting a multigroup cross section approach is extremely popular for deterministic neutronics calculations. Cross section resonances greatly impact the flux by creating depressions, since neutrons with energy equal to that of the resonance are highly likely to experience the resonance's corresponding reaction. In most reactors where neutrons are born fast and are slowed down through the resonance range, this effect relating to neutron flux depressions near resonances (i.e. self-shielding) is extremely important to characterize.\par
+One approach to modeling the problem of resonance self-shielding is called equivalence in dilution, which describes heterogeneous systems by creating a table through which users may find an equivalent homogeneous problem. In this dilution table, important parameters (e.g. cross sections, resonance integrals) are tabulated against dilution or background cross sections. In doing so, a homogeneous geometry can be treated identically to a heterogeneous problem if they both have the same background cross section $\sigma_0$ used to look up the tabulated values. The background cross section, thus, can be roughly interpreted as a measure of the effect of how much self-shielding will impact the system. \par
+Wigner, Bell-Wigner, Carlvik and Roman are a few well-known types of approximations that can be used to achieve an equivalence in dilution relationship. When considering a lattice system, where pins ``shadow'' each other and complicate the pin-to-pin collision probabilities, a Dancoff factor can be used. The goal of this paper is to discuss an alternative to the aforementioned equivalence methods, called Tone's method. Tone's method is an alternate way of calculating a heterogeneous system's background cross section, but does so in a way that iteratively calculates the pin-to-pin collision probabilities, thus eliminating the need for a separately defined Dancoff factor~\cite{ch9}.
+
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -67,10 +74,12 @@ One approach to modeling the problem of resonance self-shielding is called equiv
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\subsection{Narrow Resonance Approximation}
+\subsection{Narrow Resonance Approximation}\label{sec:nr}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 \subsubsection{Neutron Slowing Down in Homogeneous System}
+The intention of this section is to use the Narrow Resonance (NR) approximation to simplify the form of the scattering contribution to neutron flux. The end result is Eq.~\ref{eq:NRConclusion}, and will be used in a subsequent discussion on a heterogeneous, two-region problem in Sec.~\ref{sec:hetero}.\par
+
 We start with the Boltzmann Equation.
 \begin{equation}\Sigma_{t}(E)\phi(E)=\int_{0}^{\infty}\Sigma_{s}\left(E^{\prime}\rightarrow E\right)\phi\left(E^{\prime}\right)\mathrm{d}E^{\prime}+\frac{\chi(E)}{k_{eff}}\int_{0}^{\infty}v\Sigma_{f}\left(E^{\prime}\right)\phi\left(E^{\prime}\right)\mathrm{d}E^{\prime}\end{equation}
 
@@ -80,16 +89,16 @@ We're working in the resonance region, where scattering is the main form of neut
 We represent the macroscopic cross sections as their constituents: number density $N$, microscopic cross section $\sigma$, and probability $P(E'\rightarrow E)$ of a scattering event resulting in energy transition to $E$ from $E'$.
 \begin{equation}\left(\sum\limits_{k}N_{k}\sigma_{t,k}(E)\right)\phi(E)=\sum\limits_{k}\int_{E}^{E/\alpha_{k}}N_{k}\sigma_{s,k}\left(E^{\prime}\right)\phi\left(E^{\prime}\right)P(E'\rightarrow E)\mathrm{d}E^{\prime}\end{equation}
 Recalling that 
-\begin{equation}P(E'\rightarrow E)dE'=\frac{1}{(1-\alpha_k)E'}dE',\end{equation}
+\begin{equation}P(E'\rightarrow E)dE'=\frac{1}{(1-\alpha_k)E'}dE',\label{eq:probs}\end{equation}
 we can further simplify the scattering kernel, bringing the equation to
 \begin{equation}\left(\sum\limits_{k}N_{k}\sigma_{t,k}(E)\right)\phi(E)=\sum\limits_{k}\frac{1}{1-\alpha_{k}}\int_{E}^{E/\alpha_{k}}\frac{1}{E'}N_{k}\sigma_{s,k}\left(E^{\prime}\right)\phi\left(E^{\prime}\right)\mathrm{d}E^{\prime}\end{equation}
 
 
 Note that we are currently prevented from further simplifying the above integral, due to the energy dependence of $\sigma_{s,k}(E')$ and $\phi(E')$. This prompts us to make two additional approximations: the Narrow Resonance (NR) approximation, and the $1/E$ flux approximation.\par
 
-Assuming a sufficiently thin resonance allows us to approximate that every scattering event will miss the resonance. We thus assume that the scattering kernel is simply equal to the potential scattering cross section $\sigma_{pot}$, which is constant in energy. Doing so eliminates the energy dependence of the cross section, leaving us with
+Assuming a sufficiently thin resonance allows us to approximate that every scattering event will miss the resonance. We thus assume that the scattering kernel is simply equal to the potential scattering cross section $\sigma_{pot}$, which is constant in energy~\cite{ch9}. Doing so eliminates the energy dependence of the cross section, leaving us with
 \begin{equation}\sum\limits_{k}\frac{1}{1-\alpha_{k}}\int_{E}^{E/\alpha_{k}}\frac{1}{E'}N_{k}\sigma_{s,k}\left(E^{\prime}\right)\phi\left(E^{\prime}\right)\mathrm{d}E^{\prime}=\sum\limits_{k}\frac{N_k\sigma_{pot,k}}{1-\alpha_{k}}\int_{E}^{E/\alpha_{k}}\frac{1}{E'}\phi\left(E^{\prime}\right)\mathrm{d}E^{\prime}.\end{equation}
-  Now an approximation of the flux is all that is needed to simplify the integral to a solvable form. We assume $\phi(E)\approx1/E$ for the scalar flux, which allows 
+  Now an approximation of the flux is all that is needed to simplify the integral to a solvable form. We assume $\phi(E)\approx1/E$ for the scalar flux~\cite{ch9}, which allows 
 \begin{align}\sum\limits_{k}\frac{1}{1-\alpha_{k}}\int_{E}^{E/\alpha_{k}}\frac{1}{E'}N_{k}\sigma_{s,k}\left(E^{\prime}\right)\phi\left(E^{\prime}\right)\mathrm{d}E^{\prime} 
   =&\sum\limits_{k}\frac{N_k\sigma_{pot,k}}{1-\alpha_{k}}\int_{E}^{E/\alpha_{k}}\frac{1}{(E')^2}\mathrm{d}E^{\prime}\\
   = &\sum\limits_{k}\frac{N_{k}\sigma_{pot,k}}{1-\alpha_{k}}\left(\frac{1}{E}-\frac{\alpha_k}{E}\right)\\
@@ -109,28 +118,29 @@ Assuming a sufficiently thin resonance allows us to approximate that every scatt
 
 
 
-\subsubsection{Neutron Slowing Down in Isolated, Heterogeneous System}
-Consider a neutron slowing down in a two-region heterogeneous problem, where $f,m$ represent fuel and moderator, respectively. Note that while the following discussion is based on a two region problem, it can be extended to accommodate more complicated geometries.
+\subsubsection{Neutron Slowing Down in Isolated, Heterogeneous System}\label{sec:hetero}
+In Sec.~\ref{sec:nr}, we present an approximation to the scattering contribution to resonance-region neutron flux. The derivations were performed assuming a homogeneous problem. However, since the equivalence in dilution methods are helpful for solving heterogeneous systems, we must now consider multiple regions. \par
+Below is a two-region neutron slowing down problem, where $f,m$ represent fuel and moderator, respectively. Note that while the following discussion is based on a two region problem, it can be extended to accommodate more complicated geometries~\cite{ch9}.
 \begin{align}\Sigma_{t,f}(E)\phi_{f}(E)V_{f}=P_{f\rightarrow f}(E)V_{f}&\int_{0}^{\infty}\Sigma_{s,f}\left(E^{\prime}\rightarrow E\right)\phi_{f}\left(E^{\prime}\right)dE^{\prime}\\ + P_{m\rightarrow f}(E)V_{m}&\int_{0}^{\infty}\Sigma_{s,m}\left(E^{\prime}\rightarrow E\right)\phi_{m}\left(E^{\prime}\right)dE^{\prime}\end{align}
 
 We separate the macroscopic cross section for scattering to energy $E$ into its number density $N$, microscopic cross section $\sigma_s$, and probability of energy change $P(E'\rightarrow E)$, to rewrite the balance equation as 
 \begin{align}\Sigma_{t,f}(E)\phi_{f}(E)V_{f}=P_{f\rightarrow f}(E)V_{f}&\int_{0}^{\infty}\sum\limits_{k\in f}N_k\sigma_{s,k}P(E'\rightarrow E)\phi_{f}\left(E^{\prime}\right)dE^{\prime}\\ + P_{m\rightarrow f}(E)V_{m}&\int_{0}^{\infty}\sum\limits_{k\in m}N_k\sigma_{s,k}P\left(E^{\prime}\rightarrow E\right)\phi_{m}\left(E^{\prime}\right)dE^{\prime}\end{align}
 
 Recalling the energy distribution of a single neutron scattering collision is 
-\begin{equation}P(E'\rightarrow E)=\frac{1}{(1-\alpha)E}~\mbox{for }\alpha E\leq E'\leq E,\end{equation}
+\begin{equation}P(E'\rightarrow E)=\frac{1}{(1-\alpha)E}~\mbox{for }\alpha E\leq E'\leq E,\tag{\ref{eq:probs}}\end{equation}
 we can further simplify the balance equation to be
 
 \begin{align}\Sigma_{t,f}(E)\phi_{f}(E)V_{f} = P_{f\rightarrow f}(E)V_{f}\sum\limits_{k\in f}&\int_{E}^{E/\alpha_{k}}\frac{N_{k}\sigma_{s,k}\left(E^{\prime}\right)\phi_{f}\left(E^{\prime}\right)}{\left(1-\alpha_{k}\right)E^{\prime}}dE^{\prime}  \\
 + P_{m\rightarrow f}(E)V_{m}\sum\limits_{k\in m}&\int_{E}^{E/\alpha_{k}}\frac{N_{k}\sigma_{s,k}\left(E^{\prime}\right)\phi_{m}\left(E^{\prime}\right)}{\left(1-\alpha_{k}\right)E^{\prime}}dE^{\prime}.\label{eq:hetero-balance}\end{align}
 
 
-Eq.~\ref{eq:NRConclusion} can be used to simplify Eq.~\ref{eq:hetero-balance}, yielding
+Eq.~\ref{eq:NRConclusion} can be used to simplify Eq.~\ref{eq:hetero-balance}~\cite{ch9}, yielding
 
 
 \begin{equation}\Sigma_{t,f}(E)\phi_{f}(E)V_{f}=\frac{1}{E}\Big(P_{f\rightarrow f}(E)V_{f}\Sigma_{pot,f}+P_{m\rightarrow f}(E)V_{m}\Sigma_{pot,m}\Big)\end{equation}
 \begin{equation}\phi_{f}(E)=\frac{P_{f\rightarrow f}(E)V_f\Sigma_{pot,f}+P_{m\rightarrow f}(E)V_m\Sigma_{pot,m}}{E\Sigma_{t,f}(E)V_f}\end{equation}
 
-Note that while this result is derived using a two-region problem, it can be extended to solve for a flux in region $i\in N$, which is dependent on all $j\in N$ regions:
+  Note that while this result is derived using a two-region problem, it can be extended to solve for a flux in region $i\in N$, which is dependent on all $j\in N$ regions~\cite{ch9}:
 
 \begin{equation}\phi_{i}(E)=\frac{1}{E}\sum\limits_j\frac{P_{j\rightarrow i}(E)V_{j}\Sigma_{pot,j}}{\Sigma_{t,i}(E)V_{i}}\label{eq:resultFromHetero}\end{equation}
 
@@ -140,11 +150,11 @@ Note that while this result is derived using a two-region problem, it can be ext
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
   \subsection{Tone's Method}\label{sec:tone}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-We start with the result from Eq.~\ref{eq:resultFromHetero}, which defines the energy dependent neutron flux in region $i$ on the collision probabilities of going from all regions $j$ to region $i$. Tone's method approximates the energy dependence of $P_{j\rightarrow i}(E)$ and $\Sigma_{t,i}(E)$ to be group constant, such that 
+We start with the result from Eq.~\ref{eq:resultFromHetero}, which defines the energy dependent neutron flux in region $i$ on the collision probabilities of going from all regions $j$ to region $i$. Tone's method approximates the energy dependence of $P_{j\rightarrow i}(E)$ and $\Sigma_{t,i}(E)$ to be group constant~\cite{ch9}, such that 
 \begin{equation}\frac{P_{j\rightarrow i}(E)}{\Sigma_{t,i}(E)}=\alpha_{i}(E)\frac{P_{j\rightarrow i,g}}{\Sigma_{t,i,g}}.\label{eq:tonesApprox}\end{equation}
-  Note that while the collision probabilities and total cross sections are approximated to be group constants, there is included a fine energy factor $\alpha_i(E)$. However, note that this fine energy term is \textbf{only dependent on the region the neutrons are going into}. This is a major assumption, since in reality the actual collision probability is dependent on other regions (including the source region). Approximating $\alpha(E)\approx\alpha_i(E)$ is, however, a likely better approximation than $\alpha(E)\approx\alpha_j(E)$, since region $i$ is where the incoming neutrons induce reactions (e.g. fission, absorption).
+  Note that while the collision probabilities and total cross sections are approximated to be group constants, there is included a fine energy factor $\alpha_i(E)$. However, note that this fine energy term is \textbf{only dependent on the region the neutrons are going into}. This is a major assumption, since in reality the actual collision probability is dependent on other regions (including the source region)~\cite{ch9}. Approximating $\alpha(E)\approx\alpha_i(E)$ is, however, a likely better approximation than $\alpha(E)\approx\alpha_j(E)$, since region $i$ is where the incoming neutrons induce reactions (e.g. fission, absorption).
 
-Using Eq.~\ref{eq:tonesApprox} in Eq.~\ref{eq:resultFromHetero} elimintes the fine energy dependence of the collision probabilities and cross sections,
+Using Eq.~\ref{eq:tonesApprox} in Eq.~\ref{eq:resultFromHetero} eliminates the fine energy dependence of the collision probabilities and cross sections,
 
 \begin{equation}\phi_{i}(E)=\frac{\alpha_i(E)}{E\Sigma_{t,i,g}V_i}\sum\limits_j\Big(P_{j\rightarrow i,g}V_{j}\Sigma_{pot,j}\Big)\label{eq:phiWithAlpha}\end{equation}
 Attaining a cleaner representation of $\phi_i(E)$ requires getting a better description of $\alpha_i(E)$. Doing so requires use of two tools:
@@ -171,15 +181,15 @@ Now having a formulation for $\alpha_i(E)$, we can rewrite Eq.~\ref{eq:phiWithAl
 
 \begin{equation}\phi_{i}(E)=\frac{1}{E\Sigma_{t,i,g}V_i}\frac{V_i\Sigma_{t,i,g}}{\sum\limits_{j}\left(P_{j\rightarrow i,g}V_{j}\Sigma_{t,j}(E)\right)}\sum\limits_j\Big(P_{j\rightarrow i,g}V_{j}\Sigma_{pot,j}\Big)\end{equation}
 \begin{equation}\phi_{i}(E)=\frac{1}{E}\frac{\sum\limits_j\Big(P_{j\rightarrow i,g}V_{j}\Sigma_{pot,j}\Big)}{\sum\limits_{j}\left(P_{j\rightarrow i,g}V_{j}\Sigma_{t,j}(E)\right)}\end{equation}
-  The two macroscopic cross sections, $\Sigma_{t,j}$ and $\Sigma_{pot,k}$, are broken into their number density $N$ and microscopic cross section $\sigma$ constituents. They are also separated into resonant and non-resonant nuclides\footnote{Tone's method, like other equivalence methods, consider one nuclide at a time to be resonant, and assumes all other are non-resonant (constant). If there is more than one resonant nuclide in the material, they take turns beign considered resonant.}. 
+  The two macroscopic cross sections, $\Sigma_{t,j}$ and $\Sigma_{pot,k}$, are broken into their number density $N$ and microscopic cross section $\sigma$ constituents~\cite{ch9}. They are also separated into resonant and non-resonant nuclides\footnote{Tone's method, like other equivalence methods, consider one nuclide at a time to be resonant, and assumes all other are non-resonant (constant). If there is more than one resonant nuclide in the material, they take turns being considered resonant.}. 
 \begin{equation}\phi_{i}(E)=\frac{1}{E}\frac{\sum\limits_j\left(P_{j\rightarrow i,g}V_{j}\left(N_{r,j}\sigma_{pot,r}+\sum\limits_{k\neq r}N_{k,j}\sigma_{pot,k}\right)\right)}{\sum\limits_{j}\left(P_{j\rightarrow i,g}V_{j}\left(N_{r,j}\sigma_{r,t}(E)+\sum\limits_{k\neq r}N_{k,j}\sigma_{t,k}(E)\right)\right)}\end{equation}
-  The total cross section for all non-resonant nuclides $\sigma_{t,k\neq r}$ is approximated to be constant in energy, and equal to the potential scattering cross section $\sigma_{pot,k\neq r}$, as is typical treatment for non-resonant nuclides in equivalence theory. Doing so is valid, since this energy-independent potential scattering is dominant for nonresonant nuclides in the resonance energy range~\cite{ch9}.
+  The total cross section for all non-resonant nuclides $\sigma_{t,k\neq r}$ is approximated to be constant in energy, and equal to the potential scattering cross section $\sigma_{pot,k\neq r}$, as is typical treatment for non-resonant nuclides in equivalence theory. Doing so is valid, since this energy-independent potential scattering is dominant for non-resonant nuclides in the resonance energy range~\cite{ch9}.
 \begin{equation}\phi_{i}(E)\approx\frac{1}{E}\frac{\sum\limits_j\left(P_{j\rightarrow i,g}V_{j}\left(N_{r,j}\sigma_{pot,r}+\sum\limits_{k\neq r}N_{k,j}\sigma_{pot,k}\right)\right)}{\sum\limits_{j}\left(P_{j\rightarrow i,g}V_{j}\left(N_{r,j}\sigma_{r,t}(E)+\sum\limits_{k\neq r}N_{k,j}\sigma_{pot,k}\right)\right)}\label{eq:almost}\end{equation}
 
 
 Mild rearrangement of terms in Eq.~\ref{eq:almost} yields
 \begin{equation}\phi_{i}(E)=\frac{1}{E}\frac{\sigma_{pot,r}+\left(\sum\limits_jP_{j\rightarrow i,g}V_{j}\sum\limits_{k\neq r}N_{k,j}\sigma_{pot,k}\Big/\sum\limits_jP_{j\rightarrow i,g}V_{j}N_{r,j}\right)}{\sigma_{r,t}(E)+\Big(\sum\limits_{j}P_{j\rightarrow i,g}V_{j}\sum\limits_{k\neq r}N_{k,j}\sigma_{pot,k}\Big/\sum\limits_{j}P_{j\rightarrow i,g}V_{j}N_{r,j}\Big)}\end{equation}
-which can is the same in form as the NR approximation for a homogeneous system, only with a different defintion of background cross section. The final form of the flux equations from Tone's method are
+which can is the same in form as the NR approximation for a homogeneous system, only with a different definition of background cross section. The final form of the flux equation from Tone's method is~\cite{9}
 \begin{equation}\boxed{\phi_i(E)=\frac{1}{E}\frac{\sigma_{pot,r}+\sigma_{0}}{\sigma_{t,r}(E)+\sigma_{0}}~\mbox{where }\sigma_{0}=\frac{\sum\limits_j\sum\limits_{k\neq r}P_{j\rightarrow i,g}V_{j}N_{k,j}\sigma_{pot,k}}{\sum\limits_jP_{j\rightarrow i,g}V_{j}N_{r,j}}.}\label{eq:Tones}\end{equation}
 
 
@@ -206,14 +216,35 @@ Tone's Method can be appropriately performed using the following steps~\cite{ch9
 Note that for Tone's method, the initial estimate for background cross section is not too important since it'll iterate out anyway.
 
         \item \textbf{Evaluate the effective cross sections of resonance nuclides using the conventional equivalence theory}
-          The GROUPR module from the NJOY nuclear data processing code was uesd to create a dilution table, which allows users to obtain cross section values for a heterogeneous problem by tabulating effective cross sections $\sigma_{eff}$ for various dilution cross ections. 
-           Equivalence theory involved the creation of a dilution table, where relevant parameters (e.g. cross sections, resonance integrals) are tabulated against background cross sections. The table is created asssuming a homogeneous geometry, but can be used to solve heterogeneous problems if the background cross sections used are chosen to appropriately reflect the heterogeneity of the problem. \par
+          The GROUPR module from the NJOY nuclear data processing code was uesd to create a dilution table, which allows users to obtain cross section values for a heterogeneous problem by tabulating effective cross sections $\sigma_{eff}$ for various dilution cross sections. 
+           Equivalence theory involved the creation of a dilution table, where relevant parameters (e.g. cross sections, resonance integrals) are tabulated against background cross sections. The table is created assuming a homogeneous geometry, but can be used to solve heterogeneous problems if the background cross sections used are chosen to appropriately reflect the heterogeneity of the problem. \par
            Construction of this table is performed using the GROUPR module of the NJOY nuclear data processing code. Once a background cross section $\sigma_{0,r}$ is computed using Eq.~\ref{eq:conventional} or Eq.~\ref{eq:Tones}, the corresponding cross sections can be looked up in the dilution table.
+            \begin{figure}[H]
+              \begin{center}
+              \includegraphics[scale=0.5]{njoyGROUPRschematic}
+                \caption{A schematic of the NJOY GROUPR code is provided above. GROUPR uses point-wise data to solve the slowing down equation, }
+              \label{fig:njoySchematic}
+              \end{center}
+            \end{figure}
+
+
          \item \textbf{Evaluate group-wise collision probability using effective cross sections}
-           The collision probability $P_{j\rightarrow i,g}$ is computed for each group using a Monte Carlo simlution, where neutrons are born in a pincell and are tracked until thei
+           The collision probability $P_{j\rightarrow i,g}$ is computed for each group using a Monte Carlo simulation, where neutrons are born in a pin-cell and are tracked until their first collision.
          \item \textbf{Update the background cross section using Eq.~\ref{eq:Tones}.}
 
+           \begin{equation}\phi_i(E)=\frac{1}{E}\frac{\sigma_{pot,r}+\sigma_{0}}{\sigma_{t,r}(E)+\sigma_{0}}~\mbox{where }\sigma_{0}=\frac{\sum\limits_j\sum\limits_{k\neq r}P_{j\rightarrow i,g}V_{j}N_{k,j}\sigma_{pot,k}}{\sum\limits_jP_{j\rightarrow i,g}V_{j}N_{r,j}}\tag{\ref{eq:Tones}}\end{equation}
+
          \item \textbf{Repeat until convergence.}
+           Tone's Method is observed to require very few iterations to converge, as shown in Fig.~\ref{fig:initConvergence}. Plotted are the background cross section values $\sigma_0$ that are calculated using Eq.~\ref{eq:Tones}, across ten iterations, for nine groups. . 
+            \begin{figure}[h]
+              \begin{center}
+              \includegraphics[scale=0.6]{initConvergence}
+                \caption{Convergence of $\sigma_0$ over ten iterations of Tone's Method is presented above. Each line corresponds with a different energy group, where low energy groups correspond to high energy value, as is customary. The problem used to get the above plot was a 3x3 grid of pins of varying enrichment, while considering U-235 to be the resonant nuclide. Note that all energy groups, even those in the low resonance range, converge rather quickly (i.e. withing about 2-5 iterations). Complete convergence is not expected, due to the stochastic nature of the $P_{j\rightarrow i,g}$ calculation described in Step. 3}
+              \label{fig:initConvergence}
+              \end{center}
+            \end{figure}
+
+
       \end{enumerate}
 
 
@@ -225,12 +256,12 @@ Note that for Tone's method, the initial estimate for background cross section i
 
 \subsubsection{Equivalence in Dilution Table}
 
-Effective cross sections for U-238 capture is plotted in Fig.~\ref{fig:njoyDil} for various background cross sections, along with the corresponding pointwise data. Note that over the resonances, the effective capture cross section values can vary greatly for different background cross sections. Thus ensuring that the $\sigma_0$ grid used in the dilution table must be adequately resolved. This dependency of effective cross sections on background cross section is further explored in Fig.~\ref{fig:dependencyOnBackground}, which plots $\sigma_a$ against $\sigma_0$, for various energy groups in the resonance range. 
+Effective cross sections for U-238 capture is plotted in Fig.~\ref{fig:njoyDil} for various background cross sections, along with the corresponding point-wise data. Note that over the resonances, the effective capture cross section values can vary greatly for different background cross sections. Thus ensuring that the $\sigma_0$ grid used in the dilution table must be adequately resolved. This dependency of effective cross sections on background cross section is further explored in Fig.~\ref{fig:dependencyOnBackground}, which plots $\sigma_a$ against $\sigma_0$, for various energy groups in the resonance range. 
 
 \begin{figure}[H]
   \begin{center}
 \includegraphics[width=0.6\textwidth]{njoyGroupr}
-  \caption{The self-shielding effect on the first three U-238 capture resonance at room temperature in the 5-50 eV energy range. The multigroup boundaries are from the Los Alamos 187-grioup structure~\cite{njoy16}. Note that the cross sections over the resonances can change by over an order of magnitude, when calcualted using different background cross sections $\sigma_0$.}
+  \caption{The self-shielding effect on the first three U-238 capture resonance at room temperature in the 5-50 eV energy range. The multi-group boundaries are from the Los Alamos 187-group structure~\cite{njoy16}. Note that the cross sections over the resonances can change by over an order of magnitude, when calculated using different background cross sections $\sigma_0$.}
   \label{fig:njoyDil}
   \end{center}
 \end{figure}
@@ -275,7 +306,7 @@ Recall Eq.~\ref{eq:Tones}, which defines the flux and background cross section $
 \begin{equation*}\phi_i(E)=\frac{1}{E}\frac{\sigma_{pot,r}+\sigma_{0}}{\sigma_{t,r}(E)+\sigma_{0}}~\mbox{where }\sigma_{0}=\frac{\sum\limits_j\sum\limits_{k\neq r}P_{j\rightarrow i,g}V_{j}N_{k,j}\sigma_{pot,k}}{\sum\limits_jP_{j\rightarrow i,g}V_{j}N_{r,j}}\tag{\ref{eq:Tones}}\end{equation*}
   Note that if all pins are identical ($N_{k,j}=N_k$, $N_{r,j}=N_r$, and $V_j=V$ for all $j$), then the background cross section reduces to 
   \begin{equation}\sigma_0=\sum\limits_{k\neq r}\frac{N_k\sigma_{pot,k}}{N_r}\end{equation}
-    which is identical to the background cross section used for a homogenous, narrow resonance approximated system. Thus, in order for Tone's method to noticeably change $\sigma_0$, the pins must be sufficiently different in number density $N$ and/or volume. \par
+    which is identical to the background cross section used for a homogeneous, narrow resonance approximated system. Thus, in order for Tone's method to noticeably change $\sigma_0$, the pins must be sufficiently different in number density $N$ and/or volume. \par
     Once $\sigma_0$ is calculated, it will be used to look up effective cross section values $\sigma_{eff}$ in the dilution table. Because of this, the changes that Tone's method imposes will be most noticeable when $\sigma_{eff}$ values are strongly dependent on $\sigma_0$. Fig.~\ref{fig:dependencyOnBackground} suggests that a if $\sigma_0$ values were to be within the range 100-1000 b, then the changes reflected in $\sigma_{eff}$ values would be quite noticeable.\par
     Therefore, the geometry used for this project is chosen to have pins of significantly different enrichments, so that Eq.~\ref{eq:Tones} is prevented from reducing to the homogeneous representation. While considering U-238 to be the resonant nuclide, the enrichment should be adequately high so as to drive the background cross section up, making the system more dilute. The geometry used for this project is presented in Fig.~\ref{fig:geometry}. The geometry consists of a checkerboard distribution of enrichments, alternating between 90\% (red) and 4\% (yellow). The radii of all pins is 0.3918 cm, the pitches are 1.26 cm, and the outer boundary conditions are all reflective.
     
@@ -283,7 +314,7 @@ Recall Eq.~\ref{eq:Tones}, which defines the flux and background cross section $
  \begin{figure}
     \begin{center}
       \includegraphics[width=0.3\textwidth]{full_3x3}
-      \caption{Above is a schematic of the geometry used for this project. It consists of a 3x3 grid of pincells, with checkerboard enrichment. The red pins are HEU, with 90\% U-235 and 10\% U-238. The yellow pins are LEU, at 4\% U-235 and 96\% U-238. These U isotopes, along with O-16, are the only nuclides tracked in the fuel. The pin radii are identical at 0.39128 cm, and the pitch is 1.26 cm. The bottom left pin pointed to with the green arrow is the region $i$ that is singled out in Eq.~\ref{eq:Tones}. Reflective boundary conditions are used for all four sides.}
+      \caption{Above is a schematic of the geometry used for this project. It consists of a 3x3 grid of pin-cells, with checkerboard enrichment. The red pins are HEU, with 90\% U-235 and 10\% U-238. The yellow pins are LEU, at 4\% U-235 and 96\% U-238. These U isotopes, along with O-16, are the only nuclides tracked in the fuel. The pin radii are identical at 0.39128 cm, and the pitch is 1.26 cm. The bottom left pin pointed to with the green arrow is the region $i$ that is singled out in Eq.~\ref{eq:Tones}. Reflective boundary conditions are used for all four sides.}
       \label{fig:geometry}
     \end{center}
 \end{figure}
@@ -291,8 +322,8 @@ Recall Eq.~\ref{eq:Tones}, which defines the flux and background cross section $
 
 
 
-  \section{Results of Tone's Method}
-  The procedure describing Tone's method presented in Sec.~\ref{recipe} was performed for the problem specifications described in Sec.~\ref{enrichment}, and the macroscopic cross sections $\Sigma_T,\Sigma_A$ are presented in Fig.~\ref{fig:results1}. Both the Tone's-generated cross section values as well as their corresponding OpenMC-generated values are plotted for each energy group, across nine iterations of Tone's method. Note that although the cross section values do not entirely approach their corresponding OpenMC values, they do converge very quickly (within approximately two iterations). %The percent error of the cross section values calculated in Tone's Method are also presented in Fig.~\ref{fig:results2}. 
+  \section{Results of Tone's Method}\label{sec:results}
+  The procedure describing Tone's method presented in Sec.~\ref{recipe} was performed for the problem specifications described in Sec.~\ref{enrichment}, and the effective macroscopic cross sections $\Sigma_T,\Sigma_A$ that were calculated are presented in Fig.~\ref{fig:results1}. Both the Tone's-generated cross section values as well as their corresponding OpenMC-generated values are plotted for each energy group, across nine iterations of Tone's method. Note that although the cross section values do not entirely approach their corresponding OpenMC values, they do converge very quickly (within approximately two iterations). %The percent error of the cross section values calculated in Tone's Method are also presented in Fig.~\ref{fig:results2}. 
   \begin{figure}[H]
     \begin{center}
     %\includegraphics[width=0.6\textwidth]{convergence_of_tones_sigT}
@@ -303,6 +334,8 @@ Recall Eq.~\ref{eq:Tones}, which defines the flux and background cross section $
       \label{fig:results1}
     \end{center}
   \end{figure}
+As shown in Fig.~\ref{fig:results1}, the Tone's-generated cross sections in groups that contain U-238's three lowest capture resonances (4-10, 18-25, 34-45 eV) have significant error. Interestingly enough, the most significant error appeared with the 34-45 eV group, which contains the 36.6 eV resonance. Since the NR approximation, which was introduced in the Tone's Method derivation, induces significant error for low-energy resonances, one may have expected that the 4-10 eV energy group would show the most significant error. \par
+One potential explanation for the significant ($>$50\%) error in the Tone's generated macroscopic cross sections could be due to the highly dependent nature that effective cross section values can have on background cross section. This behavior was presented in Fig.~\ref{fig:dependencyOnBackground}. The background cross sections that were used to look up the cross sections that appeared in Fig.~\ref{fig:results1} spanned from ~70-160b, which places the three main resonant groups (4-10, 18-25, and 34-45 eV) in a rather precarious region.
 
   
 %  \begin{figure}[H]
@@ -330,13 +363,14 @@ Recall Eq.~\ref{eq:Tones}, which defines the flux and background cross section $
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Alternate Version of Tone's Method}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-In Eq.~\ref{eq:tonesApprox}, we assumed that the fine energy term $\alpha$ was dependent on region $i$. Let's consider the case that, instead of $\alpha=\alpha_i(E)$, the assumptions is instead $\alpha=\alpha_j(E)$. In that case, Eq.~\ref{eq:tonesApprox} turns into
+In Sec.~\ref{sec:results}, we observed undesirable behavior for the energy groups that contained U-238's three lowest resonances. To further investigate the how Tone's method conveys information about absorption reactions, we revisit the original Tone's derivation to see the effect of changing its key approximation.\par
+In Eq.~\ref{eq:tonesApprox}, we assumed that the fine energy term $\alpha$ was dependent on region $i$. Let's consider the case that, instead of $\alpha=\alpha_i(E)$, the assumptions is now that$\alpha=\alpha_j(E)$. In this case, Eq.~\ref{eq:tonesApprox} turns into
 \begin{equation}\frac{P_{j\rightarrow i}(E)}{\Sigma_{t,i}(E)}=\alpha_{j}(E)\frac{P_{j\rightarrow i,g}}{\Sigma_{t,i,g}}\label{eq:tonesApprox2}.\end{equation}
 Recall Eq.~\ref{eq:resultFromHetero},
 \begin{equation*}\phi_{i}(E)=\frac{1}{E}\sum\limits_j\frac{P_{j\rightarrow i}(E)V_{j}\Sigma_{pot,j}}{\Sigma_{t,i}(E)V_{i}}\tag{\ref{eq:resultFromHetero}}.\end{equation*}
   Using Eq.~\ref{eq:tonesApprox2}, we can remove the energy dependence from $P_{j\rightarrow i}(E)$ and $\Sigma_{t,i}(E)$ in Eq.~\ref{eq:resultFromHetero},
 \begin{equation}\phi_{i}(E)=\frac{1}{E}\sum\limits_j\frac{\alpha_j(E)P_{j\rightarrow i,g}V_{j}\Sigma_{pot,j}}{\Sigma_{t,i,g}V_{i}}.\label{eq:phiWithalphaj}\end{equation}
-The problem here, however, is that since $\alpha_j(E)$ is dependent on $j$, we cannot remove it from the summation like we had done with the original Tone's derivation.So we must try to represent $\alpha_j(E)$ in terms of $\alpha_i(E)$.
+The problem here, however, is that since $\alpha_j(E)$ is dependent on $j$, we cannot remove it from the summation like we had done with the original Tone's derivation. So we must try to represent $\alpha_j(E)$ in terms of $\alpha_i(E)$.
 
 Since we had assumed Eq.~\ref{eq:tonesApprox2} to be true, then we can reverse the indices to get
 \begin{equation}\frac{P_{i\rightarrow j}(E)}{\Sigma_{t,j}(E)}=\alpha_{i}(E)\frac{P_{i\rightarrow j,g}}{\Sigma_{t,j,g}}\label{eq:something}.\end{equation}
@@ -371,22 +405,26 @@ Now, just as in the original Tone's derivation, we need a better representation 
     \begin{equation}\sum\limits_{j}\left(\alpha_{i}(E)\frac{P_{i\rightarrow j,g}}{\Sigma_{t,j,g}}\frac{\Sigma_{t,i,g}}{P_{j\rightarrow i,g}}\frac{V_{i}}{V_{j}}\frac{P_{j\rightarrow i,g}V_{j}\Sigma_{t,j}(E)}{V_{i}\Sigma_{t,i,g}}\right)=1\end{equation}
     \begin{equation}\sum\limits_{j}\left(\alpha_{i}(E)\frac{P_{i\rightarrow j,g}\Sigma_{t,j}(E)}{\Sigma_{t,j,g}}\right)=1\end{equation}
       \begin{equation}\alpha_i(E)=\frac{1}{\sum\limits_{j}\frac{P_{i\rightarrow j,g}\Sigma_{t,j}(E)}{\Sigma_{t,j,g}}}\end{equation}
-        Now we have an approxpriate definition of $\alpha_i(E)$ that we can use in Eq.~\ref{eq:again}
+        Now we have an approximate definition of $\alpha_i(E)$ that we can use in Eq.~\ref{eq:again}
   \begin{equation}\phi_{i}(E)=\frac{1}{E}\frac{\sum\limits_j\left(P_{i\rightarrow j,g}\Sigma_{pot,j}\Big/\Sigma_{t,j,g}\right)}{\sum\limits_{j}\left(P_{i\rightarrow j,g}\Sigma_{t,j}(E)\Big/\Sigma_{t,j,g}\right)}\end{equation}
     \begin{equation}\phi_{i}(E)=\frac{1}{E}\frac{\sum\limits_j\left(P_{i\rightarrow j,g}N_{r,j}\sigma_{pot,r}\Big/\Sigma_{t,j,g}\right) +\sum\limits_j\left(P_{i\rightarrow j,g}\sum\limits_{k\neq r}N_{k,j}\sigma_{pot,k}\Big/\Sigma_{t,j,g}\right) }{
     \sum\limits_{j}\left(P_{i\rightarrow j,g}N_{r,j}\sigma_{t,r}(E)\Big/\Sigma_{t,j,g}\right) + \sum\limits_{j}\left(P_{i\rightarrow j,g}\sum\limits_{k\neq r}N_{k,j}\sigma_{t,k}(E)\Big/\Sigma_{t,j,g}\right)}\end{equation}
-assuming that non-resonant nuclides only contribute potential scattering simlifies this to 
+assuming that non-resonant nuclides only contribute potential scattering simplifies this to 
     \begin{equation}\phi_{i}(E)=\frac{1}{E}\frac{\sigma_{pot,r}\sum\limits_j\left(P_{i\rightarrow j,g}N_{r,j}\Big/\Sigma_{t,j,g}\right) +\sum\limits_j\left(P_{i\rightarrow j,g}\sum\limits_{k\neq r}N_{k,j}\sigma_{pot,k}\Big/\Sigma_{t,j,g}\right) }{
     \sigma_{t,r}(E)\sum\limits_{j}\left(P_{i\rightarrow j,g}N_{r,j}\Big/\Sigma_{t,j,g}\right) + \sum\limits_{j}\left(P_{i\rightarrow j,g}\sum\limits_{k\neq r}N_{k,j}\sigma_{pot,k}\Big/\Sigma_{t,j,g}\right)}\end{equation}
-
 
 
 
   \begin{equation}\phi_i(E)=\frac{1}{E}\frac{\sigma_{pot,r}+\sigma_{0}}{\sigma_{t,r}(E)+\sigma_{0}}~\mbox{where }\sigma_{0}=\frac{\sum\limits_j\sum\limits_{k\neq r}P_{i\rightarrow j,g}N_{k,j}\sigma_{pot,k}\Big/\Sigma_{t,j,g} }{\sum\limits_jP_{i\rightarrow j,g}N_{r,j}\Big/\Sigma_{t,j,g}}\label{eq:TonesB}\end{equation}
 Note that Eq.~\ref{eq:TonesB} is very similar in form to Eq.~\ref{eq:Tones} (provided below). 
 \begin{equation}\phi_i(E)=\frac{1}{E}\frac{\sigma_{pot,r}+\sigma_{0}}{\sigma_{t,r}(E)+\sigma_{0}}~\mbox{where }\sigma_{0}=\frac{\sum\limits_j\sum\limits_{k\neq r}P_{j\rightarrow i,g}V_{j}N_{k,j}\sigma_{pot,k}}{\sum\limits_jP_{j\rightarrow i,g}V_{j}N_{r,j}}\tag{\ref{eq:Tones}}\end{equation}
-As mentioned in Sec.~\ref{sec:tone}, it is expected that the standard Tone's Method which uses the $\alpha_i(E)$ approximation is likely more accurate, since perserving information about the places of neutron absorption is so important for neutronics.
+  Note the two differences in standard Tone's Method (Eq.~\ref{eq:Tones}) and the alternative Tone's method (Eq.~\ref{eq:TonesB}): alternative Tone's $\sigma_0$ has lost direct dependency on pin volumes, but gained dependency on the group-dependent total cross section. 
 
+
+
+\section{Results of Alternate Tone's Method}\label{sec:altResults}
+
+As mentioned in Sec.~\ref{sec:tone}, it is expected that the standard Tone's Method which uses the $\alpha_i(E)$ approximation is likely more accurate, since preserving information about the places of neutron absorption is so important for neutronics.
 
   \begin{figure}[H]
     \begin{center}
@@ -399,11 +437,11 @@ As mentioned in Sec.~\ref{sec:tone}, it is expected that the standard Tone's Met
 
     %\includegraphics[width=0.6\textwidth]{tonesA_sigA}
       \caption{Shown above are the changes in $\Sigma_t,\Sigma_a$ over 9 iterations of Tone's method, plotted for 5 energy groups in the low resonance region. The solid lines represent values represented by Tone's method, while the dotted lines represent the values calculated by OpenMC. The values above were calculated using the problem specifications described in Sec.~\ref{enrichment}.}
-      \label{fig:results1}
+      \label{fig:results3}
     \end{center}
   \end{figure}
 
-Surprisingly, both the standard and alternative form of the Tone's Method seem to perform very similarly for the test problem defined in Sec.~\ref{enrichment}. 
+Surprisingly, both the standard and alternative form of the Tone's Method seem to perform very similarly for the test problem defined in Sec.~\ref{enrichment}. Alternative Tone's method was expected to perform worse than standard Tone's, since it did not prioritize information about the home cell $i$. To better compare the results of the Tone's vs. Alternative Tone's Method, the effective $\Sigma_T$ and $\Sigma_A$ values that each method calculated are provided in Table~\ref{table:one}.
 
 \begin{table}[H]
   \begin{center}
@@ -419,12 +457,25 @@ Surprisingly, both the standard and alternative form of the Tone's Method seem t
 
 
 \end{tabular}
-    \caption{$\sigma_0$ values (in barns)  uesd for generating dilution table. Note that increased fineness in grid for values in the 10's to 1000's region. The choice to do so was due to the behavior observed in Fig.~\ref{fig:dependencyOnBackground}.}
+    \caption{$\sigma_0$ values (in barns) used for generating dilution table. Note that increased fineness in grid for values in the 10's to 1000's region. The choice to do so was due to the behavior observed in Fig.~\ref{fig:dependencyOnBackground}.}
+    \label{table:one}
   \end{center}
 \end{table}
 
 
-  \newpage
+
+
+
+\section{Conclusion}
+Multi-group cross sections are an extremely useful tool for representing nuclear data while not inducing prohibitively expensive memory usage. One method to calculate multi-group cross sections for a heterogeneous geometry is called equivalence in dilution, which involves the construction of a dilution table which relates heterogeneous problems to homogeneous problems through the use of a background cross section $\sigma_0$. Wigner, Bell-Wigner, Carlvik, and Roman are all approximations that can be used alongside a Dancoff factor to obtain a value for $\sigma_0$. Tone's offers a different approach to finding $\sigma_0$, where pin-to-pin collision probabilities are iteratively calculated, thus embedding the lattice effects into $\sigma_0$ without need for a Dancoff correction. Derivation of Tone's method includes the Narrow Resonance (NR) approximation, which loses validity in the low energy resonance region.\par
+The behavior of Tone's method was studied, focusing on U-238's lowest three resonances, which are extremely important for thermal reactors. A 3x3 grid was selected, with pin enrichments varying significantly, so as to prevent the Tone's value for $\sigma_0$ from collapsing to the homogeneous representation. The resultant effective cross sections that were calculated using Tone's method were plotted against the ``true'' values obtained using OpenMC. While Tone's method converged quickly, it the cross sections in the groups containing the lowest three resonances did not converge to the correct cross section value. This could potentially be due to the high variability that effective microscopic cross sections have on background cross section. Additionally, this could be due to the fact that the three resonances considered for this study were in the lower end of the resonance region, where the NR model is known to lose validity. \par
+Tone's method makes use of a fine energy factor $\alpha_i(E)$, which is dependent on the region neutrons are going into. For additional discussion, we considered the case where instead, this factor was dependent on the region that neutrons were coming from ($\alpha=\alpha_j(E)$). Surprisingly, the behavior of the traditional Tone's method is nearly identical to that of the alternative Tone's method.\par
+Further continuation of this work would involve looking at how the accuracy of Tone's method changes over various energies, including resonances in the faster end of the resolved resonance region. In addition, a derivation of Tone's method where either the Wide Resonance or Intermediate Resonance approximation is used in place of the Narrow Resonance approximation could be interesting. 
+
+
+
+
+
 
 
 

@@ -75,6 +75,11 @@ def run_tones():
                    'O16' : 5.562563E-1, 'O17' : 5.780000E-1 }
 
 
+
+        volPin = pi*pinRad**2
+        volBox = (3.0*pitch)**2
+        volMod = volBox - (9.0*volPin)
+
         # Define pins materials
         # Load in openMC data in for all materials. 
         pins = [Pin([N_dict_Hi,N_dict_Lo][i%2],radius,all_nuclides[i]) for i in range(9)]
@@ -111,10 +116,7 @@ def run_tones():
         #sig0 = sum([nuclide.N*nuclide.pot for nuclide in nonRes])/pins[0].U238.N + \
         #       1.0 / (pins[0].U238.N*l_bar*(1.0-C))
         sig0 = sum([nuclide.N*nuclide.pot for nuclide in nonRes])/pins[0].U238.N + \
-               1.0 / (pins[0].U238.N*l_bar)
-
-
-        print(sig0)
+               1e24 / (pins[0].U238.N*l_bar*(1.0-0.14))
 
         sig0EnergyVec = [sig0]*nGroups
 
@@ -138,7 +140,10 @@ def run_tones():
         
 
         while not converged:
-            print(counter,sig0EnergyVec[3])
+            print(counter,sig0EnergyVec[3],sig0EnergyVec[5],sig0EnergyVec[7])
+            sig0EnergyVec[3] = 1800.0
+            sig0EnergyVec[5] = 800.0
+            sig0EnergyVec[7] = 900.0
             #print(sig0EnergyVec)
 
             ###########################################################################
@@ -152,7 +157,7 @@ def run_tones():
             # resonance region
             for g in resonanceGroups:
                 for i in range(len(dilution)-1):
-                    if dilution[i] > sig0EnergyVec[g] > dilution[i+1]:
+                    if dilution[i] > sig0EnergyVec[g]+pins[0].U238.pot > dilution[i+1]:
                         boundingDilutionsVec[g] = [(i,dilution[i]),(i+1,dilution[i+1])]
                         break
 
@@ -200,7 +205,7 @@ def run_tones():
             # For moderator, use openMC values generated from grid_3x3.py
             collisionProbs = [                                                   \
                 getCollisionProb( pitch, pinRad, plot=False, numParticles=5000,  \
-                  hole=True, fSigT_hi=SigT_hi[g], fSigT_lo=SigT_lo[g],           \
+                  hole=False, fSigT_hi=SigT_hi[g], fSigT_lo=SigT_lo[g],           \
                   mSigT=modTotal0[g], verbose=False, startNeutronsFrom=0 )       \
                 for g in range(nGroups)]
 
@@ -219,29 +224,46 @@ def run_tones():
             tones_Numer = 0.0
             tones_Denom = 0.0
 
+            sum_all_pins = 0.0
             for pinID,pin in enumerate(pins):
                 pin.calcSigT(nGroups)
                 P_0_to_i = np.array([collisionProbs[g][pinID] for g in range(nGroups)])
+                sum_all_pins += P_0_to_i
                 # RECIPROCITY RELATION
-                # P(i->0) = P(0->i) * SigT_0 / SigT_i
+                # P(i->0) = P(0->i) * SigT_0 / SigT_i b/c Volumes are equal
                 P_i_to_0 = P_0_to_i * pins[0].SigT / pin.SigT
                 SUM_nonRes_sigPot = pin.U235.N * pin.U235.pot + \
                                     pin.O16.N  * pin.O16.pot  
                 
-                tones_Numer += P_i_to_0 * SUM_nonRes_sigPot 
-                tones_Denom += P_i_to_0 * pin.U238.N 
+                tones_Numer += P_i_to_0 * SUM_nonRes_sigPot * volPin
+                tones_Denom += P_i_to_0 * pin.U238.N * volPin
+
+            P_mod_to_0 = (1.0-sum_all_pins) * pins[0].SigT * volPin / \
+                         (np.array(modTotal0)*volMod)
+
+
+            SUM_water_sigPot = (N_water_O16 * 3.8883 + \
+                                N_water_H1  * 20.4780 )
+
+            tones_Numer += P_mod_to_0 * SUM_water_sigPot * volMod
+            tones_Denom += P_mod_to_0 * pins[0].U238.N * volMod
 
 
             #plt.step(E_bounds,[1e24*tones_Numer[0]/tones_Denom[0]]+list(1e24*tones_Numer/tones_Denom),label='inter'+str(counter),color=scalarMap.to_rgba(counter))
 
-            
             sig0EnergyVec = tones_Numer/tones_Denom
+
             ###########################################################################
             # Repeat
             ###########################################################################
 
             counter += 1
-            if counter > 9:
+            if counter > 2:
+
+                print()
+                #print(sig0EnergyVec)
+
+
 
                 absorptionXS_good_g3 = [pins[0].U238.openMC_SigA[3]]*len(absorptionXS_g3)
                 absorptionXS_good_g4 = [pins[0].U238.openMC_SigA[4]]*len(absorptionXS_g4)
@@ -260,7 +282,7 @@ def run_tones():
                 plt.plot(absorptionXS_good_g7,color=scalarMap.to_rgba(4),linestyle='--')
                 plt.title('Convergence of Tones-generated SigA to OpenMC-generated SigA')
                 plt.xlabel('Iteration #')
-                plt.legend(loc='best')
+                plt.legend(loc='lower right')
                 plt.ylabel('Absorption XS (cm-1)')
                 plt.xticks([0,1,2,3,4,5,6,7,8,9])
                 plt.show()
@@ -283,7 +305,7 @@ def run_tones():
                 plt.plot(totalXS_good_g7,color=scalarMap.to_rgba(4),linestyle='--')
                 plt.title('Convergence of Tones-generated SigT to OpenMC-generated SigT')
                 plt.xlabel('Iteration #')
-                plt.legend(loc='best')
+                plt.legend(loc='lower right')
                 plt.ylabel('Total XS (cm-1)')
                 plt.xticks([0,1,2,3,4,5,6,7,8,9])
                 plt.show()
@@ -344,7 +366,6 @@ def run_tones():
                 print(absorptionXS_g7)
 
 
-                """
                 print()
                 print(totalXS_g3)
                 print(totalXS_g4)
@@ -352,6 +373,7 @@ def run_tones():
                 print(totalXS_g6)
                 print(totalXS_g7)
 
+                """
 
                 """
                 print()

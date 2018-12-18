@@ -9,8 +9,6 @@ class cell:
         self.SigS  = SigS
         self.src   = src
         self.phi   = 1.0
-        self.psiL  = 0.0
-        self.psiR  = 0.0
         self.dx    = width
         self.L     = ID*width
         self.M     = (ID+0.5)*width
@@ -32,10 +30,10 @@ class GaussLegendre:
 	
 
 S = GaussLegendre(2)
-S = GaussLegendre(4)
+#S = GaussLegendre(4)
 
-numCells = 800
-width = 50.0
+numCells = 80
+width = 20.0
 dx = width/numCells
 SigT = 1.0
 SigS = 0.1 # 0.1, 0.5, 0.99
@@ -49,24 +47,32 @@ for i in range(numCells):
 
 methods = ['step','diamond','stepCharacteristic','linearDiscontinuous']
 for method in methods:
-    numIter = 1
-    for i in range(numIter):
+    print(method)
+    numIter = 13
+    oldPhi = [1.0]*numCells
+    converged = False
+    counter = 0
+    while not converged:
+        counter += 1
         broom(S,cells,method)
-        phi = []
-        x = []
-        for cell in cells:
-            phi.append(cell.phi)
-            x.append(cell.M)
+        x   = [cell.M   for cell in cells]
+        phi = [cell.phi for cell in cells]
         invMaxVal = 1.0/max(phi)
         phi = [x*invMaxVal for x in phi]
         plt.plot(x,phi,label=method)
+
+        diff = [oldPhi[i]-phi[i] for i in range(numCells)]
+        if max(diff) < 1e-6: 
+            converged = True
+            print(counter)
+        oldPhi = phi[:]
 
     
 
 plt.title('S'+str(S.N)+' method for '+str(width)+'cm slab, using '+str(numCells)+' cells')
 plt.xlabel('distance (cm)')
 plt.ylabel('avg. scalar flux')
-plt.legend(loc='best')
+#plt.legend(loc='best')
 plt.show()
 
 

@@ -65,7 +65,7 @@ waterReg = +x1 & -x4 & +y1 & -y4 &                              \
            +fCylinders[6] &  +fCylinders[7] &  +fCylinders[8] 
 
 fCells = [openmc.Cell(name='fuel'+str(i), fill=[uo2_hi,uo2_lo][i%2], region=-fCylinders[i]) for i in range(9)]
-fCells[4].fill = water
+#fCells[4].fill = water
 
 mCells = []
 count = 0
@@ -240,6 +240,8 @@ u238_nu_fission_to_write = [float('%.8E'%x) for x in u238_nu_fission]
 o16_nu_fission = nufission.get_xs(xs_type='macro', nuclides=['O16'])
 o16_nu_fission_to_write = [float('%.8E'%x) for x in o16_nu_fission]
 
+
+
 total= xs_library[fCells[0].id]['total']
 u235_total = total.get_xs(xs_type='macro', nuclides=['U235'])
 u235_total_to_write = [float('%.8E'%x) for x in u235_total]
@@ -274,6 +276,39 @@ o16_scatter_to_write = [[float('%.8E'%x) for x in y] for y in o16_scatter]
 
 
 
+nufission = xs_library[mCells[0].id]['nu-fission']
+water_h1_nu_fission = nufission.get_xs(xs_type='macro', nuclides=['H1'])
+water_h1_nu_fission_to_write = [float('%.8E'%x) for x in water_h1_nu_fission]
+water_o16_nu_fission = nufission.get_xs(xs_type='macro', nuclides=['O16'])
+water_o16_nu_fission_to_write = [float('%.8E'%x) for x in water_o16_nu_fission]
+
+total= xs_library[mCells[0].id]['total']
+water_h1_total = total.get_xs(xs_type='macro', nuclides=['H1'])
+water_h1_total_to_write = [float('%.8E'%x) for x in water_h1_total]
+water_o16_total = total.get_xs(xs_type='macro', nuclides=['O16'])
+water_o16_total_to_write = [float('%.8E'%x) for x in water_o16_total]
+
+chi= xs_library[mCells[0].id]['chi']
+water_h1_chi = chi.get_xs(xs_type='macro', nuclides=['H1'])
+water_h1_chi_to_write = [float('%.8E'%x) for x in water_h1_chi]
+water_o16_chi = chi.get_xs(xs_type='macro', nuclides=['O16'])
+water_o16_chi_to_write = [float('%.8E'%x) for x in water_o16_chi]
+
+absorption= xs_library[mCells[0].id]['absorption']
+water_h1_absorption = absorption.get_xs(xs_type='macro', nuclides=['H1'])
+water_h1_absorption_to_write = [float('%.8E'%x) for x in water_h1_absorption]
+water_o16_absorption = absorption.get_xs(xs_type='macro', nuclides=['O16'])
+water_o16_absorption_to_write = [float('%.8E'%x) for x in water_o16_absorption]
+
+scatter= xs_library[mCells[0].id]['scatter']
+water_h1_scatter = scatter.get_xs(xs_type='macro', nuclides=['H1'])
+water_h1_scatter_to_write = [[float('%.8E'%x) for x in y] for y in water_h1_scatter]
+water_o16_scatter = scatter.get_xs(xs_type='macro', nuclides=['O16'])
+water_o16_scatter_to_write = [[float('%.8E'%x) for x in y] for y in water_o16_scatter]
+
+
+
+
 ###############################################################################
 ###############################################################################
 
@@ -302,6 +337,23 @@ for i in range(9):
     f.write("u238_scatter"+str(i)+" = "+str(u238_scatter_to_write)+"\n")
     f.write("o16_scatter"+str(i)+" = "+str(o16_scatter_to_write)+"\n")
     f.write("\n\n")
+
+    f.write("water_h1_nuFission"+str(i)+" = "+str(water_h1_nu_fission_to_write)+"\n")
+    f.write("water_o16_nuFission"+str(i)+" = "+str(water_o16_nu_fission_to_write)+"\n")
+    f.write("\n\n")
+    f.write("water_h1_total"+str(i)+" = "+str(water_h1_total_to_write)+"\n")
+    f.write("water_o16_total"+str(i)+" = "+str(water_o16_total_to_write)+"\n")
+    f.write("\n\n")
+    f.write("water_h1_chi"+str(i)+" = "+str(water_h1_chi_to_write)+"\n")
+    f.write("water_o16_chi"+str(i)+" = "+str(water_o16_chi_to_write)+"\n")
+    f.write("\n\n")
+    f.write("water_h1_absorption"+str(i)+" = "+str(water_h1_absorption_to_write)+"\n")
+    f.write("water_o16_absorption"+str(i)+" = "+str(water_o16_absorption_to_write)+"\n")
+    f.write("\n\n")
+    f.write("water_h1_scatter"+str(i)+" = "+str(water_h1_scatter_to_write)+"\n")
+    f.write("water_o16_scatter"+str(i)+" = "+str(water_o16_scatter_to_write)+"\n")
+    f.write("\n\n")
+
 
 
 
@@ -334,6 +386,10 @@ for i in hi_N:
     f.write("N_hi_"+str(i)+" = "+str(hi_N[i][1]*1E24)+"\n")
     f.write("N_lo_"+str(i)+" = "+str(lo_N[i][1]*1E24)+"\n")
 
+water_N = water.get_nuclide_atom_densities()
+
+for i in water_N:
+    f.write("N_water_"+str(i)+" = "+str(water_N[i][1]*1E24*9.0)+"\n")
 
 
 f.close()

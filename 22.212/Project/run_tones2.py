@@ -198,7 +198,7 @@ def run_tones():
             # For hi/lo enr. of fuel, use values we just pulled from dilution table
             # For moderator, use openMC values generated from grid_3x3.py
             collisionProbs = [                                                   \
-                getCollisionProb( pitch, pinRad, plot=False, numParticles=5000,  \
+                getCollisionProb( pitch, pinRad, plot=False, numParticles=1000,  \
                   hole=True, fSigT_hi=SigT_hi[g], fSigT_lo=SigT_lo[g],          \
                   mSigT=modTotal0[g], verbose=False, startNeutronsFrom=0 )       \
                 for g in range(nGroups)]
@@ -241,7 +241,6 @@ def run_tones():
 
             counter += 1
             if counter > 9:
-
                 absorptionXS_good_g3 = [pins[0].U238.openMC_SigA[3]]*len(absorptionXS_g3)
                 absorptionXS_good_g4 = [pins[0].U238.openMC_SigA[4]]*len(absorptionXS_g4)
                 absorptionXS_good_g5 = [pins[0].U238.openMC_SigA[5]]*len(absorptionXS_g5)

@@ -4,7 +4,7 @@ import numpy as np
 
 
 def getQ(cell):
-    return cell.src + 0.5*cell.SigS*cell.phi
+    return 0.5*cell.src + 0.5*cell.SigS*cell.phi
 
 
 def step(psi_in,mu_n,cell):
@@ -26,14 +26,15 @@ def stepCharacteristic(psi_in,mu_n,cell):
            ((cell.dx*Q/mu)*np.exp(-cell.SigT*cell.dx/mu))
 
 
-       
-def linearDiscontinuous(psi_in,mu_n,cell):
-    Q = getQ(cell)
-    #mu = abs(mu_n)
-    mu = mu_n
 
-    Q_R = Q
-    Q_L = Q
+
+def getQ_linDisc(cell,nextCell):
+    return 0.5*cell.src + 0.5*cell.SigS*cell.phi, \
+           0.5*cell.src + 0.5*cell.SigS*nextCell.phi
+       
+def linearDiscontinuous(psi_in,mu_n,cell,nextCell):
+    mu = mu_n
+    Q_L, Q_R = getQ_linDisc(cell,nextCell)
 
     Q_tilde_L = (1.0*Q_R/3.0 + 2.0*Q_L/3.0)*cell.dx
     Q_tilde_R = (2.0*Q_R/3.0 + 1.0*Q_L/3.0)*cell.dx
@@ -65,11 +66,11 @@ def linearDiscontinuous(psi_in,mu_n,cell):
 
 
 
-def getPsiOut(psi_in,mu,cell,method):
+def getPsiOut(psi_in,mu,cell,method,nextCell=None):
     if method == 'step':                return step(psi_in,mu,cell)
     if method == 'diamond':             return diamondDiff(psi_in,mu,cell)
     if method == 'stepCharacteristic':  return stepCharacteristic(psi_in,mu,cell)
-    if method == 'linearDiscontinuous': return linearDiscontinuous(psi_in,mu,cell)
+    if method == 'linearDiscontinuous': return linearDiscontinuous(psi_in,mu,cell,nextCell)
     raise ValueError
 
  
@@ -86,14 +87,16 @@ def broom(S,cells,method):
         mu = S.mu[n]
         psi_in = 0.0 # Because of vacuum BC
         for i,cell in enumerate(cells):
-            psi_in = psi[i+1,n] = getPsiOut(psi_in,mu,cell,method)
+            nextCell = cell if i == len(cells)-1 else cells[i+1]
+            psi_in = psi[i+1,n] = getPsiOut(psi_in,mu,cell,method,nextCell)
 
     # Backward Sweep
     for n in range(int(S.N/2),S.N):
         mu = S.mu[n]
         psi_in = 0.0 # Because of vacuum BC
         for i,cell in enumerate(cells):
-            psi_in = psi[-2-i,n] = getPsiOut(psi_in,mu,cell,method)
+            nextCell = cell if i == len(cells)-1 else cells[i+1]
+            psi_in = psi[-2-i,n] = getPsiOut(psi_in,mu,cell,method,nextCell)
 
 
     for i,cell in enumerate(cells):
