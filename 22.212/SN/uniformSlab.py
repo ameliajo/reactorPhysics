@@ -3,7 +3,7 @@ import numpy as np
 from sweep import *
 
 class cell:
-    def __init__(self,ID,SigT,SigS,src,width):
+    def __init__(self,ID,SigT,SigS,src,width,uniform):
         self.ID    = ID
         self.SigT  = SigT
         self.SigS  = SigS
@@ -13,6 +13,16 @@ class cell:
         self.L     = ID*width
         self.M     = (ID+0.5)*width
         self.R     = (ID+1)*width
+        if not uniform:
+            if self.M <= 10:
+                self.src = 0.0
+                self.SigS = 0.5
+            if 10 < self.M <= 20:
+                self.src = 1.0
+                self.SigS = 0.9
+            if 20 < self.M:
+                self.src = 0.0
+                self.SigS = 0.2
     def __str__(cell):
         return "Cell #"+str(cell.ID)+" and spans "+str(cell.L)+" - "+str(cell.R)
 
@@ -28,13 +38,10 @@ class GaussLegendre:
         self.N = N
         self.mu, self.wgt = leggauss(N)
 	
-def runSN(numCells,width,SigT,SigS,src,methods):
+def runSN(numCells,width,SigT,SigS,src,methods,uniform):
     dx = width/numCells
-    cells = []
-    for i in range(numCells):
-        cells.append(cell(i,SigT,SigS,src,dx))
 
-
+    cells = [cell(i,SigT,SigS,src,dx,uniform) for i in range(numCells)]
 
     for method in methods:
         oldPhi = [1.0]*numCells
@@ -42,42 +49,48 @@ def runSN(numCells,width,SigT,SigS,src,methods):
         counter = 0
         while not converged:
             counter += 1
-            broom(S,cells,method)
+            broom(S,cells,method,'vacuum')
             x   = [cell.M   for cell in cells]
             phi = [cell.phi for cell in cells]
             invMaxVal = 1.0/max(phi)
             phi = [x*invMaxVal for x in phi]
-            #plt.plot(x,phi,label=method)
 
             diff = [oldPhi[i]-phi[i] for i in range(numCells)]
             if max(diff) < 1e-6: 
-                #plt.plot(x,phi,label=method+" "+str(numCells))
+                print(counter)
+                plt.plot(x,phi,label=method+" "+str(numCells))
                 converged = True
-                return phi
             oldPhi = phi[:]
             if counter > 1e3: 
-                #plt.plot(x,phi,label=method+" "+str(numCells))
+                plt.plot(x,phi,label=method+" "+str(numCells))
                 print(numCells,"is not stable")
-                return phi
 
 
 
 
 S = GaussLegendre(2)
-#S = GaussLegendre(4)
+S = GaussLegendre(4)
 
-numCells = 10000
-width = 50.0
+numCells = 200
+width = 20.0
 SigT = 1.0
 SigS = 0.1 # 0.1, 0.5, 0.99
-SigS = 0.5
-SigS = 0.99
 src  = 1.0
 
 
 
 methods = ['step','diamond','stepCharacteristic','linearDiscontinuous']
-methods = ['linearDiscontinuous']
+
+#phiGood = runSN(numCells,width,SigT,SigS,src,methods,True)
+phiGood = runSN(numCells,width,SigT,SigS,src,methods,False)
+
+plt.xlabel('distance (cm)')
+plt.ylabel('avg. scalar flux')
+plt.legend(loc='best')
+plt.title('S'+str(S.N)+' method for '+str(width)+'cm slab, spatial convergence for scatter = '+str(SigS))
+plt.show()
+
+
 
 def getConvergence(numCells,method,SigT,SigS,src,width):
     nGood = 10000
@@ -96,25 +109,25 @@ def getConvergence(numCells,method,SigT,SigS,src,width):
     plt.plot(numCells,sumErrors,label=method)
     return sumErrors
     
+"""
 numCells = [90,100,200,400,500,1000,2000,5000]
 numCells = [90,100,200,400,700,1000]
 
 sumErrors = getConvergence(numCells,'step',SigT,SigS,src,width)
-print(sumErrors)
 sumErrors = getConvergence(numCells,'diamond',SigT,SigS,src,width)
-print(sumErrors)
 sumErrors = getConvergence(numCells,'stepCharacteristic',SigT,SigS,src,width)
-print(sumErrors)
 sumErrors = getConvergence(numCells,'linearDiscontinuous',SigT,SigS,src,width)
-print(sumErrors)
 plt.xlabel('# Cells used')
 plt.ylabel('% Error Relative to very fine run')
 plt.legend(loc='best')
 
 plt.title('S'+str(S.N)+' method for '+str(width)+'cm slab, spatial convergence for scatter = '+str(SigS))
-
     
 plt.show()
+"""
+
+
+
 
 """
 plt.title('S'+str(S.N)+' method for '+str(width)+'cm slab, spatial convergence for '+methods[0])

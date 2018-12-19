@@ -77,26 +77,30 @@ def getPsiOut(psi_in,mu,cell,method,nextCell=None):
 
 
 
-def broom(S,cells,method):
+def broom(S,cells,method,BC_right):
     assert(S.N%2 == 0) # Require that order is even
 
     psi = np.zeros((len(cells)+1,S.N))
 
+    oldPsi = [0.0]*int(len(S.mu)/2)
     # Forward Sweep
     for n in range(int(S.N/2)):
         mu = S.mu[n]
         psi_in = 0.0 # Because of vacuum BC
         for i,cell in enumerate(cells):
-            nextCell = cell if i == len(cells)-1 else cells[i+1]
+            nextCell = cells[i] if i == len(cells)-1 else cells[i+1]
             psi_in = psi[i+1,n] = getPsiOut(psi_in,mu,cell,method,nextCell)
+            oldPsi[n] = psi_in
 
     # Backward Sweep
     for n in range(int(S.N/2),S.N):
         mu = S.mu[n]
-        psi_in = 0.0 # Because of vacuum BC
-        for i,cell in enumerate(cells):
-            nextCell = cell if i == len(cells)-1 else cells[i+1]
-            psi_in = psi[-2-i,n] = getPsiOut(psi_in,mu,cell,method,nextCell)
+        psi_in = 0.0 if BC_right == 'vacuum' else oldPsi[round(n/2)-1]
+        psi[len(cells),n] = 0.0 if BC_right == 'vacuum' else oldPsi[round(n/2)-1]
+        for i in range(len(cells)):
+            pseudo_i = len(cells)-i-1
+            nextCell = cells[pseudo_i] if pseudo_i == 0 else cells[pseudo_i]
+            psi_in = psi[pseudo_i,n] = getPsiOut(psi_in,mu,cell,method,nextCell)
 
 
     for i,cell in enumerate(cells):
