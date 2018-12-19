@@ -49,18 +49,32 @@ S2,S4 Linear Disc. SigS = 0.99 = 700ish for various numbers of cells\par~\par
 Here are some examples of plots I made\\
 \includegraphics[width=0.5\textwidth]{f8}
 \includegraphics[width=0.5\textwidth]{f9}\\
-
 \includegraphics[width=0.5\textwidth]{f10}
 \includegraphics[width=0.5\textwidth]{f11}\\
 \includegraphics[width=0.5\textwidth]{f12}
 \includegraphics[width=0.5\textwidth]{f13}\\
 
+The number of cells we have is $L/dx$. This means that we will have to store flux in the cell, of which there are $L/dx$, and save the information at the boundaries, of which there are $L/dx + 1$.\par
+If we store angular flux in each slab instead of scalar flux, we will have an additional $L/dx\times\#~\mbox{angles}$.\par
+
+\includegraphics[width=0.5\textwidth]{f23}\\
 
 
 
 
 
 \subsection*{Heterogeneous Slab}
+All my methods, for various mesh sizes, took between 15 and 20 iterations to converge.\par
+\includegraphics[width=0.5\textwidth]{f17}
+\includegraphics[width=0.5\textwidth]{f18}\\
+\includegraphics[width=0.5\textwidth]{f19}
+\includegraphics[width=0.5\textwidth]{f20}\\
+\includegraphics[width=0.5\textwidth]{f21}
+\includegraphics[width=0.5\textwidth]{f22}\\
+
+
+
+
 
 
 

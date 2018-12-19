@@ -1,0 +1,42 @@
+
+##############################################################################
+Using SN method code
+##############################################################################
+
+>>> python slab.py
+
+You can run either the slab code for plotting fluxes (for uniform slab or for 
+the heterogeneous problem defined in the problem statement), or you can track
+how the errors change for various cell spacings.
+
+-------------------------------------------------------------------------------
+To look at the flux, go into the top of ``slab.py'' and make sure that 
+
+  flux = True
+
+this will use the numbers of cells that you specify using numCells (up at the
+top too). 
+
+
+
+-------------------------------------------------------------------------------
+To look at the error, go into the top of ``slab.py'' and make sure that 
+
+  error = True
+
+
+
+Having 
+
+  uniform = True
+
+means that we're modeling the uniform problem. Having it false means we're doing
+the half-geometry with reflective bounds heterogeneous problem.
+
+
+
+
+
+
+
+
