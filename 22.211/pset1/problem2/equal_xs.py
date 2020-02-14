@@ -39,23 +39,29 @@ def whichBandAmIIn(xsVal,bands):
             return i
 
 
-def getProbabilities(xvals,xsVec,label):
 
+
+
+
+def getProbabilities(xvals,xsVec,label,toPlot=True):
     numBands = 5
     min_capture = np.amin(xsVec)-1e-3
     max_capture = np.amax(xsVec)+1e-3
     slice_spacing = (max_capture-min_capture)/float(numBands)
     bands = [(min_capture+i*slice_spacing,min_capture+(i+1)*slice_spacing) for i in range(0,numBands)]
 
-    plot_line(bands[0][0])
-    for band in bands:
-        plot_line(band[1])
+
+    if toPlot:
+        plot_line(bands[0][0])
+        for band in bands:
+            plot_line(band[1])
 
     currentBand = whichBandAmIIn(xsVec[0],bands)
     chunk_X = []
     chunk_Y = []
 
-    probability = [0.0]*len(bands)
+    #probability = [0.0]*len(bands)
+    p2 = [[] for i in range(len(bands))]
     
     for i in range(len(xvals)):
         if whichBandAmIIn(xsVec[i],bands) == currentBand:
@@ -63,16 +69,29 @@ def getProbabilities(xvals,xsVec,label):
             chunk_Y.append(xsVec[i])
         else:
             thisChunk = np.trapz(chunk_Y,chunk_X)/(chunk_X[-1]-chunk_X[0])
-            probability[currentBand] = thisChunk
+            #probability[currentBand] = thisChunk
+            p2[currentBand].append(thisChunk)
             currentBand = whichBandAmIIn(xsVec[i],bands)
             chunk_X = [xvals[i]]
             chunk_Y = [xsVec[i]]
     
-    totalSum = sum(probability)
-    probability = [val/totalSum for val in probability]
-    plt.plot(xvals, xsVec, label=label)
-    plt.show()
-    return probability
-print(getProbabilities(xvals,capture,'capture'))
+    #totalSum = sum(probability)
+    #probability = [val/totalSum for val in probability]
+    if toPlot:
+        plt.plot(xvals, xsVec, label=label)
+        plt.show()
+    return p2#,probability
+
+
+p2 = getProbabilities(xvals,capture,'capture',False)
+prob2 = [0.0]*len(p2)
+for i,val in enumerate(p2):
+    prob2[i] = sum(p2[i])/len(p2[i])
+
+sumVal = sum(prob2)
+prob2 = [val/sumVal for val in prob2]
+print(prob2)
+
+
 
 
