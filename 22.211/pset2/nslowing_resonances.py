@@ -35,10 +35,10 @@ def zerod_mc(mf_ratio,temp, neutrons, logemin, logemax, nbins, pick_res=[False,0
         while energy > 1:
             e_freq_step = np.histogram(energy,e_bins)[0]
             mod_xs_micro = 20
-            mod_xs_macro = mod_xs_micro*mf_ratio
             elastic_xs_micro = xs_from_res(ap,A,res_E,gn,gg,gfa,gfb,temp,energy,reaction='elastic',comp=comp)
-            elastic_xs_macro = elastic_xs_micro
             capture_xs_micro = xs_from_res(ap,A,res_E,gn,gg,gfa,gfb,temp,energy,reaction='capture',comp=comp)
+            mod_xs_macro     = mod_xs_micro*mf_ratio
+            elastic_xs_macro = elastic_xs_micro
             capture_xs_macro = capture_xs_micro
             fuel_xs_macro = elastic_xs_macro+capture_xs_macro
             total_xs_macro = mod_xs_macro + fuel_xs_macro
